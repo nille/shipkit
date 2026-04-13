@@ -113,13 +113,15 @@ class TestClaudeCompiler:
         assert "Available Skills" in content
         assert "/commit" in content
 
-    def test_compiles_skills_to_commands(self, compile_ctx):
+    def test_skills_not_compiled_uses_discovery(self, compile_ctx):
+        """Skills are NOT compiled - discovered at runtime via guideline."""
         compiler = get_compiler("claude")
         result = compiler.compile(compile_ctx)
-        commands_dir = compile_ctx.repo_path / ".claude" / "commands"
-        assert commands_dir.exists()
-        # Should have at least one skill compiled
-        assert any("commands/" in f for f in result.files_written)
+        # Skills should NOT be written to .claude/commands/
+        assert not any("commands/" in f for f in result.files_written)
+        # Discovery guideline should be in CLAUDE.md
+        content = (compile_ctx.repo_path / "CLAUDE.md").read_text()
+        assert "Skill Discovery" in content
 
     def test_generates_mcp_json(self, compile_ctx):
         compiler = get_compiler("claude")

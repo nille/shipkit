@@ -5,8 +5,6 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-
-### Added
 - `shipkit alias` command: generate a shell alias to launch a project from any directory
   - `--install` flag to auto-append to ~/.zshrc or ~/.bashrc
   - `--project` flag to target a specific registered project

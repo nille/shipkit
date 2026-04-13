@@ -200,11 +200,12 @@ class TestKiroCompiler:
             result = compiler.compile(compile_ctx)
             assert any("preserved" in s for s in result.files_skipped)
 
-    def test_compiles_skills(self, compile_ctx):
+    def test_skills_not_compiled(self, compile_ctx):
+        """Skills are NOT compiled - discovered at runtime."""
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        skills_dir = compile_ctx.repo_path / ".kiro" / "skills"
-        assert skills_dir.exists()
+        # Skills should NOT be written
+        assert not any("/skills/" in f and "SKILL.md" in f for f in result.files_written)
 
     def test_compiles_subagents(self, compile_ctx):
         compiler = get_compiler("kiro")

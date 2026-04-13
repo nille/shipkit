@@ -47,20 +47,24 @@ class KiroCompiler(Compiler):
 
         steering_dir = ctx.repo_path / ".kiro" / "steering"
 
-        # Collect steering files from all layers, deduplicating by filename
-        # Higher layers override lower layers
-        steering_files: dict[str, Path] = {}
+        # Collect ALL layers of each steering rule by filename
+        from shipkit.skill_parser import parse_steering, cascade_steering
+
+        steering_by_name: dict[str, list[Path]] = {}
         for layer_dir in ctx.steering_layers:
             if not layer_dir.exists():
                 continue
             for md_file in sorted(layer_dir.glob("*.md")):
-                steering_files[md_file.name] = md_file
+                if md_file.name not in steering_by_name:
+                    steering_by_name[md_file.name] = []
+                steering_by_name[md_file.name].append(md_file)
 
-        if not steering_files:
+        if not steering_by_name:
             skipped.append(".kiro/steering/ (no steering rules found)")
             return written, skipped, warnings
 
-        for filename, source_path in sorted(steering_files.items()):
+        # Cascade and write each steering rule
+        for filename, steering_paths in sorted(steering_by_name.items()):
             target = steering_dir / filename
 
             # Preserve repo-native steering files
@@ -68,13 +72,18 @@ class KiroCompiler(Compiler):
                 skipped.append(f".kiro/steering/{filename} (repo-native, preserved)")
                 continue
 
+            # Parse all layers
+            steering_defs = [parse_steering(p) for p in steering_paths]
+
+            # Cascade layers (respects extends field)
+            cascaded_content = cascade_steering(steering_defs)
+
             if dry_run:
                 written.append(f".kiro/steering/{filename} (dry-run)")
             else:
                 steering_dir.mkdir(parents=True, exist_ok=True)
-                content = source_path.read_text()
                 # Add a managed marker comment at the top
-                managed_content = f"<!-- shipkit:managed -->\n{content}"
+                managed_content = f"<!-- shipkit:managed -->\n{cascaded_content}"
                 target.write_text(managed_content)
                 written.append(f".kiro/steering/{filename}")
 

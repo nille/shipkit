@@ -47,13 +47,25 @@ class GeminiCliCompiler(Compiler):
         """Generate GEMINI.md with steering rules and skill catalog."""
         written, skipped, warnings = [], [], []
 
-        # Collect steering content from all layers
-        sections = []
+        # Collect ALL layers of each steering rule by filename
+        from shipkit.skill_parser import parse_steering, cascade_steering
+
+        steering_by_name: dict[str, list[Path]] = {}
         for steering_dir in ctx.steering_layers:
             if not steering_dir.exists():
                 continue
             for md_file in sorted(steering_dir.glob("*.md")):
-                sections.append(md_file.read_text().strip())
+                if md_file.name not in steering_by_name:
+                    steering_by_name[md_file.name] = []
+                steering_by_name[md_file.name].append(md_file)
+
+        # Cascade each steering rule
+        sections = []
+        for filename in sorted(steering_by_name.keys()):
+            steering_paths = steering_by_name[filename]
+            steering_defs = [parse_steering(p) for p in steering_paths]
+            cascaded = cascade_steering(steering_defs)
+            sections.append(cascaded)
 
         # Collect skill catalog from all layers, deduplicating by name
         skills_by_name: dict[str, str] = {}

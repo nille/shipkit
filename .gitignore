@@ -35,3 +35,9 @@ Thumbs.db
 # Environment
 .env
 .env.*
+
+# Tool-specific generated content (output of shipkit sync)
+.claude/
+.kiro/
+CLAUDE.md
+.mcp.json

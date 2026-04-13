@@ -25,7 +25,7 @@ class TestSyncProject:
     def test_sync_kiro(self, registered_project):
         repo, name = registered_project
         result = sync_project(repo_path=repo, tool="kiro")
-        assert (repo / ".kiro" / "steering").exists()
+        assert (repo / ".kiro" / "guidelines").exists()
 
     def test_sync_tool_override(self, registered_project):
         repo, name = registered_project

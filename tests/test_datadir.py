@@ -24,9 +24,9 @@ class TestEnsureHome:
     def test_idempotent(self, tmp_home):
         ensure_home()
         # Add a file to verify it's not wiped
-        (tmp_home / "steering" / "custom.md").write_text("# Custom\n")
+        (tmp_home / "guidelines" / "custom.md").write_text("# Custom\n")
         ensure_home()
-        assert (tmp_home / "steering" / "custom.md").exists()
+        assert (tmp_home / "guidelines" / "custom.md").exists()
 
     def test_returns_path(self, tmp_home):
         result = ensure_home()

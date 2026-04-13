@@ -83,31 +83,31 @@ class TestEndToEndClaude:
         assert "Do not lose this" in new_content
         assert "SHIPKIT:BEGIN" in new_content
 
-    def test_user_steering_included(self, tmp_home, tmp_repo):
+    def test_user_guidelines_included(self, tmp_home, tmp_repo):
         from shipkit.project import init_project
         from shipkit.sync import sync_project
 
-        init_project(tmp_repo, name="e2e-steering")
+        init_project(tmp_repo, name="e2e-guidelines")
 
-        # Add a user steering rule
-        steering_dir = tmp_home / "steering"
-        steering_dir.mkdir(parents=True, exist_ok=True)
-        (steering_dir / "my-rule.md").write_text("# My Rule\n\nAlways use tabs.\n")
+        # Add a user guidelines rule
+        guidelines_dir = tmp_home / "guidelines"
+        guidelines_dir.mkdir(parents=True, exist_ok=True)
+        (guidelines_dir / "my-rule.md").write_text("# My Rule\n\nAlways use tabs.\n")
 
         sync_project(repo_path=tmp_repo)
 
         content = (tmp_repo / "CLAUDE.md").read_text()
         assert "Always use tabs" in content
 
-    def test_project_steering_overrides(self, tmp_home, tmp_repo):
+    def test_project_guidelines_overrides(self, tmp_home, tmp_repo):
         from shipkit.project import init_project
         from shipkit.sync import sync_project
 
         name = init_project(tmp_repo, name="e2e-override")
 
-        # Add project-specific steering
-        project_steering = tmp_home / "projects" / name / "steering"
-        (project_steering / "local.md").write_text("# Local\n\nProject-specific rule.\n")
+        # Add project-specific guidelines
+        project_guidelines = tmp_home / "projects" / name / "guidelines"
+        (project_guidelines / "local.md").write_text("# Local\n\nProject-specific rule.\n")
 
         sync_project(repo_path=tmp_repo)
 
@@ -126,9 +126,9 @@ class TestEndToEndKiro:
         result = sync_project(repo_path=tmp_repo, tool="kiro")
 
         # Steering
-        steering_dir = tmp_repo / ".kiro" / "steering"
-        assert steering_dir.exists()
-        md_files = list(steering_dir.glob("*.md"))
+        guidelines_dir = tmp_repo / ".kiro" / "guidelines"
+        assert guidelines_dir.exists()
+        md_files = list(guidelines_dir.glob("*.md"))
         assert len(md_files) >= 5
 
         # All managed files have marker
@@ -161,9 +161,9 @@ class TestEndToEndPlugins:
         (plugin_dir / "plugin.yaml").write_text(
             "name: test-plugin\ndescription: Test plugin\nauthor: test\n"
         )
-        plugin_steering = plugin_dir / "steering"
-        plugin_steering.mkdir()
-        (plugin_steering / "plugin-rule.md").write_text("# Plugin Rule\n\nFrom plugin.\n")
+        plugin_guidelines = plugin_dir / "guidelines"
+        plugin_guidelines.mkdir()
+        (plugin_guidelines / "plugin-rule.md").write_text("# Plugin Rule\n\nFrom plugin.\n")
 
         sync_project(repo_path=tmp_repo)
 

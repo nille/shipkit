@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI-agnostic AI dev productivity kit. Skills, guidelines rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, OpenCode, and other AI coding tools.
+CLI-agnostic AI dev productivity kit. Skills, guidelines, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, OpenCode, and other AI coding tools.
 
 ## Why Shipkit?
 
@@ -15,7 +15,7 @@ Most AI coding tools come with their own conventions: custom slash commands, too
 ### Three superpowers that compound over time:
 
 **1. Self-learning system**  
-Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines rules or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
+Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
 
 ```
 Session N → background analysis → suggestions written
@@ -24,7 +24,7 @@ You → approve → auto-learned.md updated → permanent behavior change
 ```
 
 **2. CLI-agnostic architecture**  
-Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, guidelines rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
+Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, guidelines, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
 
 ```bash
 shipkit sync --tool claude    # Generates CLAUDE.md + .claude/commands/
@@ -66,7 +66,7 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 - **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
 - **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
-- **Project-specific overrides** — per-repo guidelines rules that only apply where they matter
+- **Project-specific overrides** — per-repo guidelines that only apply where they matter
 
 ### Teams can collaborate across different tools:
 
@@ -103,7 +103,7 @@ Package core          ← ships with shipkit, updated via pip/git
         ↓ Repo-native ← existing tool config (never overwritten)
 ```
 
-Each layer can add or override skills, guidelines rules, MCP servers, and hooks. Higher layers win on conflict. Your content is never touched by updates.
+Each layer can add or override skills, guidelines, MCP servers, and hooks. Higher layers win on conflict. Your content is never touched by updates.
 
 ## Prerequisites
 
@@ -143,7 +143,7 @@ shipkit alias sk --install
 # Now just type 'sk' from any directory
 ```
 
-After sync, your AI coding CLI has access to all skills as slash commands, guidelines rules in its system context, and MCP servers configured.
+After sync, your AI coding CLI has access to all skills as slash commands, guidelines in its system context, and MCP servers configured.
 
 ```bash
 # Use language-specific templates
@@ -284,7 +284,7 @@ shipkit plugin update review-plus
 shipkit plugin uninstall review-plus
 ```
 
-Plugins can provide skills, guidelines rules, hooks, and subagents. They slot into the content layering between user global and project layers.
+Plugins can provide skills, guidelines, hooks, and subagents. They slot into the content layering between user global and project layers.
 
 ### Plugin Registries
 
@@ -446,7 +446,7 @@ shipkit template list
 
 ## Versioning Your Personal Content
 
-Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, guidelines rules, learned preferences, templates. You should version it.
+Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, guidelines, learned preferences, templates. You should version it.
 
 ### What to version:
 
@@ -569,7 +569,7 @@ shipkit sync --tool opencode
 ```
 ~/.config/shipkit/                     SHIPKIT_HOME (configurable via env var)
 ├── config.yaml                        Global settings (cli_tool)
-├── guidelines/                          Personal guidelines rules
+├── guidelines/                          Personal guidelines
 │   └── auto-learned.md                Cross-cutting auto-learned preferences
 ├── skills/                            Personal skills
 │   └── <name>/
@@ -581,7 +581,7 @@ shipkit sync --tool opencode
 │   └── <name>/
 │       ├── plugin.yaml                Plugin manifest
 │       ├── skills/                    Plugin skills
-│       ├── guidelines/                  Plugin guidelines rules
+│       ├── guidelines/                  Plugin guidelines
 │       └── hooks/                     Plugin hooks
 ├── projects/
 │   └── <name>/
@@ -616,7 +616,7 @@ shipkit (Python package)
 │   │   ├── gemini.py                  Gemini CLI compiler
 │   │   └── opencode.py                OpenCode compiler
 │   └── content/                       Core content (ships with package)
-│       ├── guidelines/                  8 guidelines rules
+│       ├── guidelines/                  8 guidelines
 │       ├── skills/                    21 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions

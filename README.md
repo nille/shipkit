@@ -62,7 +62,7 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 
 ### Extend without limits:
 
-- **20 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases, marketplace contributions
+- **21 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases, marketplace contributions, config backup
 - **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
 - **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
@@ -156,7 +156,7 @@ shipkit sync --tool opencode
 
 ## Skills
 
-20 skills ship with the package, available as slash commands:
+21 skills ship with the package, available as slash commands:
 
 ### Core
 
@@ -189,6 +189,7 @@ shipkit sync --tool opencode
 | `/setup` | First-time configuration wizard — diagnose, report, fix |
 | `/skill-builder` | Create and improve shipkit skills |
 | `/contribute-skill` | Submit local skills to marketplace — fork, PR, automate |
+| `/sync-config` | Commit and push personal config to git remote for backup |
 | `/retro` | Session review, self-improvement, triage pending learnings |
 | `/shipkit` | Natural language interface to shipkit CLI commands |
 | `/update` | Self-update and re-sync all projects |
@@ -355,6 +356,80 @@ shipkit init --template my-stack
 shipkit template list
 ```
 
+## Versioning Your Personal Content
+
+Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, steering rules, learned preferences, templates. You should version it.
+
+### What to version:
+
+```bash
+cd ~/.config/shipkit
+git init
+
+# Version these directories
+git add skills/          # Your custom skills
+git add steering/        # Your behavioral rules (including auto-learned.md)
+git add mcp.json         # MCP server configs
+git add config.yaml      # Global settings
+git add templates/       # Custom project templates
+```
+
+### What NOT to version:
+
+```bash
+# Add to .gitignore
+echo ".state/" >> .gitignore       # Machine state (sessions, retro pending)
+echo "plugins/" >> .gitignore      # Installed from git, not yours
+echo "projects/" >> .gitignore     # Project paths are machine-specific
+```
+
+### Sync across machines:
+
+```bash
+# Initial setup - push to private repo
+cd ~/.config/shipkit
+git remote add origin git@github.com:yourname/my-shipkit-config.git
+git push -u origin main
+
+# On another machine - clone instead of init
+rm -rf ~/.config/shipkit  # if exists
+git clone git@github.com:yourname/my-shipkit-config.git ~/.config/shipkit
+```
+
+### Using dotfiles managers:
+
+If you use [chezmoi](https://www.chezmoi.io/), [yadm](https://yadm.io/), or similar:
+
+```bash
+# Add shipkit config to your dotfiles
+chezmoi add ~/.config/shipkit/skills/
+chezmoi add ~/.config/shipkit/steering/
+chezmoi add ~/.config/shipkit/config.yaml
+```
+
+### Share within your team:
+
+Fork your personal config as a team starter:
+
+```bash
+# Team member clones your setup as a base
+git clone git@github.com:yourname/my-shipkit-config.git ~/.config/shipkit
+cd ~/.config/shipkit
+
+# Add their own customizations
+# Push to their own fork
+git remote set-url origin git@github.com:teammate/their-shipkit-config.git
+```
+
+Your learned preferences (steering/auto-learned.md) are especially valuable to version - they represent the accumulated wisdom from all your sessions.
+
+**Quick backup:** Use the `/sync-config` skill to commit and push your config in one command:
+
+```
+> /sync-config
+✓ Config committed and pushed to remote
+```
+
 ## CLI Reference
 
 ```
@@ -454,7 +529,7 @@ shipkit (Python package)
 │   │   └── opencode.py                OpenCode compiler
 │   └── content/                       Core content (ships with package)
 │       ├── steering/                  8 steering rules
-│       ├── skills/                    20 skills
+│       ├── skills/                    21 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions
 │       └── mcp.json                   Default MCP servers

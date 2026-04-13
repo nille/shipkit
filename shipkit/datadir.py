@@ -51,6 +51,12 @@ def ensure_home() -> Path:
     if seed_templates.exists() and not any(templates_dir.iterdir()):
         shutil.copytree(seed_templates, templates_dir, dirs_exist_ok=True)
 
+    # Copy .gitignore template if not already present
+    seed_gitignore = SEED_DIR / "gitignore.sample"
+    target_gitignore = home / ".gitignore"
+    if seed_gitignore.exists() and not target_gitignore.exists():
+        shutil.copy2(seed_gitignore, target_gitignore)
+
     # Create default config if none exists
     if not (home / "config.yaml").exists():
         ShipkitConfig().save()

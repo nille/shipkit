@@ -93,7 +93,7 @@ class TestEndToEndClaude:
         sync_project(repo_path=tmp_repo)
 
         content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "Always use tabs" in content
+        assert "Guideline Discovery" in content
 
 
 

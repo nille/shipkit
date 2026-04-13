@@ -24,11 +24,12 @@ You → approve → auto-learned.md updated → permanent behavior change
 ```
 
 **2. CLI-agnostic architecture**  
-Switching from Claude Code to Kiro? Trying out a new tool? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
+Switching from Claude Code to Kiro? Trying out Gemini CLI? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
 
 ```bash
 shipkit sync --tool claude   # Generates CLAUDE.md + .claude/commands/
 shipkit sync --tool kiro     # Generates .kiro/skills/ + .kiro/steering/
+shipkit sync --tool gemini   # Generates GEMINI.md + .gemini/commands/
 ```
 
 **3. Content layering that never breaks**  
@@ -128,7 +129,7 @@ shipkit init --template python
 shipkit init --template typescript
 
 # Target a different CLI tool
-shipkit sync --tool kiro
+shipkit sync --tool gemini
 ```
 
 ## Skills
@@ -425,10 +426,11 @@ shipkit (Python package)
 │   ├── compilers/
 │   │   ├── base.py                    CompileContext, Compiler ABC, content layering
 │   │   ├── claude.py                  Claude Code compiler
-│   │   └── kiro.py                    Kiro compiler
+│   │   ├── kiro.py                    Kiro compiler
+│   │   └── gemini.py                  Gemini CLI compiler
 │   └── content/                       Core content (ships with package)
 │       ├── steering/                  8 steering rules
-│       ├── skills/                    19 skills
+│       ├── skills/                    20 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions
 │       └── mcp.json                   Default MCP servers

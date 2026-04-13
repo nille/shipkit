@@ -14,8 +14,8 @@ Most AI coding tools come with their own conventions: custom slash commands, too
 
 ### Three superpowers that compound over time:
 
-**1. Self-learning system**  
-Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
+**1. Self-learning system** (Kiro-only currently)  
+Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow. *Note: Full self-learning requires Kiro's subagent system. Other tools support the hooks but not the AI-powered analysis yet.*
 
 ```
 Session N → background analysis → suggestions written

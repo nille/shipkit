@@ -8,7 +8,7 @@ Every piece of content has a context cost:
 
 | Content type | Loaded when | Cost |
 |-------------|-------------|------|
-| Steering rules | Every conversation | HIGH — keep minimal, each rule uses budget every session |
+| Guidelines | Every conversation | HIGH — keep minimal, each rule uses budget every session |
 | SKILL.md | On skill invocation | MEDIUM — loaded on demand, but bloated skills slow execution |
 | References | When skill reads them | LOW — loaded only when needed |
 | Knowledge | Search-triggered | ZERO — only loaded when explicitly searched |
@@ -19,9 +19,9 @@ Every piece of content has a context cost:
 - Is this a detailed reference table, schema, or template? → references/ subdirectory
 - Is this project-specific knowledge? → project knowledge
 
-## Steering vs Skill vs Reference
+## Guideline vs Skill vs Reference
 
-### Steering (cross-cutting rules)
+### Guideline (cross-cutting rules)
 - Applies to ALL conversations and ALL skills
 - Should be behavioral rules, not procedural steps
 - Keep each guidelines file focused on one concern

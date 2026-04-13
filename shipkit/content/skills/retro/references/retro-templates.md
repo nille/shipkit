@@ -87,7 +87,7 @@ One JSON object per line (append-only):
 }
 ```
 
-## Auto-Learned Steering File
+## Auto-Learned Guideline File
 
 **Path:** `<home>/guidelines/auto-learned.md`
 

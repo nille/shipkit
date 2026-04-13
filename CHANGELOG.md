@@ -26,6 +26,11 @@ All notable changes to this project will be documented in this file.
   - Install plugins by short name: `shipkit plugin install review-plus`
   - Users can add custom registries to config
   - Full URLs and local paths still supported
+- `/contribute-skill` - automates submitting local skills to marketplace
+  - Forks shipkit-marketplace repo
+  - Creates plugin structure (plugin.yaml, README.md)
+  - Submits PR automatically
+  - Lowers barrier to community contributions
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

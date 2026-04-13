@@ -60,9 +60,10 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 
 ### Extend without limits:
 
-- **19 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases
+- **20 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases, marketplace contributions
 - **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
-- **Install community plugins** with `shipkit plugin install <git-url>`
+- **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
+- **Install community plugins** with `shipkit plugin install <plugin-name>`
 - **Project-specific overrides** — per-repo steering rules that only apply where they matter
 
 ## How It Works
@@ -132,7 +133,7 @@ shipkit sync --tool kiro
 
 ## Skills
 
-19 skills ship with the package, available as slash commands:
+20 skills ship with the package, available as slash commands:
 
 ### Core
 
@@ -164,6 +165,7 @@ shipkit sync --tool kiro
 |-------|---------|
 | `/setup` | First-time configuration wizard — diagnose, report, fix |
 | `/skill-builder` | Create and improve shipkit skills |
+| `/contribute-skill` | Submit local skills to marketplace — fork, PR, automate |
 | `/retro` | Session review, self-improvement, triage pending learnings |
 | `/shipkit` | Natural language interface to shipkit CLI commands |
 | `/update` | Self-update and re-sync all projects |

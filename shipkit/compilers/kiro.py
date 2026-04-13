@@ -50,63 +50,32 @@ class KiroCompiler(Compiler):
         # Kiro uses "steering" not "guidelines" (their native terminology)
         steering_dir = ctx.repo_path / ".kiro" / "steering"
 
-        # Generate tool-specific discovery instructions
+        # Generate discovery instructions for both skills AND guidelines
         from shipkit.compilers.discovery_template import generate_discovery_instructions
-        discovery_instructions = generate_discovery_instructions(
+        from shipkit.compilers.guideline_discovery_template import generate_guideline_discovery_instructions
+
+        skill_discovery = generate_discovery_instructions(
             tool_name="Kiro",
             tool_project_path=".kiro/skills",
             tool_user_path="~/.kiro/skills"
         )
 
-        # Write discovery as a guideline file
-        if not dry_run:
+        guideline_discovery = generate_guideline_discovery_instructions(
+            tool_name="Kiro",
+            tool_project_path=".kiro/steering",
+            tool_user_path="~/.kiro/steering"
+        )
+
+        # Write both discovery files (Kiro reads directory of .md files)
+        if dry_run:
+            written.append(".kiro/steering/skill-discovery.md (dry-run)")
+            written.append(".kiro/steering/guideline-discovery.md (dry-run)")
+        else:
             steering_dir.mkdir(parents=True, exist_ok=True)
-            discovery_file = steering_dir / "skill-discovery.md"
-            discovery_file.write_text(f"<!-- shipkit:managed -->\n{discovery_instructions}")
-            written.append("\.kiro/steering/skill-discovery.md")
-
-        # Collect ALL layers of each guidelines rule by filename
-        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
-
-        guidelines_by_name: dict[str, list[Path]] = {}
-        for layer_dir in ctx.guidelines_layers:
-            if not layer_dir.exists():
-                continue
-            for md_file in sorted(layer_dir.glob("*.md")):
-                # Skip skill-discovery.md (we generate it dynamically)
-                if md_file.name == "skill-discovery.md":
-                    continue
-                if md_file.name not in guidelines_by_name:
-                    guidelines_by_name[md_file.name] = []
-                guidelines_by_name[md_file.name].append(md_file)
-
-        if not guidelines_by_name:
-            skipped.append("\.kiro/steering/ (no guidelines rules found)")
-            return written, skipped, warnings
-
-        # Cascade and write each guidelines rule
-        for filename, guidelines_paths in sorted(guidelines_by_name.items()):
-            target = steering_dir / filename
-
-            # Preserve repo-native guidelines files
-            if target.exists() and not self._is_managed(target):
-                skipped.append(f"\.kiro/steering/{filename} (repo-native, preserved)")
-                continue
-
-            # Parse all layers
-            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
-
-            # Cascade layers (respects extends field)
-            cascaded_content = cascade_guidelines(guidelines_defs)
-
-            if dry_run:
-                written.append(f"\.kiro/steering/{filename} (dry-run)")
-            else:
-                steering_dir.mkdir(parents=True, exist_ok=True)
-                # Add a managed marker comment at the top
-                managed_content = f"<!-- shipkit:managed -->\n{cascaded_content}"
-                target.write_text(managed_content)
-                written.append(f"\.kiro/steering/{filename}")
+            (steering_dir / "skill-discovery.md").write_text(f"<!-- shipkit:managed -->\n{skill_discovery}")
+            (steering_dir / "guideline-discovery.md").write_text(f"<!-- shipkit:managed -->\n{guideline_discovery}")
+            written.append(".kiro/steering/skill-discovery.md")
+            written.append(".kiro/steering/guideline-discovery.md")
 
         return written, skipped, warnings
 
@@ -387,3 +356,4 @@ class KiroCompiler(Compiler):
             return "shipkit:managed" in first_line
         except (OSError, UnicodeDecodeError):
             return False
+        return written, skipped, warnings

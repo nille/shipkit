@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, OpenCode, and other AI coding tools.
+CLI-agnostic AI dev productivity kit. Skills, guidelines, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, OpenCode, and other AI coding tools.
 
 ## Why Shipkit?
 
@@ -15,7 +15,7 @@ Most AI coding tools come with their own conventions: custom slash commands, too
 ### Three superpowers that compound over time:
 
 **1. Self-learning system**  
-Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent steering rules or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
+Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
 
 ```
 Session N → background analysis → suggestions written
@@ -24,11 +24,11 @@ You → approve → auto-learned.md updated → permanent behavior change
 ```
 
 **2. CLI-agnostic architecture**  
-Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
+Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, guidelines, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
 
 ```bash
 shipkit sync --tool claude    # Generates CLAUDE.md + .claude/commands/
-shipkit sync --tool kiro      # Generates .kiro/skills/ + .kiro/steering/
+shipkit sync --tool kiro      # Generates .kiro/skills/ + .kiro/guidelines/
 shipkit sync --tool gemini    # Generates GEMINI.md + .gemini/commands/
 shipkit sync --tool opencode  # Generates .opencode/plugins/ + opencode.json
 ```
@@ -66,7 +66,7 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 - **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
 - **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
-- **Project-specific overrides** — per-repo steering rules that only apply where they matter
+- **Project-specific overrides** — per-repo guidelines that only apply where they matter
 
 ### Teams can collaborate across different tools:
 
@@ -103,7 +103,7 @@ Package core          ← ships with shipkit, updated via pip/git
         ↓ Repo-native ← existing tool config (never overwritten)
 ```
 
-Each layer can add or override skills, steering rules, MCP servers, and hooks. Higher layers win on conflict. Your content is never touched by updates.
+Each layer can add or override skills, guidelines, MCP servers, and hooks. Higher layers win on conflict. Your content is never touched by updates.
 
 ## Prerequisites
 
@@ -143,7 +143,7 @@ shipkit alias sk --install
 # Now just type 'sk' from any directory
 ```
 
-After sync, your AI coding CLI has access to all skills as slash commands, steering rules in its system context, and MCP servers configured.
+After sync, your AI coding CLI has access to all skills as slash commands, guidelines in its system context, and MCP servers configured.
 
 ```bash
 # Use language-specific templates
@@ -198,13 +198,13 @@ shipkit sync --tool opencode
 
 ## Guidelines
 
-Guidelines rules are behavioral guidelines compiled into the agent's system context. They shape how the agent works across all conversations — execution style, verification standards, development principles, and safety defaults.
+Guidelines are behavioral guidelines compiled into the agent's system context. They shape how the agent works across all conversations — execution style, verification standards, development principles, and safety defaults.
 
-**Think of steering rules as "house rules" for the agent.** They're always loaded, unlike skills which are activated on-demand.
+**Think of guidelines as "house rules" for the agent.** They're always loaded, unlike skills which are activated on-demand.
 
 ### Core Guidelines
 
-8 steering rules ship with the package:
+8 guidelines ship with the package:
 
 | Rule | Purpose |
 |------|---------|
@@ -219,7 +219,7 @@ Guidelines rules are behavioral guidelines compiled into the agent's system cont
 
 ### How Guidelines Work
 
-**Guidelines rules are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/steering/`, etc.
+**Guidelines are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/guidelines/`, etc.
 
 Like skills, they **cascade across layers** - you can extend core rules with your own preferences:
 
@@ -235,7 +235,7 @@ Project: dev-principles.md → "For this API, follow REST conventions"
 
 **Global rule (all projects):**
 ```bash
-cat > ~/.config/shipkit/steering/my-conventions.md << 'EOF'
+cat > ~/.config/shipkit/guidelines/my-conventions.md << 'EOF'
 # My Conventions
 
 - Always use TypeScript strict mode
@@ -246,7 +246,7 @@ EOF
 
 **Extend existing rule:**
 ```bash
-cat > ~/.config/shipkit/steering/dev-principles.md << 'EOF'
+cat > ~/.config/shipkit/guidelines/dev-principles.md << 'EOF'
 ---
 extends: true  # Default - adds to core dev-principles
 ---
@@ -260,7 +260,7 @@ EOF
 
 **Replace existing rule:**
 ```bash
-cat > ~/.config/shipkit/steering/dev-principles.md << 'EOF'
+cat > ~/.config/shipkit/guidelines/dev-principles.md << 'EOF'
 ---
 extends: false  # Ignore core, use only this
 ---
@@ -273,7 +273,7 @@ EOF
 
 **Project-specific rule:**
 ```bash
-cat > ~/.config/shipkit/projects/my-api/steering/api-rules.md << 'EOF'
+cat > ~/.config/shipkit/projects/my-api/guidelines/api-rules.md << 'EOF'
 # API Rules
 
 - This project uses PostgreSQL — never suggest MySQL
@@ -297,9 +297,9 @@ EOF
 
 ### Precedence and Cascading
 
-Guidelines rules follow the same precedence as skills:
+Guidelines follow the same precedence as skills:
 
-1. **Package core** (lowest) - Built-in steering rules
+1. **Package core** (lowest) - Built-in guidelines
 2. **User global** - Your personal preferences
 3. **Plugins** - From installed plugins
 4. **Project** (highest) - Project-specific rules
@@ -316,7 +316,7 @@ Background automation that runs at session boundaries:
 |------|-------|---------|
 | `context-inject` | Session start | Injects learned preferences, retro nudges, session history |
 | `update-check` | Session start | Checks PyPI for newer shipkit version (daily cache) |
-| `retro-auto` | Session start | Promotes learnable rules from observations to steering/skills |
+| `retro-auto` | Session start | Promotes learnable rules from observations to guidelines/skills |
 | `session-save` | Session end | Saves session metadata for cross-session context |
 | `retro-analyze` | Session end | Analyzes transcript for improvement suggestions |
 
@@ -327,7 +327,7 @@ Shipkit includes a self-improvement system that learns from your sessions:
 1. **retro-analyze** hook runs after each session, identifying patterns and improvement opportunities
 2. Findings are classified by severity (high/medium/low) and saved to `.state/retro/`
 3. **retro-auto** hook runs at next session start, promoting learnable rules:
-   - Cross-cutting rules → `steering/auto-learned.md`
+   - Cross-cutting rules → `guidelines/auto-learned.md`
    - Skill-specific rules → `skills/<name>/learned.md`
    - Structural changes stay in pending for manual `/retro` triage
 4. **context-inject** hook surfaces pending items and learned preferences at session start
@@ -381,7 +381,7 @@ shipkit plugin update review-plus
 shipkit plugin uninstall review-plus
 ```
 
-Plugins can provide skills, steering rules, hooks, and subagents. They slot into the content layering between user global and project layers.
+Plugins can provide skills, guidelines, hooks, and subagents. They slot into the content layering between user global and project layers.
 
 ### Plugin Registries
 
@@ -493,11 +493,11 @@ Shipkit's `extends` field is a **custom extension** - tools that don't understan
 
 ## Adding Personal Content
 
-### Guidelines rules
+### Guidelines
 
 ```bash
 # Global rule (applies to all projects)
-cat > ~/.config/shipkit/steering/my-conventions.md << 'EOF'
+cat > ~/.config/shipkit/guidelines/my-conventions.md << 'EOF'
 # My Conventions
 
 - Always use TypeScript strict mode
@@ -506,7 +506,7 @@ cat > ~/.config/shipkit/steering/my-conventions.md << 'EOF'
 EOF
 
 # Project-specific rule
-cat > ~/.config/shipkit/projects/my-api/steering/api-rules.md << 'EOF'
+cat > ~/.config/shipkit/projects/my-api/guidelines/api-rules.md << 'EOF'
 # API Rules
 
 - This project uses PostgreSQL — never suggest MySQL
@@ -531,7 +531,7 @@ Create a directory in `~/.config/shipkit/skills/<name>/` with a `SKILL.md`:
 ### Project templates
 
 ```bash
-# Create from current project's steering + skills
+# Create from current project's guidelines + skills
 shipkit template create my-stack
 
 # Use when registering new projects
@@ -543,7 +543,7 @@ shipkit template list
 
 ## Versioning Your Personal Content
 
-Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, steering rules, learned preferences, templates. You should version it.
+Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, guidelines, learned preferences, templates. You should version it.
 
 ### What to version:
 
@@ -553,7 +553,7 @@ git init
 
 # Version these directories
 git add skills/          # Your custom skills
-git add steering/        # Your behavioral rules (including auto-learned.md)
+git add guidelines/        # Your behavioral rules (including auto-learned.md)
 git add mcp.json         # MCP server configs
 git add config.yaml      # Global settings
 git add templates/       # Custom project templates
@@ -588,7 +588,7 @@ If you use [chezmoi](https://www.chezmoi.io/), [yadm](https://yadm.io/), or simi
 ```bash
 # Add shipkit config to your dotfiles
 chezmoi add ~/.config/shipkit/skills/
-chezmoi add ~/.config/shipkit/steering/
+chezmoi add ~/.config/shipkit/guidelines/
 chezmoi add ~/.config/shipkit/config.yaml
 ```
 
@@ -606,7 +606,7 @@ cd ~/.config/shipkit
 git remote set-url origin git@github.com:teammate/their-shipkit-config.git
 ```
 
-Your learned preferences (steering/auto-learned.md) are especially valuable to version - they represent the accumulated wisdom from all your sessions.
+Your learned preferences (guidelines/auto-learned.md) are especially valuable to version - they represent the accumulated wisdom from all your sessions.
 
 **Quick backup:** Use the `/sync-config` skill to commit and push your config in one command:
 
@@ -642,7 +642,7 @@ Shipkit compiles to:
 | Tool | Generated Files |
 |------|----------------|
 | **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/commands/`, `.claude/settings.json` |
-| **Kiro** | `.kiro/steering/`, `.kiro/skills/`, `.kiro/agents/`, `.kiro/config/mcp.json`, `.kiro/hooks/` |
+| **Kiro** | `.kiro/guidelines/`, `.kiro/skills/`, `.kiro/agents/`, `.kiro/config/mcp.json`, `.kiro/hooks/` |
 | **Gemini CLI** | `GEMINI.md`, `.gemini/settings.json`, `.gemini/commands/*.toml` |
 | **OpenCode** | `opencode.json`, `.opencode/plugins/shipkit-hooks.ts`, `.opencode/plugins/shipkit-tools.ts` |
 
@@ -666,7 +666,7 @@ shipkit sync --tool opencode
 ```
 ~/.config/shipkit/                     SHIPKIT_HOME (configurable via env var)
 ├── config.yaml                        Global settings (cli_tool)
-├── steering/                          Personal steering rules
+├── guidelines/                          Personal guidelines
 │   └── auto-learned.md                Cross-cutting auto-learned preferences
 ├── skills/                            Personal skills
 │   └── <name>/
@@ -678,12 +678,12 @@ shipkit sync --tool opencode
 │   └── <name>/
 │       ├── plugin.yaml                Plugin manifest
 │       ├── skills/                    Plugin skills
-│       ├── steering/                  Plugin steering rules
+│       ├── guidelines/                  Plugin guidelines
 │       └── hooks/                     Plugin hooks
 ├── projects/
 │   └── <name>/
 │       ├── project.yaml               Project config (repo path, template, cli_tool)
-│       ├── steering/                   Project-specific rules
+│       ├── guidelines/                   Project-specific rules
 │       ├── skills/                     Project-specific skills
 │       ├── knowledge/                  Research, ADRs, decisions
 │       └── mcp.json                   Project MCP overrides
@@ -713,7 +713,7 @@ shipkit (Python package)
 │   │   ├── gemini.py                  Gemini CLI compiler
 │   │   └── opencode.py                OpenCode compiler
 │   └── content/                       Core content (ships with package)
-│       ├── steering/                  8 steering rules
+│       ├── guidelines/                  8 guidelines
 │       ├── skills/                    21 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions

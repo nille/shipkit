@@ -77,7 +77,7 @@ Your team doesn't need to standardize on one AI coding tool. Each developer uses
 ```
 Alice (Claude Code) creates /deploy skill
    │
-   ├─ Shares to marketplace: /contribute-skill deploy
+   ├─ Shares to marketplace (shipkit official or private): /contribute-skill deploy
    │
    ↓
 Marketplace stores as tool-agnostic SKILL.md

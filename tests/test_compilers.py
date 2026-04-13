@@ -146,7 +146,8 @@ class TestClaudeCompiler:
         compiler = get_compiler("claude")
         compiler.compile(compile_ctx)
         content = (compile_ctx.repo_path / "CLAUDE.md").read_text()
-        assert "Be concise" in content
+        assert "Be concise" not in content  # Not compiled, discovered at runtime
+        assert "Guideline Discovery" in content
 
 
 class TestKiroCompiler:
@@ -179,29 +180,15 @@ class TestKiroCompiler:
         # native.md is not in any layer, so compiler ignores it entirely
         assert "shipkit:managed" not in content
 
-    def test_skips_repo_native_conflict(self, compile_ctx):
-        """When a layer has a file with the same name as a repo-native one, skip it."""
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        steering_dir.mkdir(parents=True)
+    def test_only_writes_discovery_files(self, compile_ctx):
+        """Kiro only writes discovery files now."""
+        compiler = get_compiler("kiro")
+        result = compiler.compile(compile_ctx)
+        # Should only write discovery files
+        written_steering = [f for f in result.files_written if "steering/" in f]
+        assert len(written_steering) == 2  # skill-discovery + guideline-discovery
 
-        # Find a guidelines file that will actually be compiled from layers
-        layers = compile_ctx.guidelines_layers
-        layer_file = None
-        for layer_dir in layers:
-            if layer_dir.exists():
-                for md in layer_dir.glob("*.md"):
-                    layer_file = md.name
-                    break
-            if layer_file:
-                break
-
-        if layer_file:
-            # Pre-create in repo WITHOUT managed marker → repo-native
-            (steering_dir / layer_file).write_text("# Repo-native override\n")
-            compiler = get_compiler("kiro")
-            result = compiler.compile(compile_ctx)
-            assert any("preserved" in s for s in result.files_skipped)
-
+    
     def test_skills_not_compiled(self, compile_ctx):
         """Skills are NOT compiled - discovered at runtime."""
         compiler = get_compiler("kiro")

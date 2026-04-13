@@ -151,4 +151,5 @@ class TestEndToEndPlugins:
         sync_project(repo_path=tmp_repo)
 
         content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "From plugin" in content
+        assert "From plugin" not in content  # Not compiled
+        assert "Guideline Discovery" in content

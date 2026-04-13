@@ -91,22 +91,53 @@ After installation, run `shipkit sync` then use the skill:
 @<author>
 ````
 
-### 4. Fork and Clone Marketplace
+### 4. Select Target Registry
+
+Read configured registries from `~/.config/shipkit/config.yaml`:
+
+```bash
+# Read plugin_registries from config.yaml
+registries=$(python3 -c "import yaml; print('\n'.join(yaml.safe_load(open('$HOME/.config/shipkit/config.yaml')).get('plugin_registries', ['github.com/nille/shipkit-marketplace'])))")
+```
+
+**If multiple registries configured, ask user:**
+```
+Which marketplace should I contribute to?
+
+1. github.com/nille/shipkit-marketplace (public)
+2. github.com/yourcompany/private-plugins (private)
+
+Choose (1-2): 
+```
+
+**If only one registry:**
+- Use it automatically
+- Show: "Contributing to: <registry>"
+
+Store the selected registry as `$target_registry` (e.g., "github.com/nille/shipkit-marketplace")
+
+Extract owner/repo from registry:
+```bash
+# Parse "github.com/owner/repo" to "owner/repo"
+repo_path=$(echo "$target_registry" | sed 's|github.com/||')
+```
+
+### 5. Fork and Clone Marketplace
 
 ```bash
 # Get username
 username=$(gh api user -q .login)
 
 # Fork if not already forked
-gh repo fork nille/shipkit-marketplace --clone=false 2>/dev/null || echo "Fork already exists"
+gh repo fork "$repo_path" --clone=false 2>/dev/null || echo "Fork already exists"
 
 # Clone the fork
 cd "$tmpdir"
-gh repo clone "$username/shipkit-marketplace" marketplace
+gh repo clone "$username/$(basename $repo_path)" marketplace
 cd marketplace
 ```
 
-### 5. Create Branch and Add Plugin
+### 6. Create Branch and Add Plugin
 
 ```bash
 # Create branch
@@ -129,11 +160,11 @@ Includes:
 git push -u origin add-<plugin-name>
 ```
 
-### 6. Create Pull Request
+### 7. Create Pull Request
 
 ```bash
 gh pr create \
-  --repo nille/shipkit-marketplace \
+  --repo "$repo_path" \
   --title "Add <plugin-name> plugin" \
   --body "## Plugin: <plugin-name>
 
@@ -156,7 +187,7 @@ gh pr create \
 "
 ```
 
-### 7. Report Results
+### 8. Report Results
 
 Tell the user:
 
@@ -170,7 +201,7 @@ Tell the user:
    - Maintainers will review the PR
    - Once merged, anyone can install with: `shipkit plugin install <plugin-name>`
 
-### 8. Cleanup
+### 9. Cleanup
 
 ```bash
 rm -rf "$tmpdir"

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
   - Content layering that preserves customizations across updates
 - Practical examples of shipping faster with built-in skills
 - Extension guide (custom skills, plugins, project overrides)
+- Badges to README: CI status, Python version, license
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

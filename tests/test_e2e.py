@@ -111,7 +111,7 @@ class TestEndToEndKiro:
         steering_dir = tmp_repo / ".kiro" / "steering"
         assert steering_dir.exists()
         md_files = list(steering_dir.glob("*.md"))
-        assert len(md_files) >= 5
+        assert len(md_files) >= 2  # skill-discovery + guideline-discovery
 
         # All managed files have marker
         for f in md_files:

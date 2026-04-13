@@ -238,10 +238,13 @@ Per-project overrides go in `<home>/projects/<name>/mcp.json`. See `seed/mcp.sam
 
 ## Plugins
 
-Extend shipkit with community plugins:
+Extend shipkit with community plugins from the [marketplace](https://github.com/nille/shipkit-marketplace):
 
 ```bash
-# Install from git
+# Install by short name (searches marketplace)
+shipkit plugin install review-plus
+
+# Install from git URL
 shipkit plugin install https://github.com/user/shipkit-plugin-auth
 
 # Install from local path
@@ -249,11 +252,24 @@ shipkit plugin install ~/Code/my-plugin
 
 # Manage
 shipkit plugin list
-shipkit plugin update auth
-shipkit plugin uninstall auth
+shipkit plugin update review-plus
+shipkit plugin uninstall review-plus
 ```
 
 Plugins can provide skills, steering rules, hooks, and subagents. They slot into the content layering between user global and project layers.
+
+### Plugin Registries
+
+By default, shipkit searches `github.com/nille/shipkit-marketplace` for plugins. Add custom registries in `~/.config/shipkit/config.yaml`:
+
+```yaml
+cli_tool: claude
+plugin_registries:
+  - github.com/nille/shipkit-marketplace
+  - github.com/your-org/custom-plugins
+```
+
+### Plugin Structure
 
 A plugin is a directory with a `plugin.yaml` manifest:
 

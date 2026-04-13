@@ -20,6 +20,12 @@ All notable changes to this project will be documented in this file.
 - Practical examples of shipping faster with built-in skills
 - Extension guide (custom skills, plugins, project overrides)
 - Badges to README: CI status, Python version, license
+- Plugin marketplace system with registry support:
+  - `plugin_registries` config in `~/.config/shipkit/config.yaml`
+  - Default registry: `github.com/nille/shipkit-marketplace`
+  - Install plugins by short name: `shipkit plugin install review-plus`
+  - Users can add custom registries to config
+  - Full URLs and local paths still supported
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

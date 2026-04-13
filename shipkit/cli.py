@@ -264,7 +264,13 @@ def plugin():
 @click.argument("source")
 @click.option("--name", "-n", default=None, help="Override plugin name")
 def plugin_install(source: str, name: str | None):
-    """Install a plugin from a Git repo URL or local path."""
+    """Install a plugin from marketplace short name, Git URL, or local path.
+
+    Examples:
+      shipkit plugin install review-plus          # from marketplace
+      shipkit plugin install https://github.com/user/plugin  # full URL
+      shipkit plugin install ~/Code/my-plugin     # local path
+    """
     from shipkit.plugin import install_plugin, PluginError
 
     try:

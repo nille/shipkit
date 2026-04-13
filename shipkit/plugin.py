@@ -57,15 +57,15 @@ def get_plugins_dir() -> Path:
 
 
 def install_plugin(source: str, name: str | None = None) -> str:
-    """Install a plugin from a Git repo URL or local path.
+    """Install a plugin from a Git repo URL, local path, or marketplace short name.
 
     Returns the installed plugin name.
     """
     plugins_dir = get_plugins_dir()
     source_path = Path(source).expanduser()
 
+    # Check if it's a local directory
     if source_path.exists():
-        # Local directory install
         manifest_path = source_path / "plugin.yaml"
         if not manifest_path.exists():
             raise PluginError(f"No plugin.yaml found in {source}")
@@ -75,9 +75,26 @@ def install_plugin(source: str, name: str | None = None) -> str:
         if target.exists():
             raise PluginError(f"Plugin '{plugin_name}' already installed. Uninstall first.")
         shutil.copytree(source_path, target)
-    else:
-        # Git repo install
-        plugin_name = name or _repo_to_name(source)
+        return plugin_name
+
+    # Check if it's a short name (no /, no protocol, not a URL)
+    if "/" not in source and not source.startswith(("http://", "https://", "git@")):
+        # Try marketplace registries
+        from shipkit.config import ShipkitConfig
+        config = ShipkitConfig.load()
+        for registry in config.plugin_registries:
+            try:
+                plugin_name = _install_from_registry(registry, source, name)
+                return plugin_name
+            except PluginError:
+                continue  # Try next registry
+        raise PluginError(
+            f"Plugin '{source}' not found in any registry. "
+            f"Searched: {', '.join(config.plugin_registries)}"
+        )
+
+    # Git repo install (full URL)
+    plugin_name = name or _repo_to_name(source)
         target = plugins_dir / plugin_name
         if target.exists():
             raise PluginError(f"Plugin '{plugin_name}' already installed. Uninstall first.")
@@ -162,6 +179,56 @@ def update_plugin(name: str) -> None:
         )
     except subprocess.CalledProcessError as e:
         raise PluginError(f"Failed to update '{name}': {e.stderr.strip()}")
+
+
+def _install_from_registry(registry: str, plugin_name: str, override_name: str | None = None) -> str:
+    """Install a plugin from a marketplace registry.
+
+    Clones the registry temporarily and copies the plugin subdirectory.
+    """
+    import tempfile
+
+    plugins_dir = get_plugins_dir()
+
+    # Normalize registry to git URL
+    if not registry.startswith(("http://", "https://", "git@")):
+        registry_url = f"https://{registry}.git"
+    else:
+        registry_url = registry
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+
+        # Clone registry
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", registry_url, str(tmpdir_path / "registry")],
+                check=True, capture_output=True, text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            raise PluginError(f"Failed to clone registry {registry}: {e.stderr.strip()}")
+
+        registry_path = tmpdir_path / "registry"
+        plugin_source = registry_path / plugin_name
+
+        # Check if plugin exists in registry
+        if not plugin_source.exists():
+            raise PluginError(f"Plugin '{plugin_name}' not found in registry {registry}")
+
+        manifest_path = plugin_source / "plugin.yaml"
+        if not manifest_path.exists():
+            raise PluginError(f"Plugin '{plugin_name}' in registry has no plugin.yaml")
+
+        # Install the plugin
+        manifest = PluginManifest.load(manifest_path)
+        final_name = override_name or manifest.name
+        target = plugins_dir / final_name
+
+        if target.exists():
+            raise PluginError(f"Plugin '{final_name}' already installed. Uninstall first.")
+
+        shutil.copytree(plugin_source, target)
+        return final_name
 
 
 def _repo_to_name(url: str) -> str:

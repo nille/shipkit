@@ -75,30 +75,16 @@ Your team doesn't need to standardize on one AI coding tool. Each developer uses
 **Example:** Your team builds a custom `/deploy` skill for your production pipeline:
 
 ```
-Alice (Claude Code)          Bob (Kiro)               Carol (Gemini CLI)       David (OpenCode)
-      │                           │                           │                        │
-      ├─ Creates /deploy skill    │                           │                        │
-      ├─ Tests locally             │                           │                        │
-      └─ Shares: /contribute-skill deploy                     │                        │
-                                   │                           │                        │
-         ┌───────────────────────┼───────────────────────────┼────────────────────────┘
-         │                       ↓                           ↓                        ↓
-         │                   Marketplace                                              
-         │              (tool-agnostic SKILL.md)                                      
-         │                       ↓                           ↓                        ↓
-         └───────────────────────┼───────────────────────────┼────────────────────────┐
-                                 │                           │                        │
-                                 ├─ shipkit plugin install deploy                     │
-                                 ├─ shipkit sync --tool kiro │                        │
-                                 └─ /deploy works! ✅        │                        │
-                                                             │                        │
-                                                             ├─ shipkit plugin install deploy
-                                                             ├─ shipkit sync --tool gemini
-                                                             └─ /deploy works! ✅    │
-                                                                                      │
-                                                                                      ├─ shipkit plugin install deploy
-                                                                                      ├─ shipkit sync --tool opencode
-                                                                                      └─ /deploy works! ✅
+Alice (Claude Code) creates /deploy skill
+   │
+   ├─ Shares to marketplace: /contribute-skill deploy
+   │
+   ↓
+Marketplace stores as tool-agnostic SKILL.md
+   │
+   ├──→ Bob (Kiro):        shipkit plugin install deploy → /deploy works ✅
+   ├──→ Carol (Gemini):    shipkit plugin install deploy → /deploy works ✅
+   └──→ David (OpenCode):  shipkit plugin install deploy → /deploy works ✅
 ```
 
 **One skill, four tools, zero conversion.** The skill is stored in tool-agnostic markdown. Each developer's `shipkit sync` compiles it to their tool's native format. Team workflows stay consistent regardless of individual tool preferences.

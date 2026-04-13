@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `shipkit alias` command: generate a shell alias to launch a project from any directory
+  - `--install` flag to auto-append to ~/.zshrc or ~/.bashrc
+  - `--project` flag to target a specific registered project
+  - Uses `noglob` wrapper to prevent shell glob expansion of arguments
 - GitHub Actions CI workflow: tests + lint on push/PR across Python 3.10–3.13
 - End-to-end smoke tests covering full init → sync → verify pipeline
 - CLI tests via Click's CliRunner for all commands

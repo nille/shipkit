@@ -217,3 +217,64 @@ class TestPluginUninstall:
         result = runner.invoke(main, ["plugin", "uninstall", "ghost"])
         assert result.exit_code != 0
         assert "not installed" in result.output
+
+
+class TestAlias:
+
+    def test_generates_snippet(self, runner, cli_project):
+        result = runner.invoke(main, ["alias", "sk"])
+        assert result.exit_code == 0
+        assert "_sk_shipkit" in result.output
+        assert "noglob" in result.output
+        assert str(cli_project) in result.output
+
+    def test_generates_for_named_project(self, runner, cli_project, initialized_home):
+        result = runner.invoke(main, ["alias", "dev", "--project", "cli-test"])
+        assert result.exit_code == 0
+        assert "_dev_shipkit" in result.output
+
+    def test_install_appends_to_rc(self, runner, cli_project, tmp_path, monkeypatch):
+        rc = tmp_path / ".zshrc"
+        rc.write_text("# existing config\n")
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+        monkeypatch.setenv("SHELL", "/bin/zsh")
+        result = runner.invoke(main, ["alias", "sk", "--install"])
+        assert result.exit_code == 0
+        assert "added" in result.output
+        content = rc.read_text()
+        assert "_sk_shipkit" in content
+        assert "# shipkit alias: sk" in content
+
+    def test_install_detects_duplicate(self, runner, cli_project, tmp_path, monkeypatch):
+        rc = tmp_path / ".zshrc"
+        rc.write_text("_sk_shipkit() { cd /tmp && shipkit run; }\n")
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+        monkeypatch.setenv("SHELL", "/bin/zsh")
+        result = runner.invoke(main, ["alias", "sk", "--install"])
+        assert result.exit_code == 0
+        assert "already exists" in result.output
+
+    def test_install_fish(self, runner, cli_project, tmp_path, monkeypatch):
+        fish_config = tmp_path / ".config" / "fish" / "config.fish"
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+        monkeypatch.setenv("SHELL", "/usr/bin/fish")
+        result = runner.invoke(main, ["alias", "sk", "--install"])
+        assert result.exit_code == 0
+        assert "added" in result.output
+        content = fish_config.read_text()
+        assert "function sk" in content
+        assert "shipkit run $argv" in content
+
+    def test_fish_snippet(self, runner, cli_project, monkeypatch):
+        monkeypatch.setenv("SHELL", "/usr/bin/fish")
+        result = runner.invoke(main, ["alias", "sk"])
+        assert result.exit_code == 0
+        assert "function sk" in result.output
+        assert "$argv" in result.output
+
+    def test_not_in_project(self, runner, initialized_home, tmp_path, monkeypatch):
+        unregistered = tmp_path / "nope"
+        unregistered.mkdir()
+        monkeypatch.chdir(unregistered)
+        result = runner.invoke(main, ["alias", "sk"])
+        assert result.exit_code != 0

@@ -49,6 +49,10 @@ shipkit sync
 
 # Or: sync + launch your CLI tool
 shipkit run
+
+# Create a shell alias to launch from anywhere
+shipkit alias sk --install
+# Now just type 'sk' from any directory
 ```
 
 After sync, your AI coding CLI has access to all skills as slash commands, steering rules in its system context, and MCP servers configured.
@@ -253,6 +257,7 @@ shipkit init [--template TYPE] [--name NAME]   Register current repo as a projec
 shipkit sync [--tool NAME] [--dry-run] [--all] Compile to tool-native config
 shipkit status                                 Show project info and sync status
 shipkit run [PROMPT]                           Sync + launch AI coding CLI
+shipkit alias <name> [--install] [--project P] Generate shell alias for a project
 
 shipkit projects list                          List all registered projects
 shipkit doctor [--lint] [--check NAME]         Health check + content validation

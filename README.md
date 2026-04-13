@@ -15,7 +15,7 @@ Most AI coding tools come with their own conventions: custom slash commands, too
 ### Three superpowers that compound over time:
 
 **1. Self-learning system**  
-Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
+Shipkit watches how you work and auto-improves. After each session, metadata is saved for review. Next session, you're nudged to analyze it — the agent identifies patterns, mistakes, and missing capabilities in-conversation where you can see everything. Approve suggestions and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
 
 ```
 Session N ends → metadata saved
@@ -98,18 +98,25 @@ Marketplace stores as tool-agnostic SKILL.md
 
 Shipkit is a content compiler. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
 
-Content flows through three layers (lowest to highest precedence):
+Content flows through three source layers, then compiles to your repo:
 
 ```
-Package core          ← ships with shipkit, updated via pip/git
-  ↓ User global       ← your personal additions in ~/.config/shipkit/
-    ↓ Plugins         ← community extensions from marketplace
-      ↓ Repo          ← team-shared, committed to project repo
+1. Package core     ← Built-in (ships with shipkit)
+2. User global      ← Personal (~/.config/shipkit/)
+3. Plugins          ← Marketplace (shipkit plugin install)
+        ↓
+   Compile & Merge
+        ↓
+4. Repo             ← Output (.claude/, .kiro/, etc.)
 ```
 
-Each layer can add or override skills, guidelines, MCP servers, and hooks. Higher layers win on conflict.
+**How merging works:**
+- Layers 1-3 are **sources** (read by shipkit)
+- Layer 4 (repo) is **output** (written by shipkit)
+- When writing to repo, shipkit preserves existing customizations
+- You can commit repo content to share with your team via git
 
-**For project-specific content:** Commit it to your repo (e.g., `.claude/commands/deploy.md`, `.shipkit/skills/`) and share with your team via git. Shipkit merges repo content intelligently — it adds new items but preserves what you've already customized.
+Higher source layers win on conflict. Repo content is protected from being overwritten.
 
 ## Prerequisites
 
@@ -326,29 +333,12 @@ Background automation that runs at session boundaries:
 
 | Hook | Event | Purpose |
 |------|-------|---------|
-| `context-inject` | Session start | Injects learned preferences, retro nudges, session history |
+| `context-inject` | Session start | Notifies about pending sessions, injects learned preferences |
 | `update-check` | Session start | Checks PyPI for newer shipkit version (daily cache) |
-| `retro-auto` | Session start | Promotes learnable rules from observations to guidelines/skills |
 | `session-save` | Session end | Saves session metadata for cross-session context |
-| `retro-analyze` | Session end | Analyzes transcript for improvement suggestions |
+| `retro-analyze` | Session end | Saves session metadata for interactive review |
 
-### Interactive Learning Loop
-
-Shipkit learns from your sessions through visible, interactive analysis:
-
-1. **retro-analyze** hook (session end): Saves session metadata to `.state/retro/pending/`
-2. **context-inject** hook (session start): Notifies you of pending sessions
-3. **You trigger `/retro`**: Agent analyzes sessions in-conversation
-4. **Agent proposes learnings**: You see analysis, approve/reject/modify
-5. **Updates applied**: Changes written to `guidelines/auto-learned.md` or skill files
-
-**Why interactive?**
-- Transparent - you see what's being learned
-- Collaborative - you guide the analysis
-- Trustworthy - no hidden background magic
-- Universal - works with any LLM provider your tool supports
-
-## How Self-Learning Works
+### Self-Learning Loop
 
 **Fully interactive and visible** - analysis happens in-conversation using your CLI tool:
 
@@ -364,11 +354,11 @@ Shipkit learns from your sessions through visible, interactive analysis:
 7. **Agent updates** `guidelines/auto-learned.md` or skill files
 
 **Why visible beats background:**
-- You see what's being learned
-- You can correct misinterpretations
-- You understand why rules exist
-- More trustworthy than "magic" background analysis
-- Works with **any LLM provider** your tool supports (no separate API keys)
+- Transparent - you see what's being learned
+- Collaborative - you guide the analysis
+- Trustworthy - no hidden background magic
+- Universal - works with any LLM provider your tool supports (Bedrock, Ollama, models.dev, etc.)
+- No separate API keys needed
 
 ## MCP Servers
 
@@ -407,7 +397,7 @@ shipkit plugin update review-plus
 shipkit plugin uninstall review-plus
 ```
 
-Plugins can provide skills, guidelines, hooks, and subagents. They slot into the content layering between user global and project layers.
+Plugins can provide skills, guidelines, hooks, and subagents. They slot into the content layering as the third layer (after package core and user global).
 
 ### Plugin Registries
 
@@ -446,7 +436,7 @@ Layer 1 (Package Core):    shipkit/content/skills/commit/SKILL.md
 Layer 2 (User Global):    ~/.config/shipkit/skills/commit/SKILL.md
                           "Additionally, always include ticket references"
                           
-Layer 3 (Project):        .shipkit/skills/commit/SKILL.md
+Layer 3 (Repo):           .shipkit/skills/commit/SKILL.md
                           "For this API, also update CHANGELOG.md"
 ```
 
@@ -462,7 +452,7 @@ Additionally, always include ticket references
 ...
 
 ---
-<!-- Layer: project:my-api -->
+<!-- Layer: repo -->
 For this API, also update CHANGELOG.md
 ...
 ```
@@ -747,7 +737,7 @@ shipkit (Python package)
 ├── seed/                              Copied to ~/.config/shipkit/ on first init
 │   ├── mcp.sample.json
 │   └── templates/                     default, python, typescript
-└── tests/                             102 tests
+└── tests/                             140 tests
 ```
 
 ## Development

@@ -341,15 +341,17 @@ Shipkit includes a self-improvement system that learns from your sessions:
 
 ## Subagents
 
-Three background agents handle the autonomous learning loop:
+**Note:** Subagents are currently **Kiro-only**. Other tools (Claude Code, Gemini CLI, OpenCode) support hooks but don't have native subagent systems. The self-learning loop works fully on Kiro; other tools collect session data but don't auto-analyze it yet.
+
+Three background agents handle the autonomous learning loop (Kiro):
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| `retro-analyzer` | Sonnet | Analyzes transcripts, emits suggestions and observations |
-| `session-summarizer` | Haiku | Generates session titles and summaries |
-| `retro-auto` | Sonnet | Promotes learnable rules, consolidates auto-learned content |
+| `retro-analyzer` | Sonnet (claude-sonnet-4.6-1m) | Analyzes transcripts, emits suggestions and observations |
+| `session-summarizer` | Haiku (claude-haiku-4.5) | Generates session titles and summaries |
+| `retro-auto` | Sonnet (claude-sonnet-4.6-1m) | Promotes learnable rules, consolidates auto-learned content |
 
-These run headless via hooks — they're not invoked directly.
+These run headless via hooks — they're not invoked directly. Model names are Kiro-specific.
 
 ## MCP Servers
 

@@ -106,12 +106,13 @@ class TestClaudeCompiler:
         assert "My custom notes" in content
         assert "old managed" not in content  # replaced
 
-    def test_skill_catalog_in_claude_md(self, compile_ctx):
+    def test_discovery_instructions_in_claude_md(self, compile_ctx):
+        """CLAUDE.md contains discovery instructions (not compiled skill catalog)."""
         compiler = get_compiler("claude")
         compiler.compile(compile_ctx)
         content = (compile_ctx.repo_path / "CLAUDE.md").read_text()
-        assert "Available Skills" in content
-        assert "/commit" in content
+        assert "Skill Discovery" in content
+        assert "Guideline Discovery" in content
 
     def test_skills_not_compiled_uses_discovery(self, compile_ctx):
         """Skills are NOT compiled - discovered at runtime via guideline."""

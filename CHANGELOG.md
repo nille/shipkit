@@ -13,6 +13,15 @@ All notable changes to this project will be documented in this file.
 - End-to-end smoke tests covering full init → sync → verify pipeline
 - CLI tests via Click's CliRunner for all commands
 - CHANGELOG.md
+- "Why Shipkit?" section in README highlighting three core superpowers:
+  - Self-learning system that auto-improves from usage patterns
+  - CLI-agnostic architecture (write once, compile to any tool)
+  - Content layering that preserves customizations across updates
+- Practical examples of shipping faster with built-in skills
+- Extension guide (custom skills, plugins, project overrides)
+
+### Changed
+- Quick Start now recommends `uv tool install shipkit` over pip
 
 ## [0.1.0] - 2026-04-13
 

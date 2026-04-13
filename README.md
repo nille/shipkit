@@ -34,7 +34,7 @@ shipkit sync --tool opencode  # Generates .opencode/plugins/ + opencode.json
 ```
 
 **3. Content layering that never breaks**  
-Updates to core skills don't overwrite your customizations. Content flows through five layers — package core, plugins, user global, project-specific, repo-native — with higher layers always winning. Your preferences are sacred. Updates bring new capabilities without touching your setup.
+Updates to core skills don't overwrite your customizations. Content flows through layers — package core, user global, plugins, repo — with higher layers always winning. Your preferences are sacred. Updates bring new capabilities without touching your setup.
 
 ### Ship faster, every single day:
 
@@ -66,7 +66,7 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 - **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
 - **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
-- **Project-specific overrides** — per-repo guidelines that only apply where they matter
+- **Team-shared content** — commit skills/guidelines to your repo and share via git
 
 ### Teams can collaborate across different tools:
 
@@ -93,17 +93,18 @@ Marketplace stores as tool-agnostic SKILL.md
 
 Shipkit is a content compiler. You write skills and rules once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
 
-Content flows through four layers (lowest to highest precedence):
+Content flows through three layers (lowest to highest precedence):
 
 ```
 Package core          ← ships with shipkit, updated via pip/git
-  ↓ Plugins           ← community extensions
-    ↓ User global     ← your personal additions in ~/.config/shipkit/
-      ↓ Project       ← per-project overrides
-        ↓ Repo-native ← existing tool config (never overwritten)
+  ↓ User global       ← your personal additions in ~/.config/shipkit/
+    ↓ Plugins         ← community extensions from marketplace
+      ↓ Repo          ← team-shared, committed to project repo
 ```
 
-Each layer can add or override skills, guidelines, MCP servers, and hooks. Higher layers win on conflict. Your content is never touched by updates.
+Each layer can add or override skills, guidelines, MCP servers, and hooks. Higher layers win on conflict.
+
+**For project-specific content:** Commit it to your repo (e.g., `.claude/commands/deploy.md`, `.shipkit/skills/`) and share with your team via git. Shipkit merges repo content intelligently — it adds new items but preserves what you've already customized.
 
 ## Prerequisites
 
@@ -271,15 +272,20 @@ My completely different development philosophy.
 EOF
 ```
 
-**Project-specific rule:**
+**Team-shared rule (commit to repo):**
 ```bash
-cat > ~/.config/shipkit/projects/my-api/guidelines/api-rules.md << 'EOF'
+# Create in your repo and commit via git
+mkdir -p .shipkit/guidelines
+cat > .shipkit/guidelines/api-rules.md << 'EOF'
 # API Rules
 
 - This project uses PostgreSQL — never suggest MySQL
 - API responses follow JSON:API spec
 - Rate limiting is handled by nginx
 EOF
+
+git add .shipkit/
+# Team gets this via git pull
 ```
 
 ### When to Use Guidelines vs Skills
@@ -300,9 +306,10 @@ EOF
 Guidelines follow the same precedence as skills:
 
 1. **Package core** (lowest) - Built-in guidelines
-2. **User global** - Your personal preferences
-3. **Plugins** - From installed plugins
-4. **Project** (highest) - Project-specific rules
+2. **User global** - Your personal preferences  
+3. **Plugins** (highest) - From installed plugins
+
+**For team-shared guidelines:** Commit them to your repo (`.shipkit/guidelines/`) instead of using shipkit layers. Shipkit will read and merge repo content intelligently.
 
 When the same filename exists in multiple layers:
 - **`extends: true` (default):** All layers merged with markers
@@ -359,7 +366,7 @@ Shipkit ships with Playwright and Context7 MCP server defaults. Customize in `~/
 }
 ```
 
-Per-project overrides go in `<home>/projects/<name>/mcp.json`. See `seed/mcp.sample.json` for more examples.
+See `seed/mcp.sample.json` for more examples.
 
 ## Plugins
 
@@ -449,8 +456,7 @@ When layers conflict, **higher layers take precedence:**
 
 1. **Package core** (lowest) - Built-in skills shipped with shipkit
 2. **User global** - Your personal preferences in `~/.config/shipkit/`
-3. **Plugins** - Installed via `shipkit plugin install`
-4. **Project-specific** (highest) - Per-project in `~/.config/shipkit/projects/<name>/`
+3. **Plugins** (highest) - Installed via `shipkit plugin install`
 
 ### Complete Override
 
@@ -505,13 +511,18 @@ cat > ~/.config/shipkit/guidelines/my-conventions.md << 'EOF'
 - Use ruff for Python formatting
 EOF
 
-# Project-specific rule
-cat > ~/.config/shipkit/projects/my-api/guidelines/api-rules.md << 'EOF'
+# Team-shared rule (commit to repo)
+mkdir -p .shipkit/guidelines
+cat > .shipkit/guidelines/api-rules.md << 'EOF'
 # API Rules
 
 - This project uses PostgreSQL — never suggest MySQL
 - API responses follow JSON:API spec
 EOF
+
+git add .shipkit/
+git commit -m "Add API guidelines for team"
+# Team gets this via git pull
 
 # Recompile
 shipkit sync
@@ -646,13 +657,13 @@ Shipkit compiles to:
 | **Gemini CLI** | `GEMINI.md`, `.gemini/settings.json`, `.gemini/commands/*.toml` |
 | **OpenCode** | `opencode.json`, `.opencode/plugins/shipkit-hooks.ts`, `.opencode/plugins/shipkit-tools.ts` |
 
-Set your preferred tool globally, per-project, or at sync time:
+Set your preferred tool globally, per-project (metadata only), or at sync time:
 
 ```yaml
 # ~/.config/shipkit/config.yaml
 cli_tool: claude  # or kiro, gemini, opencode
 
-# ~/.config/shipkit/projects/<name>/project.yaml
+# ~/.config/shipkit/projects/<name>/project.yaml (tool preference only)
 cli_tool: opencode
 ```
 
@@ -682,11 +693,7 @@ shipkit sync --tool opencode
 │       └── hooks/                     Plugin hooks
 ├── projects/
 │   └── <name>/
-│       ├── project.yaml               Project config (repo path, template, cli_tool)
-│       ├── guidelines/                   Project-specific rules
-│       ├── skills/                     Project-specific skills
-│       ├── knowledge/                  Research, ADRs, decisions
-│       └── mcp.json                   Project MCP overrides
+│       └── project.yaml               Project metadata (repo path, template, cli_tool)
 └── .state/                            Machine-managed (not user-facing)
     ├── sessions/                      Session records for cross-session context
     ├── retro/

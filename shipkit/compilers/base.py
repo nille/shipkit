@@ -6,8 +6,11 @@ interface to compile shipkit content into tool-native configuration.
 Content layering (lowest to highest precedence):
 1. Package core — shipped with shipkit (guidelines, skills, MCP defaults)
 2. User global — personal additions/overrides in shipkit home
-3. Project-specific — per-project overrides
-4. Repo-native — existing tool config in the repo (never overwritten)
+3. Plugins — from marketplace or local installs
+4. Repo — team-shared content committed to the repo
+
+Note: project_dir is kept for storing project metadata (project.yaml) but
+no longer used as a content layer. Use the repo itself for project-specific content.
 """
 
 from __future__ import annotations
@@ -28,7 +31,6 @@ class CompileContext:
     home_path: Path
     repo_path: Path
     project_name: str
-    project_dir: Path  # <home>/projects/<name>/
 
     # --- Layer 1: Package core (shipped with shipkit) ---
 
@@ -58,20 +60,6 @@ class CompileContext:
     def user_mcp(self) -> Path:
         return self.home_path / "mcp.json"
 
-    # --- Layer 3: Project-specific ---
-
-    @property
-    def project_guidelines(self) -> Path:
-        return self.project_dir / "guidelines"
-
-    @property
-    def project_skills(self) -> Path:
-        return self.project_dir / "skills"
-
-    @property
-    def project_mcp(self) -> Path:
-        return self.project_dir / "mcp.json"
-
     # --- Subagents ---
 
     @property
@@ -82,10 +70,6 @@ class CompileContext:
     def user_subagents(self) -> Path:
         return self.home_path / "subagents"
 
-    @property
-    def project_subagents(self) -> Path:
-        return self.project_dir / "subagents"
-
     # --- Hooks ---
 
     @property
@@ -95,10 +79,6 @@ class CompileContext:
     @property
     def user_hooks(self) -> Path:
         return self.home_path / "hooks"
-
-    @property
-    def project_hooks(self) -> Path:
-        return self.project_dir / "hooks"
 
     # --- Plugins ---
 
@@ -118,7 +98,6 @@ class CompileContext:
         layers = [self.package_guidelines, self.user_guidelines]
         for pd in self.plugin_dirs:
             layers.append(pd / "guidelines")
-        layers.append(self.project_guidelines)
         return layers
 
     @property
@@ -127,7 +106,6 @@ class CompileContext:
         layers = [self.package_skills, self.user_skills]
         for pd in self.plugin_dirs:
             layers.append(pd / "skills")
-        layers.append(self.project_skills)
         return layers
 
     @property
@@ -136,7 +114,6 @@ class CompileContext:
         layers: list[Path] = [self.package_mcp, self.user_mcp]
         for pd in self.plugin_dirs:
             layers.append(pd / "mcp.json")
-        layers.append(self.project_mcp)
         return layers
 
     @property
@@ -145,7 +122,6 @@ class CompileContext:
         layers = [self.package_hooks, self.user_hooks]
         for pd in self.plugin_dirs:
             layers.append(pd / "hooks")
-        layers.append(self.project_hooks)
         return layers
 
     @property
@@ -154,7 +130,6 @@ class CompileContext:
         layers = [self.package_subagents, self.user_subagents]
         for pd in self.plugin_dirs:
             layers.append(pd / "subagents")
-        layers.append(self.project_subagents)
         return layers
 
 

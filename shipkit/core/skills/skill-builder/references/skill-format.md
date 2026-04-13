@@ -18,7 +18,7 @@ Technical specification for how skills are discovered, loaded, and executed.
 
 Skills are discovered by directory name in three layers (lowest → highest precedence):
 
-1. **Package core:** `shipkit/content/skills/<name>/SKILL.md`
+1. **Package core:** `shipkit/core/skills/<name>/SKILL.md`
 2. **User global:** `<home>/skills/<name>/SKILL.md`
 3. **Project:** `<home>/projects/<project>/skills/<name>/SKILL.md`
 

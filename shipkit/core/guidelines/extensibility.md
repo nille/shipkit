@@ -6,7 +6,7 @@ How shipkit separates core content from user customizations.
 
 Shipkit compiles content from three layers (lowest to highest precedence):
 
-1. **Package core** (`shipkit/content/`) — shipped with shipkit, updated via `git pull` or package upgrade
+1. **Package core** (`shipkit/core/`) — shipped with shipkit, updated via `git pull` or package upgrade
 2. **User global** (`<home>/guidelines/`, `<home>/skills/`) — personal additions and overrides
 3. **Project** (`<home>/projects/<name>/`) — project-specific overrides
 

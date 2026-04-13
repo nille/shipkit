@@ -132,7 +132,7 @@ def cascade_skills(skill_definitions: list[SkillDefinition]) -> str:
 def _layer_name(path: Path) -> str:
     """Extract human-readable layer name from path."""
     path_str = str(path)
-    if '/content/skills/' in path_str or '/content/guidelines/' in path_str:
+    if '/core/skills/' in path_str or '/core/guidelines/' in path_str:
         return "package core"
     elif '/.config/shipkit/skills/' in path_str or '/.config/shipkit/guidelines/' in path_str:
         return "user global"

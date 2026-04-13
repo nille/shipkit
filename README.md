@@ -156,7 +156,9 @@ shipkit sync --tool opencode
 
 ## Skills
 
-21 skills ship with the package, available as slash commands:
+21 skills ship with the package, available as slash commands.
+
+**Shipkit follows the [Agent Skills open standard](https://agentskills.io/)** — skills use the same `SKILL.md` format as Claude Code, Cursor, Gemini CLI, OpenCode, and [20+ other tools](https://agentskills.io/home). This means skills from the broader Agent Skills ecosystem work in shipkit, and shipkit skills work in other compatible tools.
 
 ### Core
 
@@ -305,6 +307,92 @@ description: What this plugin does
 author: your-name
 version: 1.0.0
 ```
+
+## Skill Cascading and Composition
+
+Skills can be extended and overridden across layers. When the same skill exists in multiple layers, shipkit merges them intelligently.
+
+### How Cascading Works
+
+By default, **skills cascade** - higher layers extend lower layers rather than replacing them:
+
+```
+Layer 1 (Package Core):    shipkit/content/skills/commit/SKILL.md
+                          "Create conventional commits with semantic format"
+
+Layer 2 (User Global):    ~/.config/shipkit/skills/commit/SKILL.md
+                          "Additionally, always include ticket references"
+                          
+Layer 3 (Project):        .shipkit/skills/commit/SKILL.md
+                          "For this API, also update CHANGELOG.md"
+```
+
+**Result after `shipkit sync`:**
+```markdown
+<!-- Layer: package core -->
+Create conventional commits with semantic format
+...
+
+---
+<!-- Layer: user global -->
+Additionally, always include ticket references
+...
+
+---
+<!-- Layer: project:my-api -->
+For this API, also update CHANGELOG.md
+...
+```
+
+The agent sees **all three layers** merged together, each marked with its source.
+
+### Precedence Rules
+
+When layers conflict, **higher layers take precedence:**
+
+1. **Package core** (lowest) - Built-in skills shipped with shipkit
+2. **User global** - Your personal preferences in `~/.config/shipkit/`
+3. **Plugins** - Installed via `shipkit plugin install`
+4. **Project-specific** (highest) - Per-project in `~/.config/shipkit/projects/<name>/`
+
+### Complete Override
+
+To completely replace lower layers instead of extending, use `extends: false` in frontmatter:
+
+```yaml
+---
+name: commit
+description: Custom commit workflow
+extends: false  # Ignore all lower layers
+---
+
+# My Complete Custom Workflow
+
+This completely replaces the core commit skill.
+No cascading with lower layers.
+```
+
+**Result:** Only this layer's content is used, lower layers are ignored.
+
+### Use Cases
+
+**Cascade (extends: true, default):**
+- Add project-specific rules to core skills
+- Layer team conventions on top of personal preferences
+- Keep core behavior, add extras
+
+**Override (extends: false):**
+- Completely different workflow for this project
+- Replace broken or incompatible core skill
+- Start fresh without inherited behavior
+
+### References Merging
+
+`references/` directories from all layers are merged. If the same filename exists in multiple layers, higher layers win.
+
+### Agent Skills Standard Compatibility
+
+Shipkit's `extends` field is a **custom extension** - tools that don't understand it will simply ignore the frontmatter field and load the skill body. Skills remain compatible with the [Agent Skills open standard](https://agentskills.io/specification).
 
 ## Adding Personal Content
 

@@ -53,6 +53,15 @@ All notable changes to this project will be documented in this file.
   - Syncing across machines
   - Using dotfiles managers (chezmoi, yadm)
   - Sharing within teams
+- `/sync-config` skill - automates backing up personal content:
+  - Commits changes to skills, steering, config, templates
+  - Pushes to git remote
+  - Initializes git repo if needed
+  - Guides user through remote setup if not configured
+- Auto-create .gitignore in ~/.config/shipkit/:
+  - Copied from seed/gitignore.sample during init
+  - Excludes .state/, plugins/, projects/
+  - Includes helpful comments on what to version
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

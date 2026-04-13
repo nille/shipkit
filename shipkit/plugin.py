@@ -95,23 +95,23 @@ def install_plugin(source: str, name: str | None = None) -> str:
 
     # Git repo install (full URL)
     plugin_name = name or _repo_to_name(source)
-        target = plugins_dir / plugin_name
-        if target.exists():
-            raise PluginError(f"Plugin '{plugin_name}' already installed. Uninstall first.")
-        try:
-            subprocess.run(
-                ["git", "clone", "--depth", "1", source, str(target)],
-                check=True, capture_output=True, text=True,
-            )
-        except subprocess.CalledProcessError as e:
-            raise PluginError(f"Failed to clone {source}: {e.stderr.strip()}")
-        except FileNotFoundError:
-            raise PluginError("git not found. Install git to use plugin install.")
+    target = plugins_dir / plugin_name
+    if target.exists():
+        raise PluginError(f"Plugin '{plugin_name}' already installed. Uninstall first.")
+    try:
+        subprocess.run(
+            ["git", "clone", "--depth", "1", source, str(target)],
+            check=True, capture_output=True, text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        raise PluginError(f"Failed to clone {source}: {e.stderr.strip()}")
+    except FileNotFoundError:
+        raise PluginError("git not found. Install git to use plugin install.")
 
-        # Validate manifest exists
-        if not (target / "plugin.yaml").exists():
-            shutil.rmtree(target)
-            raise PluginError(f"Cloned repo has no plugin.yaml — not a valid shipkit plugin.")
+    # Validate manifest exists
+    if not (target / "plugin.yaml").exists():
+        shutil.rmtree(target)
+        raise PluginError(f"Cloned repo has no plugin.yaml — not a valid shipkit plugin.")
 
     return plugin_name
 

@@ -4,12 +4,16 @@ Review session learnings and capture improvements. Use when user says "retrospec
 
 ## Overview
 
+**Interactive, visible learning** - All analysis happens in-conversation where the user can see and guide it.
+
 Two modes of operation:
 
-1. **Interactive** (default) — analyze the current conversation, surface findings, apply improvements
-2. **Triage pending** — review suggestions captured by the automated retro-analyzer hook from previous sessions
+1. **Review current session** (default) — analyze this conversation for learnings
+2. **Review pending sessions** — analyze past sessions saved by the session-end hook
 
-The retro-analyzer hook runs automatically after each session (via `SessionEnd` / stop hook) and saves transcript summaries to `<home>/.state/retro/pending/`. This skill processes those pending items alongside live session analysis.
+The `retro-analyze` hook runs after each session and saves metadata to `<home>/.state/retro/pending/*.json`. This skill reads those files, loads the actual transcripts, analyzes them **in this conversation** (visible to user), and applies approved learnings.
+
+**Key insight:** Analysis uses the CLI tool you're currently running - works with any LLM provider (Claude, Gemini, Bedrock, Ollama, models.dev, etc.). No separate API keys or hidden subagents needed.
 
 Learnings are stored as skill improvements, guidelines updates, or knowledge entries.
 
@@ -49,11 +53,13 @@ Analyze the current conversation for learnings.
 
 ### 2b. Triage Pending Items
 
-Process suggestions from the retro-analyzer hook.
+Process sessions saved by the retro-analyze hook.
 
 **Constraints:**
-- Read each pending JSON file — it contains `session_id`, `timestamp`, `turn_count`, and `transcript_summary`
-- Analyze the transcript summary to identify learnings (same categories and severity as step 2a)
+- Read each pending JSON file from `.state/retro/pending/` — it contains `session_id`, `timestamp`, `turn_count`, `transcript_summary`, and `transcript_path`
+- For each session, read the actual transcript file (use `transcript_path`)
+- Analyze the full transcript to identify learnings (same categories and severity as step 2a)
+- This analysis happens **in this conversation** - user sees your reasoning
 - You MUST check recent git commits (`git log --oneline -20`) before triaging — a suggestion may already be addressed
 - For each pending file, check whether its findings are already encoded in existing skills/guidelines (sweep for already-implemented items)
 - Auto-clear pending files whose findings are all already implemented — move them to `<home>/.state/retro/processed/`

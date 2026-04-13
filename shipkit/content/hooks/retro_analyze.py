@@ -80,7 +80,8 @@ def main():
     title = generate_title(turns)
     project = resolve_project_name(cwd)
 
-    # Write the pending analysis
+    # Write the pending session for interactive review
+    # Analysis happens in-conversation (visible to user), not in background
     pending_data = {
         "session_id": session_id,
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -89,12 +90,13 @@ def main():
         "title": title,
         "turn_count": len(turns),
         "user_turn_count": user_turns,
-        "status": "pending_analysis",
+        "status": "pending_review",
         "transcript_summary": summary,
+        "transcript_path": str(transcript_path),
     }
 
     pending_file.write_text(json.dumps(pending_data, indent=2) + "\n")
-    log_entry(HOOK_NAME, f"Saved session {session_id} for retro analysis ({len(turns)} turns): {title}")
+    log_entry(HOOK_NAME, f"Saved session {session_id} for interactive review ({len(turns)} turns): {title}")
 
     # Output for hook system
     print(json.dumps({

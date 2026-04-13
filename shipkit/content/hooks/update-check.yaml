@@ -1,0 +1,10 @@
+# Update check hook — checks PyPI for newer shipkit version at session start.
+#
+# Uses a daily cache to avoid network calls on every session.
+# Outputs an INSTRUCTION message when an update is available.
+
+name: update-check
+event: session_start
+description: Check for newer shipkit version on PyPI
+command: python3 {shipkit_hooks_dir}/update_check.py
+timeout: 10

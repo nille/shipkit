@@ -1,0 +1,12 @@
+# Autonomous learning loop — auto-promotes learnable rules from retro
+# suggestions and observations.
+#
+# Runs at session start. Classifies pending suggestions as learnable
+# vs structural. Learnable rules go to steering/auto-learned.md or
+# skills/<skill>/learned.md. Structural changes stay for manual triage.
+
+name: retro-auto
+event: session_start
+description: Auto-promote learnable rules from retro suggestions
+command: python3 {shipkit_hooks_dir}/retro_auto.py
+timeout: 30

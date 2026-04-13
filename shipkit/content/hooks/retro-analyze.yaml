@@ -1,0 +1,14 @@
+# Retro-analyzer hook — runs after each session to capture learnings.
+#
+# Reads the session transcript, analyzes it for mistakes, patterns, and
+# improvements, then writes suggestions to <home>/.state/retro/pending/.
+#
+# This hook is compiled into tool-native config by shipkit sync:
+#   Claude Code → .claude/settings.json hooks.SessionEnd
+#   Kiro        → .kiro/hooks/core/stop-retro-analyze.sh
+
+name: retro-analyze
+event: session_end
+description: Analyze session for learnings and write retro suggestions
+command: python3 {shipkit_hooks_dir}/retro_analyze.py
+timeout: 120

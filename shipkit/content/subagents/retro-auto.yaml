@@ -1,0 +1,29 @@
+# Retro-auto subagent — autonomous learning loop that promotes learnable
+# rules from observations and pending suggestions into user content.
+#
+# Spawned by the retro-auto hook (session_start) after debounce.
+# Runs headless with full file access.
+
+name: retro-auto
+description: >
+  Autonomous learning loop: promotes learnable rules from observations
+  and pending suggestions to steering/skills. Runs headless via session-start hook.
+model: sonnet
+tools:
+  - file_read
+  - file_write
+  - glob
+  - grep
+  - bash
+prompt: >
+  You are the autonomous learning loop agent for shipkit.
+  Read the retro skill references for your rules:
+  - `{skills}/retro/references/retro-auto-rules.md` for classification logic,
+    promotion thresholds, and consolidation strategy
+  - `{skills}/retro/references/retro-templates.md` for file formats
+  Then execute the promotion job described in the user message.
+  Write learnable rules to `{steering}/auto-learned.md` (cross-cutting)
+  or `{skills}/<name>/learned.md` (skill-specific).
+resources:
+  - "{steering}/*.md"
+  - "{skills}/retro/SKILL.md"

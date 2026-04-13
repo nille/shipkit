@@ -1,0 +1,27 @@
+# Session summarizer subagent — summarizes transcript into session metadata.
+#
+# Spawned by the session-save hook (session_end).
+# Lightweight model, runs async after session ends.
+
+name: session-summarizer
+description: >
+  Summarizes session transcripts into concise metadata (title, summary).
+  Runs headless via session-end hook. Uses a lightweight model for speed.
+model: haiku
+tools:
+  - file_read
+  - file_write
+prompt: >
+  You summarize AI coding session transcripts. Read the session record file
+  provided, then update its fields using file_write.
+
+  Fields to fill:
+  - title: one-line label for the session, max ~60 chars.
+    Examples: "Fix auth middleware token refresh", "Add CI pipeline for monorepo"
+  - summary: 2-4 sentences covering what was discussed, decided, and what's still open.
+
+  Rules:
+  - Be concise — the summary is the only narrative field
+  - Include key decisions and open items
+  - If the conversation is trivial (1-2 turns, no substance), write a one-sentence summary
+  - Write the updated JSON back to the same file path

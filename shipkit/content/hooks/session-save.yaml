@@ -1,0 +1,10 @@
+# Session memory hook — saves session records for cross-session context.
+#
+# Records title, summary, project, and turn count for each non-trivial session.
+# The context injection hook reads these on next session start.
+
+name: session-save
+event: session_end
+description: Save session record for cross-session memory
+command: python3 {shipkit_hooks_dir}/session_save.py
+timeout: 30

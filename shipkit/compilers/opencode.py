@@ -34,7 +34,9 @@ class OpenCodeCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_hooks_plugin, self._compile_tools_plugin, self._compile_opencode_json]:
+        # Skills are discovered at runtime via skill-discovery.md guideline
+        # Only compile: hooks plugin, opencode.json (with MCP + guidelines)
+        for step in [self._compile_hooks_plugin, self._compile_opencode_json]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)

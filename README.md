@@ -68,6 +68,41 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
 - **Project-specific overrides** — per-repo steering rules that only apply where they matter
 
+### Teams can collaborate across different tools:
+
+Your team doesn't need to standardize on one AI coding tool. Each developer uses their preferred tool, but everyone shares the same skills and workflows.
+
+**Example:** Your team builds a custom `/deploy` skill for your production pipeline:
+
+```
+Alice (Claude Code)          Bob (Kiro)               Carol (Gemini CLI)       David (OpenCode)
+      │                           │                           │                        │
+      ├─ Creates /deploy skill    │                           │                        │
+      ├─ Tests locally             │                           │                        │
+      └─ Shares: /contribute-skill deploy                     │                        │
+                                   │                           │                        │
+         ┌───────────────────────┼───────────────────────────┼────────────────────────┘
+         │                       ↓                           ↓                        ↓
+         │                   Marketplace                                              
+         │              (tool-agnostic SKILL.md)                                      
+         │                       ↓                           ↓                        ↓
+         └───────────────────────┼───────────────────────────┼────────────────────────┐
+                                 │                           │                        │
+                                 ├─ shipkit plugin install deploy                     │
+                                 ├─ shipkit sync --tool kiro │                        │
+                                 └─ /deploy works! ✅        │                        │
+                                                             │                        │
+                                                             ├─ shipkit plugin install deploy
+                                                             ├─ shipkit sync --tool gemini
+                                                             └─ /deploy works! ✅    │
+                                                                                      │
+                                                                                      ├─ shipkit plugin install deploy
+                                                                                      ├─ shipkit sync --tool opencode
+                                                                                      └─ /deploy works! ✅
+```
+
+**One skill, four tools, zero conversion.** The skill is stored in tool-agnostic markdown. Each developer's `shipkit sync` compiles it to their tool's native format. Team workflows stay consistent regardless of individual tool preferences.
+
 ## How It Works
 
 Shipkit is a content compiler. You write skills and rules once, and `shipkit sync` generates the right files for whichever AI coding tool you use.

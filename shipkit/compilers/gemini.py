@@ -35,7 +35,9 @@ class GeminiCliCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_gemini_md, self._compile_settings_json, self._compile_commands]:
+        # Skills are discovered at runtime via skill-discovery.md guideline
+        # Only compile: guidelines (GEMINI.md with discovery instructions), settings (hooks + MCP)
+        for step in [self._compile_gemini_md, self._compile_settings_json]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)

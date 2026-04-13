@@ -35,7 +35,9 @@ class ClaudeCodeCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_claude_md, self._compile_mcp_json, self._compile_skills, self._compile_hooks]:
+        # Skills are discovered at runtime via skill-discovery.md guideline
+        # Only compile: guidelines (with discovery instructions), MCP, hooks
+        for step in [self._compile_claude_md, self._compile_mcp_json, self._compile_hooks]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -248,56 +250,3 @@ class ClaudeCodeCompiler(Compiler):
             pass
         return None
 
-    def _compile_skills(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        written, skipped, warnings = [], [], []
-
-        commands_dir = ctx.repo_path / ".claude" / "commands"
-
-        # Collect ALL layers of each skill (not just highest)
-        skills_by_name: dict[str, list[Path]] = {}
-        for skills_dir in ctx.skills_layers:
-            if not skills_dir.exists():
-                continue
-            for skill_dir in sorted(skills_dir.iterdir()):
-                if not skill_dir.is_dir():
-                    continue
-                skill_md = skill_dir / "SKILL.md"
-                if skill_md.exists():
-                    if skill_dir.name not in skills_by_name:
-                        skills_by_name[skill_dir.name] = []
-                    skills_by_name[skill_dir.name].append(skill_md)
-
-        # Cascade and write each skill
-        from shipkit.skill_parser import parse_skill, cascade_skills
-
-        for skill_name, skill_paths in sorted(skills_by_name.items()):
-            # Parse all layers
-            skill_defs = [parse_skill(p) for p in skill_paths]
-
-            # Cascade layers (respects extends field)
-            cascaded_content = cascade_skills(skill_defs)
-
-            target = commands_dir / f"{skill_name}.md"
-
-            if dry_run:
-                written.append(f".claude/commands/{skill_name}.md (dry-run)")
-            else:
-                commands_dir.mkdir(parents=True, exist_ok=True)
-                target.write_text(cascaded_content)
-
-                # Merge references from all layers
-                merged_refs_dir = commands_dir / f"{skill_name}-references"
-                for skill_path in skill_paths:
-                    refs_dir = skill_path.parent / "references"
-                    if refs_dir.exists():
-                        merged_refs_dir.mkdir(exist_ok=True)
-                        for ref_file in refs_dir.rglob("*"):
-                            if ref_file.is_file():
-                                rel_path = ref_file.relative_to(refs_dir)
-                                target_ref = merged_refs_dir / rel_path
-                                target_ref.parent.mkdir(parents=True, exist_ok=True)
-                                shutil.copy2(ref_file, target_ref)
-
-                written.append(f".claude/commands/{skill_name}.md")
-
-        return written, skipped, warnings

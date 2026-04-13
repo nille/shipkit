@@ -34,7 +34,9 @@ class KiroCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_guidelines, self._compile_skills, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
+        # Skills are discovered at runtime via skill-discovery.md guideline
+        # Only compile: guidelines (with discovery instructions), subagents, MCP, hooks
+        for step in [self._compile_guidelines, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)

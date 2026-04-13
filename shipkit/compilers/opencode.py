@@ -34,9 +34,9 @@ class OpenCodeCompiler(Compiler):
         skipped = []
         warnings = []
 
-        # Skills are discovered at runtime via skill-discovery.md guideline
-        # Compile: discovery guideline, hooks plugin, opencode.json
-        for step in [self._compile_discovery_guideline, self._compile_hooks_plugin, self._compile_opencode_json]:
+        # Skills are discovered at runtime via AGENTS.md
+        # Compile: AGENTS.md (with discovery + guidelines), hooks plugin, opencode.json
+        for step in [self._compile_agents_md, self._compile_hooks_plugin, self._compile_opencode_json]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -44,10 +44,11 @@ class OpenCodeCompiler(Compiler):
 
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
-    def _compile_discovery_guideline(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate .opencode/guidelines/skill-discovery.md with OpenCode-specific paths."""
+    def _compile_agents_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate AGENTS.md with discovery instructions and guidelines."""
         written, skipped, warnings = [], [], []
 
+        # Generate tool-specific discovery instructions
         from shipkit.compilers.discovery_template import generate_discovery_instructions
         discovery_instructions = generate_discovery_instructions(
             tool_name="OpenCode",
@@ -55,15 +56,56 @@ class OpenCodeCompiler(Compiler):
             tool_user_path="~/.opencode/skills"
         )
 
-        guidelines_dir = ctx.repo_path / ".opencode" / "guidelines"
-        discovery_file = guidelines_dir / "skill-discovery.md"
+        # Collect and cascade guidelines (same as Claude/Gemini)
+        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
+
+        guidelines_by_name: dict[str, list[Path]] = {}
+        for guidelines_dir in ctx.guidelines_layers:
+            if not guidelines_dir.exists():
+                continue
+            for md_file in sorted(guidelines_dir.glob("*.md")):
+                if md_file.name == "skill-discovery.md":
+                    continue
+                if md_file.name not in guidelines_by_name:
+                    guidelines_by_name[md_file.name] = []
+                guidelines_by_name[md_file.name].append(md_file)
+
+        # Start with discovery, then add other guidelines
+        sections = [discovery_instructions]
+        for filename in sorted(guidelines_by_name.keys()):
+            guidelines_paths = guidelines_by_name[filename]
+            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
+            cascaded = cascade_guidelines(guidelines_defs)
+            sections.append(cascaded)
+
+        managed_content = "\n\n---\n\n".join(sections)
+
+        # Write to AGENTS.md (OpenCode's equivalent of CLAUDE.md)
+        agents_md_path = ctx.repo_path / "AGENTS.md"
+
+        # Preserve user content below sentinel (like Claude compiler)
+        SENTINEL_BEGIN = "<!-- SHIPKIT:BEGIN — managed by shipkit, do not edit above SHIPKIT:END -->"
+        SENTINEL_END = "<!-- SHIPKIT:END -->"
+
+        user_content = ""
+        if agents_md_path.exists():
+            existing = agents_md_path.read_text()
+            if SENTINEL_END in existing:
+                _, _, user_content = existing.partition(SENTINEL_END)
+                user_content = user_content.strip()
+            elif SENTINEL_BEGIN not in existing:
+                user_content = existing.strip()
+                warnings.append("Existing AGENTS.md was not shipkit-managed; preserved as user content below sentinel.")
+
+        full_content = f"{SENTINEL_BEGIN}\n\n{managed_content}\n\n{SENTINEL_END}\n"
+        if user_content:
+            full_content += f"\n{user_content}\n"
 
         if dry_run:
-            written.append(".opencode/guidelines/skill-discovery.md (dry-run)")
+            written.append("AGENTS.md (dry-run)")
         else:
-            guidelines_dir.mkdir(parents=True, exist_ok=True)
-            discovery_file.write_text(discovery_instructions)
-            written.append(".opencode/guidelines/skill-discovery.md")
+            agents_md_path.write_text(full_content)
+            written.append("AGENTS.md")
 
         return written, skipped, warnings
 

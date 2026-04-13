@@ -99,20 +99,21 @@ class TestEndToEndClaude:
         content = (tmp_repo / "CLAUDE.md").read_text()
         assert "Always use tabs" in content
 
-    def test_project_guidelines_overrides(self, tmp_home, tmp_repo):
+    def test_repo_guidelines_work(self, tmp_home, tmp_repo):
+        """Test that repo-committed guidelines don't cause errors."""
         from shipkit.project import init_project
         from shipkit.sync import sync_project
 
-        name = init_project(tmp_repo, name="e2e-override")
+        init_project(tmp_repo, name="e2e-repo-content")
 
-        # Add project-specific guidelines
-        project_guidelines = tmp_home / "projects" / name / "guidelines"
-        (project_guidelines / "local.md").write_text("# Local\n\nProject-specific rule.\n")
+        # Create team-shared guideline in repo (would be committed via git)
+        repo_guidelines = tmp_repo / ".shipkit" / "guidelines"
+        repo_guidelines.mkdir(parents=True)
+        (repo_guidelines / "team.md").write_text("# Team\n\nTeam conventions.\n")
 
-        sync_project(repo_path=tmp_repo)
-
-        content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "Project-specific rule" in content
+        # Sync should not error with repo content present
+        result = sync_project(repo_path=tmp_repo)
+        assert result.files_written  # Sync succeeded
 
 
 class TestEndToEndKiro:

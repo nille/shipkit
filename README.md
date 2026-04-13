@@ -90,7 +90,7 @@ Each layer can add or override skills, steering rules, MCP servers, and hooks. H
 |-------------|---------|-------|
 | Python | >= 3.10 | Runtime for shipkit itself |
 | Git | any | Required by `/commit`, `/pr`, `/release` |
-| An AI coding CLI | — | Claude Code, Kiro, Gemini CLI, OpenCode, or similar |
+| An AI coding CLI | — | [Claude Code](https://claude.ai/code), [Kiro CLI](https://kiro.dev), [Gemini CLI](https://geminicli.com), or [OpenCode](https://opencode.ai) |
 
 **Optional but recommended:**
 

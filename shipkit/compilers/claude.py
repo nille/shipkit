@@ -65,34 +65,8 @@ class ClaudeCodeCompiler(Compiler):
         )
 
         # CLAUDE.md now contains ONLY discovery instructions (minimal bootstrap)
-        # Agent will discover and read guidelines at runtime
+        # Agent will discover and read both skills and guidelines at runtime
         managed_content = f"{skill_discovery}\n\n---\n\n{guideline_discovery}"
-
-        # Collect skill catalog from all layers, deduplicating by name
-        # Higher layers override lower layers
-        skills_by_name: dict[str, str] = {}
-        for skills_dir in ctx.skills_layers:
-            if not skills_dir.exists():
-                continue
-            for skill_dir in sorted(skills_dir.iterdir()):
-                if not skill_dir.is_dir():
-                    continue
-                skill_md = skill_dir / "SKILL.md"
-                if skill_md.exists():
-                    first_line = skill_md.read_text().strip().split("\n")[0]
-                    desc = first_line.lstrip("#").strip()
-                    skills_by_name[skill_dir.name] = desc
-
-        # Build managed section
-        managed_parts = []
-        if sections:
-            managed_parts.append("\n\n---\n\n".join(sections))
-        if skills_by_name:
-            managed_parts.append("\n## Available Skills\n")
-            for skill_name, desc in sorted(skills_by_name.items()):
-                managed_parts.append(f"- **/{skill_name}** — {desc}")
-
-        managed_content = "\n".join(managed_parts)
 
         # Assemble full CLAUDE.md preserving user content
         claude_md_path = ctx.repo_path / "CLAUDE.md"

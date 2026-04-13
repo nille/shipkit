@@ -320,6 +320,105 @@ def plugin_update(name: str):
         raise click.ClickException(str(e))
 
 
+# --- alias command ---
+
+@main.command("alias")
+@click.argument("name")
+@click.option("--project", "-p", default=None, help="Project name (defaults to current directory's project)")
+@click.option("--install", is_flag=True, help="Append the alias to your shell config")
+def alias_cmd(name: str, project: str | None, install: bool):
+    """Generate a shell alias to launch a project from anywhere.
+
+    NAME is the alias you want to use (e.g. 'sk', 'dev').
+    """
+    from shipkit.project import resolve_project, ProjectError
+    from shipkit.config import ProjectConfig
+    from shipkit.datadir import resolve_home, DataDirError
+
+    try:
+        if project:
+            home_path = resolve_home()
+            project_dir = home_path / "projects" / project
+            cfg = ProjectConfig.load(project_dir / "project.yaml")
+            repo_path = cfg.repo_path
+        else:
+            _, project_dir = resolve_project()
+            cfg = ProjectConfig.load(project_dir / "project.yaml")
+            repo_path = cfg.repo_path
+    except (ProjectError, DataDirError) as e:
+        raise click.ClickException(str(e))
+
+    shell = _detect_shell()
+    snippet = _generate_alias(name, repo_path, shell)
+
+    if install:
+        _install_alias(name, snippet, shell)
+    else:
+        rc_file = _rc_file(shell)
+        click.echo(f"Add this to {rc_file}:\n")
+        click.echo(snippet)
+        click.echo(f"\nOr run: shipkit alias {name} --install")
+
+
+def _detect_shell() -> str:
+    """Detect the user's shell."""
+    import os
+    shell = os.environ.get("SHELL", "")
+    if "fish" in shell:
+        return "fish"
+    if "zsh" in shell:
+        return "zsh"
+    return "bash"
+
+
+def _rc_file(shell: str) -> Path:
+    """Return the config file path for the given shell."""
+    if shell == "fish":
+        return Path.home() / ".config" / "fish" / "config.fish"
+    if shell == "zsh":
+        return Path.home() / ".zshrc"
+    return Path.home() / ".bashrc"
+
+
+def _generate_alias(name: str, repo_path: str, shell: str) -> str:
+    """Generate the shell alias snippet."""
+    if shell == "fish":
+        return (
+            f'function {name}\n'
+            f'    cd "{repo_path}"; and shipkit run $argv\n'
+            f'end'
+        )
+    # bash/zsh — noglob wrapper prevents glob expansion of ?, *, ! in prompts
+    return (
+        f'_{name}_shipkit() {{ cd "{repo_path}" && shipkit run "$@"; }}\n'
+        f'alias {name}=\'noglob _{name}_shipkit\''
+    )
+
+
+def _install_alias(name: str, snippet: str, shell: str):
+    """Append alias to the user's shell config."""
+    rc = _rc_file(shell)
+
+    # For fish, ensure config dir exists
+    if shell == "fish":
+        rc.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if alias already exists
+    func_marker = f"function {name}" if shell == "fish" else f"_{name}_shipkit"
+    if rc.exists():
+        content = rc.read_text()
+        if func_marker in content:
+            click.echo(f"Alias '{name}' already exists in {rc}")
+            return
+
+    marker = f"# shipkit alias: {name}"
+    with open(rc, "a") as f:
+        f.write(f"\n{marker}\n{snippet}\n")
+
+    click.echo(f"Alias '{name}' added to {rc}")
+    click.echo(f"Run 'source {rc}' or open a new terminal to use it.")
+
+
 # --- run command ---
 
 @main.command()

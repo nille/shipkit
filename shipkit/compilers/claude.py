@@ -48,38 +48,25 @@ class ClaudeCodeCompiler(Compiler):
     def _compile_claude_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
         written, skipped, warnings = [], [], []
 
-        # Generate tool-specific discovery instructions
+        # Generate tool-specific discovery instructions for both skills AND guidelines
         from shipkit.compilers.discovery_template import generate_discovery_instructions
-        discovery_instructions = generate_discovery_instructions(
+        from shipkit.compilers.guideline_discovery_template import generate_guideline_discovery_instructions
+
+        skill_discovery = generate_discovery_instructions(
             tool_name="Claude Code",
             tool_project_path=".claude/skills",
             tool_user_path="~/.claude/skills"
         )
 
-        # Collect ALL layers of each guidelines rule by filename
-        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
+        guideline_discovery = generate_guideline_discovery_instructions(
+            tool_name="Claude Code",
+            tool_project_path=".claude/guidelines",
+            tool_user_path="~/.claude/guidelines"
+        )
 
-        guidelines_by_name: dict[str, list[Path]] = {}
-        for guidelines_dir in ctx.guidelines_layers:
-            if not guidelines_dir.exists():
-                continue
-            for md_file in sorted(guidelines_dir.glob("*.md")):
-                # Skip skill-discovery.md (we generate it dynamically above)
-                if md_file.name == "skill-discovery.md":
-                    continue
-                if md_file.name not in guidelines_by_name:
-                    guidelines_by_name[md_file.name] = []
-                guidelines_by_name[md_file.name].append(md_file)
-
-        # Start with discovery instructions
-        sections = [discovery_instructions]
-
-        # Then cascade each guideline
-        for filename in sorted(guidelines_by_name.keys()):
-            guidelines_paths = guidelines_by_name[filename]
-            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
-            cascaded = cascade_guidelines(guidelines_defs)
-            sections.append(cascaded)
+        # CLAUDE.md now contains ONLY discovery instructions (minimal bootstrap)
+        # Agent will discover and read guidelines at runtime
+        managed_content = f"{skill_discovery}\n\n---\n\n{guideline_discovery}"
 
         # Collect skill catalog from all layers, deduplicating by name
         # Higher layers override lower layers

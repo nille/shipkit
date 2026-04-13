@@ -32,8 +32,18 @@ All notable changes to this project will be documented in this file.
   - Submits PR automatically
   - Lowers barrier to community contributions
 
+### Added (continued)
+- Gemini CLI compiler for Google's Gemini CLI tool:
+  - Generates GEMINI.md with steering rules and skill catalog
+  - Generates .gemini/settings.json with hooks and MCP servers
+  - Generates .gemini/commands/*.toml for each skill (TOML format)
+  - Full hook support (SessionStart, SessionEnd, BeforeTool, AfterTool, etc.)
+  - Self-learning loop compatible (retro-analyze, retro-auto hooks)
+  - MCP server support
+
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip
+- Updated .gitignore to include .gemini/ and GEMINI.md
 
 ## [0.1.0] - 2026-04-13
 

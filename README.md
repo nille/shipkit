@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, and other AI coding CLIs.
+CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, and other AI coding tools.
 
 ## Why Shipkit?
 
@@ -24,11 +24,12 @@ You → approve → auto-learned.md updated → permanent behavior change
 ```
 
 **2. CLI-agnostic architecture**  
-Switching from Claude Code to Kiro? Trying out a new tool? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
+Switching from Claude Code to Kiro? Trying out Gemini CLI? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
 
 ```bash
 shipkit sync --tool claude   # Generates CLAUDE.md + .claude/commands/
 shipkit sync --tool kiro     # Generates .kiro/skills/ + .kiro/steering/
+shipkit sync --tool gemini   # Generates GEMINI.md + .gemini/commands/
 ```
 
 **3. Content layering that never breaks**  
@@ -128,7 +129,7 @@ shipkit init --template python
 shipkit init --template typescript
 
 # Target a different CLI tool
-shipkit sync --tool kiro
+shipkit sync --tool gemini
 ```
 
 ## Skills
@@ -360,20 +361,21 @@ Shipkit compiles to:
 |------|----------------|
 | **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/commands/`, `.claude/settings.json` |
 | **Kiro** | `.kiro/steering/`, `.kiro/skills/`, `.kiro/agents/`, `.kiro/config/mcp.json`, `.kiro/hooks/` |
+| **Gemini CLI** | `GEMINI.md`, `.gemini/settings.json`, `.gemini/commands/*.toml` |
 
 Set your preferred tool globally, per-project, or at sync time:
 
 ```yaml
 # ~/.config/shipkit/config.yaml
-cli_tool: claude
+cli_tool: claude  # or kiro, gemini
 
 # ~/.config/shipkit/projects/<name>/project.yaml
-cli_tool: kiro
+cli_tool: gemini
 ```
 
 ```bash
 # Or override at sync time
-shipkit sync --tool kiro
+shipkit sync --tool gemini
 ```
 
 ## Architecture
@@ -424,10 +426,11 @@ shipkit (Python package)
 │   ├── compilers/
 │   │   ├── base.py                    CompileContext, Compiler ABC, content layering
 │   │   ├── claude.py                  Claude Code compiler
-│   │   └── kiro.py                    Kiro compiler
+│   │   ├── kiro.py                    Kiro compiler
+│   │   └── gemini.py                  Gemini CLI compiler
 │   └── content/                       Core content (ships with package)
 │       ├── steering/                  8 steering rules
-│       ├── skills/                    19 skills
+│       ├── skills/                    20 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions
 │       └── mcp.json                   Default MCP servers

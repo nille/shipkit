@@ -2,6 +2,65 @@
 
 CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, and other AI coding CLIs.
 
+## Why Shipkit?
+
+Most AI coding tools come with their own conventions: custom slash commands, tool-specific configs, proprietary skill systems. When you invest time customizing one tool, that work is locked in. Switch tools? Start from scratch.
+
+**Shipkit flips this.** Write your workflows, preferences, and automation once. Compile to any AI coding CLI. Your investment moves with you.
+
+### Three superpowers that compound over time:
+
+**1. Self-learning system**  
+Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent steering rules or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
+
+```
+Session N → background analysis → suggestions written
+Session N+1 → "2 retro suggestions pending — say 'retro' to review"
+You → approve → auto-learned.md updated → permanent behavior change
+```
+
+**2. CLI-agnostic architecture**  
+Switching from Claude Code to Kiro? Trying out a new tool? Your skills, steering rules, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
+
+```bash
+shipkit sync --tool claude   # Generates CLAUDE.md + .claude/commands/
+shipkit sync --tool kiro     # Generates .kiro/skills/ + .kiro/steering/
+```
+
+**3. Content layering that never breaks**  
+Updates to core skills don't overwrite your customizations. Content flows through five layers — package core, plugins, user global, project-specific, repo-native — with higher layers always winning. Your preferences are sacred. Updates bring new capabilities without touching your setup.
+
+### Ship faster, every single day:
+
+```bash
+# Smart commits that explain the "why"
+/commit
+
+# Generate PRs from your commit history
+/pr
+
+# Structured code reviews (local diffs or GitHub PRs)
+/review anthropics/claude-code#123
+
+# Generate tests matching your project's conventions
+/test
+
+# Multi-source research with citations
+/research "does Bedrock support fine-tuning Llama models?"
+
+# Release with auto-generated changelogs
+/release minor
+```
+
+Every skill runs in any supported tool. Write it once, use it everywhere.
+
+### Extend without limits:
+
+- **19 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases
+- **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
+- **Install community plugins** with `shipkit plugin install <git-url>`
+- **Project-specific overrides** — per-repo steering rules that only apply where they matter
+
 ## How It Works
 
 Shipkit is a content compiler. You write skills and rules once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
@@ -37,7 +96,8 @@ Each layer can add or override skills, steering rules, MCP servers, and hooks. H
 
 ```bash
 # Install
-pip install shipkit
+uv tool install shipkit
+# or: pip install shipkit
 # or: git clone <repo> && cd shipkit && uv sync
 
 # Register a project (auto-creates ~/.config/shipkit/ on first use)

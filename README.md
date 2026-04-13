@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, and other AI coding CLIs.
+CLI-agnostic AI dev productivity kit. Skills, steering rules, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, and other AI coding tools.
 
 ## Why Shipkit?
 
@@ -360,20 +360,21 @@ Shipkit compiles to:
 |------|----------------|
 | **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/commands/`, `.claude/settings.json` |
 | **Kiro** | `.kiro/steering/`, `.kiro/skills/`, `.kiro/agents/`, `.kiro/config/mcp.json`, `.kiro/hooks/` |
+| **Gemini CLI** | `GEMINI.md`, `.gemini/settings.json`, `.gemini/commands/*.toml` |
 
 Set your preferred tool globally, per-project, or at sync time:
 
 ```yaml
 # ~/.config/shipkit/config.yaml
-cli_tool: claude
+cli_tool: claude  # or kiro, gemini
 
 # ~/.config/shipkit/projects/<name>/project.yaml
-cli_tool: kiro
+cli_tool: gemini
 ```
 
 ```bash
 # Or override at sync time
-shipkit sync --tool kiro
+shipkit sync --tool gemini
 ```
 
 ## Architecture

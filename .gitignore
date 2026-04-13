@@ -39,5 +39,7 @@ Thumbs.db
 # Tool-specific generated content (output of shipkit sync)
 .claude/
 .kiro/
+.gemini/
 CLAUDE.md
+GEMINI.md
 .mcp.json

@@ -57,7 +57,7 @@ class ClaudeCodeCompiler(Compiler):
         )
 
         # Collect ALL layers of each guidelines rule by filename
-        from shipkit.skill_parser import parse_guideline, cascade_guidelines
+        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
 
         guidelines_by_name: dict[str, list[Path]] = {}
         for guidelines_dir in ctx.guidelines_layers:
@@ -77,7 +77,7 @@ class ClaudeCodeCompiler(Compiler):
         # Then cascade each guideline
         for filename in sorted(guidelines_by_name.keys()):
             guidelines_paths = guidelines_by_name[filename]
-            guidelines_defs = [parse_guideline(p) for p in guidelines_paths]
+            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
             cascaded = cascade_guidelines(guidelines_defs)
             sections.append(cascaded)
 

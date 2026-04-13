@@ -430,7 +430,7 @@ Skills can be extended and overridden across layers. When the same skill exists 
 By default, **skills cascade** - higher layers extend lower layers rather than replacing them:
 
 ```
-Layer 1 (Package Core):    shipkit/content/skills/commit/SKILL.md
+Layer 1 (Package Core):    shipkit/core/skills/commit/SKILL.md
                           "Create conventional commits with semantic format"
 
 Layer 2 (User Global):    ~/.config/shipkit/skills/commit/SKILL.md

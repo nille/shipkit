@@ -529,7 +529,7 @@ shipkit (Python package)
 │   │   └── opencode.py                OpenCode compiler
 │   └── content/                       Core content (ships with package)
 │       ├── steering/                  8 steering rules
-│       ├── skills/                    20 skills
+│       ├── skills/                    21 skills
 │       ├── hooks/                     5 hooks + shared lib
 │       ├── subagents/                 3 subagent definitions
 │       └── mcp.json                   Default MCP servers

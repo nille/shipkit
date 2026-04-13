@@ -167,13 +167,19 @@ class OpenCodeCompiler(Compiler):
             skill_content = skill_md.read_text()
             description = self._extract_description(skill_content)
 
-            # Generate tool definition
+            # Escape skill content for TypeScript string literal
+            escaped_content = skill_content.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+
+            # Generate tool definition with embedded skill content
             tool_def = f'''      {skill_name}: tool({{
         description: "{description}",
         args: {{}}, // Skills don't have typed args by default
         async execute(args: any, context: any) {{
-          // Skill content is in context already via project rules
-          return `Skill /{skill_name} triggered. See project documentation for details.`;
+          // Skill instructions embedded by shipkit
+          const skillContent = `{escaped_content}`;
+
+          // Return skill content so the agent can read it
+          return skillContent;
         }}
       }}),'''
 

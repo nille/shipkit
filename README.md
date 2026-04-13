@@ -18,10 +18,15 @@ Most AI coding tools come with their own conventions: custom slash commands, too
 Shipkit watches how you work and auto-improves. After each session, a background analyzer identifies patterns, mistakes, and missing capabilities. Next session, you're nudged to review suggestions — approve them and they become permanent guidelines or skill improvements. The more you use it, the better it gets at understanding *your* workflow.
 
 ```
-Session N → background analysis → suggestions written
-Session N+1 → "2 retro suggestions pending — say 'retro' to review"
-You → approve → auto-learned.md updated → permanent behavior change
+Session N ends → metadata saved
+Session N+1 starts → "You have 1 unanalyzed session. Say 'retro' to review"
+You → "retro"
+Agent → reads transcript, analyzes in-conversation (you see everything)
+Agent → proposes: "Should I add this to guidelines?"
+You → approve → guidelines/auto-learned.md updated
 ```
+
+**Fully transparent** - you see the analysis happen and can guide it.
 
 **2. CLI-agnostic architecture**  
 Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, guidelines, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
@@ -91,7 +96,7 @@ Marketplace stores as tool-agnostic SKILL.md
 
 ## How It Works
 
-Shipkit is a content compiler. You write skills and rules once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
+Shipkit is a content compiler. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
 
 Content flows through three layers (lowest to highest precedence):
 
@@ -327,29 +332,43 @@ Background automation that runs at session boundaries:
 | `session-save` | Session end | Saves session metadata for cross-session context |
 | `retro-analyze` | Session end | Analyzes transcript for improvement suggestions |
 
-### Autonomous Learning Loop
+### Interactive Learning Loop
 
-Shipkit includes a self-improvement system that learns from your sessions:
+Shipkit learns from your sessions through visible, interactive analysis:
 
-1. **retro-analyze** hook runs after each session, identifying patterns and improvement opportunities
-2. Findings are classified by severity (high/medium/low) and saved to `.state/retro/`
-3. **retro-auto** hook runs at next session start, promoting learnable rules:
-   - Cross-cutting rules → `guidelines/auto-learned.md`
-   - Skill-specific rules → `skills/<name>/learned.md`
-   - Structural changes stay in pending for manual `/retro` triage
-4. **context-inject** hook surfaces pending items and learned preferences at session start
+1. **retro-analyze** hook (session end): Saves session metadata to `.state/retro/pending/`
+2. **context-inject** hook (session start): Notifies you of pending sessions
+3. **You trigger `/retro`**: Agent analyzes sessions in-conversation
+4. **Agent proposes learnings**: You see analysis, approve/reject/modify
+5. **Updates applied**: Changes written to `guidelines/auto-learned.md` or skill files
 
-## Subagents
+**Why interactive?**
+- Transparent - you see what's being learned
+- Collaborative - you guide the analysis
+- Trustworthy - no hidden background magic
+- Universal - works with any LLM provider your tool supports
 
-Three background agents handle the autonomous learning loop:
+## How Self-Learning Works
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `retro-analyzer` | Sonnet | Analyzes transcripts, emits suggestions and observations |
-| `session-summarizer` | Haiku | Generates session titles and summaries |
-| `retro-auto` | Sonnet | Promotes learnable rules, consolidates auto-learned content |
+**Fully interactive and visible** - analysis happens in-conversation using your CLI tool:
 
-These run headless via hooks — they're not invoked directly.
+1. **Session ends** → `retro-analyze` hook saves metadata to `.state/retro/pending/`
+2. **Next session starts** → `context-inject` hook notifies: "You have 1 unanalyzed session"
+3. **User says "retro"** → `/retro` skill is invoked
+4. **Agent analyzes** in-conversation:
+   - Reads pending session transcript
+   - Identifies patterns, mistakes, improvements
+   - **You see the analysis happen**
+5. **Agent proposes** changes to guidelines/skills
+6. **You approve/reject/modify**
+7. **Agent updates** `guidelines/auto-learned.md` or skill files
+
+**Why visible beats background:**
+- You see what's being learned
+- You can correct misinterpretations
+- You understand why rules exist
+- More trustworthy than "magic" background analysis
+- Works with **any LLM provider** your tool supports (no separate API keys)
 
 ## MCP Servers
 

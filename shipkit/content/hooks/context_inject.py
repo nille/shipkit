@@ -55,7 +55,13 @@ def main():
 
     output_parts = []
 
-    # 1. Pending retro suggestions
+    # 1. Pending sessions to review
+    pending_sessions = _count_pending_sessions(home_path)
+    if pending_sessions > 0:
+        nudge = f"You have {pending_sessions} unanalyzed session{'s' if pending_sessions > 1 else ''} ready for review. When the user is ready, suggest analyzing them for learnings by saying 'retro' or using the /retro skill."
+        output_parts.append(f"INSTRUCTION: {nudge}")
+
+    # 2. Pending retro suggestions (from previous manual reviews)
     retro_nudge = format_pending_retro_nudge()
     if retro_nudge:
         output_parts.append(f"INSTRUCTION: {retro_nudge}")
@@ -102,3 +108,11 @@ def _format_skill_rules_index(home_path: Path) -> str:
 
 if __name__ == "__main__":
     main()
+
+
+def _count_pending_sessions(home_path: Path) -> int:
+    """Count sessions waiting for interactive review."""
+    pending_dir = home_path / ".state" / "retro" / "pending"
+    if not pending_dir.exists():
+        return 0
+    return len(list(pending_dir.glob("*.json")))

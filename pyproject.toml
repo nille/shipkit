@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shipkit"
+version = "0.1.0"
+description = "CLI-agnostic AI dev productivity kit"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "click>=8.1",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+shipkit = "shipkit.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["shipkit"]

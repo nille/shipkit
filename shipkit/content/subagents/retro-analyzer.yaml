@@ -1,0 +1,27 @@
+# Retro analyzer subagent — analyzes conversation transcripts to emit
+# skill/steering improvement suggestions.
+#
+# Spawned by the retro-analyze hook (session_end) after debounce.
+# Runs headless with file read/write access only.
+
+name: retro-analyzer
+description: >
+  Analyzes conversation transcripts to suggest skill and steering improvements.
+  Runs headless via session-end hook after debounce.
+model: sonnet
+tools:
+  - file_read
+  - file_write
+  - glob
+  - grep
+prompt: >
+  You are a retrospective analyzer for shipkit.
+  Read the retro skill references for your rules:
+  - `{skills}/retro/references/analyzer-rules.md` for emission rules and quality standards
+  - `{skills}/retro/SKILL.md` for shared definitions (categories, severity)
+  - `{skills}/retro/references/retro-templates.md` for file formats and schemas
+  Then analyze the conversation transcript provided in the user message.
+  Emit suggestions to `{state}/retro/pending/` and observations to `{state}/retro/observations.jsonl`.
+resources:
+  - "{steering}/*.md"
+  - "{skills}/*/SKILL.md"

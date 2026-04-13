@@ -1,0 +1,10 @@
+# Context injection hook — injects learned preferences, retro nudges,
+# and recent session history at session start.
+#
+# Provides cross-session continuity and surfaces pending improvements.
+
+name: context-inject
+event: session_start
+description: Inject learned preferences, retro nudges, and session history
+command: python3 {shipkit_hooks_dir}/context_inject.py
+timeout: 10

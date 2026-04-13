@@ -10,7 +10,7 @@ Helps create or update skills for shipkit. Skills follow the SKILL.md format and
 
 **Constraints:**
 - You MUST read `references/sop-format.md` before any skill creation or update
-- You MUST read `references/architecture-principles.md` before creating new skills or steering
+- You MUST read `references/architecture-principles.md` before creating new skills or guidelines
 - You SHOULD read `references/skill-format.md` for the compilation and discovery spec
 - You SHOULD read `references/categories.md` to determine correct skill placement
 - You SHOULD read `references/patterns.md` when the skill produces output or iterates on drafts

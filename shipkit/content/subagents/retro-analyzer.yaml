@@ -1,12 +1,12 @@
 # Retro analyzer subagent — analyzes conversation transcripts to emit
-# skill/steering improvement suggestions.
+# skill/guidelines improvement suggestions.
 #
 # Spawned by the retro-analyze hook (session_end) after debounce.
 # Runs headless with file read/write access only.
 
 name: retro-analyzer
 description: >
-  Analyzes conversation transcripts to suggest skill and steering improvements.
+  Analyzes conversation transcripts to suggest skill and guidelines improvements.
   Runs headless via session-end hook after debounce.
 model: sonnet
 tools:
@@ -23,5 +23,5 @@ prompt: >
   Then analyze the conversation transcript provided in the user message.
   Emit suggestions to `{state}/retro/pending/` and observations to `{state}/retro/observations.jsonl`.
 resources:
-  - "{steering}/*.md"
+  - "{guidelines}/*.md"
   - "{skills}/*/SKILL.md"

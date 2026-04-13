@@ -135,7 +135,7 @@ class TestSessionContext:
 
     def test_format_learned_preferences_with_file(self, initialized_home, monkeypatch):
         monkeypatch.setenv("SHIPKIT_HOME", str(initialized_home))
-        prefs = initialized_home / "steering" / "auto-learned.md"
+        prefs = initialized_home / "guidelines" / "auto-learned.md"
         prefs.write_text(
             "---\ndescription: test\n---\n\n# Preferences\n\n- Be concise\n"
         )

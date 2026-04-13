@@ -149,7 +149,7 @@ def format_learned_preferences() -> str:
     if vault is None:
         return ""
 
-    prefs_file = vault / "steering" / "auto-learned.md"
+    prefs_file = vault / "guidelines" / "auto-learned.md"
     if not prefs_file.exists():
         return ""
 

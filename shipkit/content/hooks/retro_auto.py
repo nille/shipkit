@@ -6,7 +6,7 @@ suggestions and observations, classifies them as learnable vs structural,
 and auto-promotes learnable rules.
 
 Learnable rules go to:
-- <home>/steering/auto-learned.md (cross-cutting)
+- <home>/guidelines/auto-learned.md (cross-cutting)
 - <home>/skills/<skill-name>/learned.md (skill-specific)
 
 Structural changes stay in .state/retro/pending/ for manual triage via /retro.
@@ -47,8 +47,8 @@ def main():
     if vault_path is None:
         sys.exit(0)
 
-    steering_dir = vault_path / "steering"
-    steering_dir.mkdir(parents=True, exist_ok=True)
+    guidelines_dir = vault_path / "guidelines"
+    guidelines_dir.mkdir(parents=True, exist_ok=True)
     skills_dir = vault_path / "skills"
     skills_dir.mkdir(parents=True, exist_ok=True)
 
@@ -180,12 +180,12 @@ def _is_learnable(suggestion: dict) -> bool:
     severity = suggestion.get("severity", "low")
     text = suggestion.get("suggestion", "")
 
-    # Steering updates and knowledge are typically learnable
-    if stype in ("steering_update", "knowledge"):
+    # Guidelines updates and knowledge are typically learnable
+    if stype in ("guidelines_update", "knowledge"):
         return True
 
-    # New skills and new steering files are structural
-    if stype in ("new_skill", "new_steering"):
+    # New skills and new guidelines files are structural
+    if stype in ("new_skill", "new_guidelines"):
         return False
 
     # Skill improvements: check if it's a simple rule vs structural change
@@ -222,9 +222,9 @@ def _promote_rule(vault_path: Path, rule_text: str, count: int, target: str | No
                 )
                 return
 
-    # Cross-cutting rule → steering/auto-learned.md
+    # Cross-cutting rule → guidelines/auto-learned.md
     _append_to_learned_file(
-        vault_path / "steering" / "auto-learned.md",
+        vault_path / "guidelines" / "auto-learned.md",
         rule_text, count, "Auto-Learned Preferences",
         "Cross-cutting behavioral preferences. Customizations + auto-learned.",
         token_budget=3000,

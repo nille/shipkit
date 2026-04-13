@@ -4,7 +4,7 @@ Each target CLI tool (Claude Code, Kiro, Gemini CLI, etc.) implements this
 interface to compile shipkit content into tool-native configuration.
 
 Content layering (lowest to highest precedence):
-1. Package core — shipped with shipkit (steering, skills, MCP defaults)
+1. Package core — shipped with shipkit (guidelines, skills, MCP defaults)
 2. User global — personal additions/overrides in shipkit home
 3. Project-specific — per-project overrides
 4. Repo-native — existing tool config in the repo (never overwritten)
@@ -33,8 +33,8 @@ class CompileContext:
     # --- Layer 1: Package core (shipped with shipkit) ---
 
     @property
-    def package_steering(self) -> Path:
-        return PACKAGE_CONTENT_DIR / "steering"
+    def package_guidelines(self) -> Path:
+        return PACKAGE_CONTENT_DIR / "guidelines"
 
     @property
     def package_skills(self) -> Path:
@@ -47,8 +47,8 @@ class CompileContext:
     # --- Layer 2: User global (personal additions/overrides) ---
 
     @property
-    def user_steering(self) -> Path:
-        return self.home_path / "steering"
+    def user_guidelines(self) -> Path:
+        return self.home_path / "guidelines"
 
     @property
     def user_skills(self) -> Path:
@@ -61,8 +61,8 @@ class CompileContext:
     # --- Layer 3: Project-specific ---
 
     @property
-    def project_steering(self) -> Path:
-        return self.project_dir / "steering"
+    def project_guidelines(self) -> Path:
+        return self.project_dir / "guidelines"
 
     @property
     def project_skills(self) -> Path:
@@ -113,12 +113,12 @@ class CompileContext:
     # --- Convenience: ordered layer lists for iteration ---
 
     @property
-    def steering_layers(self) -> list[Path]:
-        """Steering dirs in precedence order (lowest first)."""
-        layers = [self.package_steering, self.user_steering]
+    def guidelines_layers(self) -> list[Path]:
+        """Guidelines dirs in precedence order (lowest first)."""
+        layers = [self.package_guidelines, self.user_guidelines]
         for pd in self.plugin_dirs:
-            layers.append(pd / "steering")
-        layers.append(self.project_steering)
+            layers.append(pd / "guidelines")
+        layers.append(self.project_guidelines)
         return layers
 
     @property

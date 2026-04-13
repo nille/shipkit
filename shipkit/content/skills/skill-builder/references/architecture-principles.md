@@ -1,6 +1,6 @@
 # Architecture Principles
 
-Decision gates and design principles for creating and modifying skills, steering, and references.
+Decision gates and design principles for creating and modifying skills, guidelines, and references.
 
 ## Token Budget Awareness
 
@@ -8,24 +8,24 @@ Every piece of content has a context cost:
 
 | Content type | Loaded when | Cost |
 |-------------|-------------|------|
-| Steering rules | Every conversation | HIGH — keep minimal, each rule uses budget every session |
+| Guidelines rules | Every conversation | HIGH — keep minimal, each rule uses budget every session |
 | SKILL.md | On skill invocation | MEDIUM — loaded on demand, but bloated skills slow execution |
 | References | When skill reads them | LOW — loaded only when needed |
 | Knowledge | Search-triggered | ZERO — only loaded when explicitly searched |
 
 **Decision heuristic:**
-- Is this needed in EVERY conversation? → steering (be concise)
+- Is this needed in EVERY conversation? → guidelines (be concise)
 - Is this needed when running a specific skill? → SKILL.md or its references/
 - Is this a detailed reference table, schema, or template? → references/ subdirectory
 - Is this project-specific knowledge? → project knowledge
 
-## Steering vs Skill vs Reference
+## Guidelines vs Skill vs Reference
 
-### Steering (cross-cutting rules)
+### Guidelines (cross-cutting rules)
 - Applies to ALL conversations and ALL skills
 - Should be behavioral rules, not procedural steps
-- Keep each steering file focused on one concern
-- Total steering should be under 5000 tokens
+- Keep each guidelines file focused on one concern
+- Total guidelines should be under 5000 tokens
 
 ### SKILL.md (procedural workflow)
 - Step-by-step instructions for a specific task
@@ -44,7 +44,7 @@ Every piece of content has a context cost:
 When creating new content, ask in order:
 
 1. **Does it change behavior across all conversations?**
-   - Yes → steering rule (add to existing file or create new)
+   - Yes → guidelines rule (add to existing file or create new)
    - No → continue
 
 2. **Does it define a workflow for a specific task?**

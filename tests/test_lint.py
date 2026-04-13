@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from shipkit.lint import (
-    Results, check_json, check_skills, check_steering,
+    Results, check_json, check_skills, check_guidelines,
     check_hooks, check_plugins, check_pii, check_links,
     run_all,
 )
@@ -50,11 +50,11 @@ class TestCheckSkills:
         assert r.passed
 
 
-class TestCheckSteering:
+class TestCheckGuidelines:
 
-    def test_validates_package_steering(self):
+    def test_validates_package_guidelines(self):
         r = Results(verbose=False)
-        check_steering(r)
+        check_guidelines(r)
         assert r.passed
 
 

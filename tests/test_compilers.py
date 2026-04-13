@@ -28,15 +28,15 @@ class TestCompileContext:
 
     def test_layer_properties(self, compile_ctx):
         ctx = compile_ctx
-        assert ctx.package_steering.name == "steering"
-        assert ctx.user_steering == ctx.home_path / "steering"
-        assert ctx.project_steering == ctx.project_dir / "steering"
+        assert ctx.package_guidelines.name == "guidelines"
+        assert ctx.user_guidelines == ctx.home_path / "guidelines"
+        assert ctx.project_guidelines == ctx.project_dir / "guidelines"
 
-    def test_steering_layers_order(self, compile_ctx):
-        layers = compile_ctx.steering_layers
+    def test_guidelines_layers_order(self, compile_ctx):
+        layers = compile_ctx.guidelines_layers
         assert len(layers) >= 3  # package, user, project
-        assert layers[0] == compile_ctx.package_steering
-        assert layers[-1] == compile_ctx.project_steering
+        assert layers[0] == compile_ctx.package_guidelines
+        assert layers[-1] == compile_ctx.project_guidelines
 
     def test_plugin_dirs_empty(self, compile_ctx):
         assert compile_ctx.plugin_dirs == []
@@ -51,9 +51,9 @@ class TestCompileContext:
         plugins_dir = compile_ctx.home_path / "plugins" / "my-plugin"
         plugins_dir.mkdir(parents=True)
         (plugins_dir / "plugin.yaml").write_text("name: my-plugin\n")
-        (plugins_dir / "steering").mkdir()
+        (plugins_dir / "guidelines").mkdir()
 
-        layers = compile_ctx.steering_layers
+        layers = compile_ctx.guidelines_layers
         # package, user, plugin, project
         assert len(layers) == 4
         assert "plugins" in str(layers[2])
@@ -138,10 +138,10 @@ class TestClaudeCompiler:
         assert not (compile_ctx.repo_path / "CLAUDE.md").exists()
         assert all("dry-run" in f for f in result.files_written)
 
-    def test_user_steering_merged(self, compile_ctx):
-        # Add a user steering file
-        user_steering = compile_ctx.home_path / "steering"
-        (user_steering / "custom.md").write_text("# Custom Rule\n\nBe concise.\n")
+    def test_user_guidelines_merged(self, compile_ctx):
+        # Add a user guidelines file
+        user_guidelines = compile_ctx.home_path / "guidelines"
+        (user_guidelines / "custom.md").write_text("# Custom Rule\n\nBe concise.\n")
 
         compiler = get_compiler("claude")
         compiler.compile(compile_ctx)
@@ -151,40 +151,40 @@ class TestClaudeCompiler:
 
 class TestKiroCompiler:
 
-    def test_generates_steering(self, compile_ctx):
+    def test_generates_guidelines(self, compile_ctx):
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        assert steering_dir.exists()
-        assert any("steering/" in f for f in result.files_written)
+        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
+        assert guidelines_dir.exists()
+        assert any("guidelines/" in f for f in result.files_written)
 
     def test_managed_marker(self, compile_ctx):
         compiler = get_compiler("kiro")
         compiler.compile(compile_ctx)
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        for md_file in steering_dir.glob("*.md"):
+        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
+        for md_file in guidelines_dir.glob("*.md"):
             content = md_file.read_text()
             assert content.startswith("<!-- shipkit:managed -->")
 
     def test_preserves_repo_native(self, compile_ctx):
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        steering_dir.mkdir(parents=True)
-        (steering_dir / "native.md").write_text("# My native rule\n")
+        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
+        guidelines_dir.mkdir(parents=True)
+        (guidelines_dir / "native.md").write_text("# My native rule\n")
 
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        content = (steering_dir / "native.md").read_text()
+        content = (guidelines_dir / "native.md").read_text()
         assert "My native rule" in content  # Not overwritten
         # native.md is not in any layer, so compiler ignores it entirely
         assert "shipkit:managed" not in content
 
     def test_skips_repo_native_conflict(self, compile_ctx):
         """When a layer has a file with the same name as a repo-native one, skip it."""
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        steering_dir.mkdir(parents=True)
+        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
+        guidelines_dir.mkdir(parents=True)
 
-        # Find a steering file that will actually be compiled from layers
-        layers = compile_ctx.steering_layers
+        # Find a guidelines file that will actually be compiled from layers
+        layers = compile_ctx.guidelines_layers
         layer_file = None
         for layer_dir in layers:
             if layer_dir.exists():
@@ -196,7 +196,7 @@ class TestKiroCompiler:
 
         if layer_file:
             # Pre-create in repo WITHOUT managed marker → repo-native
-            (steering_dir / layer_file).write_text("# Repo-native override\n")
+            (guidelines_dir / layer_file).write_text("# Repo-native override\n")
             compiler = get_compiler("kiro")
             result = compiler.compile(compile_ctx)
             assert any("preserved" in s for s in result.files_skipped)

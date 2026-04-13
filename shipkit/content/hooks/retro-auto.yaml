@@ -2,7 +2,7 @@
 # suggestions and observations.
 #
 # Runs at session start. Classifies pending suggestions as learnable
-# vs structural. Learnable rules go to steering/auto-learned.md or
+# vs structural. Learnable rules go to guidelines/auto-learned.md or
 # skills/<skill>/learned.md. Structural changes stay for manual triage.
 
 name: retro-auto

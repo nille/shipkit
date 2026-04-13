@@ -41,7 +41,7 @@ def init_project(repo_path: Path, name: str | None = None, template: str = "defa
 
     # Create project entry
     project_dir.mkdir(parents=True)
-    (project_dir / "steering").mkdir()
+    (project_dir / "guidelines").mkdir()
     (project_dir / "knowledge").mkdir()
     (project_dir / "skills").mkdir()
 
@@ -51,7 +51,7 @@ def init_project(repo_path: Path, name: str | None = None, template: str = "defa
         # Fall back to seed templates shipped with the package
         template_dir = SEED_DIR / "templates" / template
     if template_dir.exists():
-        for subdir in ["steering", "skills"]:
+        for subdir in ["guidelines", "skills"]:
             src = template_dir / subdir
             if src.exists():
                 dst = project_dir / subdir

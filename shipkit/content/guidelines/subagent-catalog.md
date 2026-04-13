@@ -4,11 +4,11 @@ Subagents are specialized agents that run headless for background tasks. They ar
 
 ## retro-analyzer
 
-**Purpose:** Analyze conversations for skill and steering improvement opportunities.
+**Purpose:** Analyze conversations for skill and guidelines improvement opportunities.
 
 **When it runs:** Automatically after each session ends (via `session_end` hook, debounced). Not called directly.
 
-**How it works:** Reads conversation transcript, compares against current skills and steering rules, writes suggestion files to `<home>/.state/retro/pending/`. Results are surfaced by the `/retro` skill or the `context-inject` hook at next session start.
+**How it works:** Reads conversation transcript, compares against current skills and guidelines rules, writes suggestion files to `<home>/.state/retro/pending/`. Results are surfaced by the `/retro` skill or the `context-inject` hook at next session start.
 
 **Output:** Single JSON file per conversation at `<home>/.state/retro/pending/<session_id>.json`
 
@@ -18,7 +18,7 @@ Subagents are specialized agents that run headless for background tasks. They ar
 
 **When it runs:** Automatically at session start (via `session_start` hook, debounced) when observations exist. Not called directly.
 
-**How it works:** Classifies suggestions as learnable (behavioral rules that can be applied by reading them) vs structural (workflow changes requiring manual review). Promotes learnable rules to `<home>/steering/auto-learned.md` (cross-cutting) or `<home>/skills/<name>/learned.md` (skill-specific). Structural changes stay in pending for human review via `/retro`.
+**How it works:** Classifies suggestions as learnable (behavioral rules that can be applied by reading them) vs structural (workflow changes requiring manual review). Promotes learnable rules to `<home>/guidelines/auto-learned.md` (cross-cutting) or `<home>/skills/<name>/learned.md` (skill-specific). Structural changes stay in pending for human review via `/retro`.
 
 ## session-summarizer
 

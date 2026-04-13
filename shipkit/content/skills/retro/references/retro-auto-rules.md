@@ -39,7 +39,7 @@ A change is structural if ANY of these are true:
 
 ## Promotion Destinations
 
-### Cross-cutting rules → `<home>/steering/auto-learned.md`
+### Cross-cutting rules → `<home>/guidelines/auto-learned.md`
 
 For rules that apply across all skills and conversations:
 - Response style preferences
@@ -89,7 +89,7 @@ During consolidation:
 2. Merge duplicates (combine occurrence counts)
 3. Remove rules that conflict with Customizations (user's intent takes precedence)
 4. Enforce token budgets:
-   - `steering/auto-learned.md` Auto-Learned: 3000 tokens max
+   - `guidelines/auto-learned.md` Auto-Learned: 3000 tokens max
    - `skills/*/learned.md` Auto-Learned: 1000 tokens max
 5. If over budget: drop lowest-occurrence rules first
 6. Verify no rules were accidentally dropped (count before and after)

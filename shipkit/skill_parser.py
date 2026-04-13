@@ -1,11 +1,11 @@
-"""Skill and steering parsing utilities for Agent Skills standard compliance.
+"""Skill and guidelines parsing utilities for Agent Skills standard compliance.
 
 Implements the Agent Skills open standard: https://agentskills.io/specification
 
 Supports:
 - Frontmatter parsing (name, description, license, compatibility, metadata, allowed-tools)
 - Skill cascading/composition via 'extends' field
-- Steering rule cascading with same mechanism
+- Guidelines rule cascading with same mechanism
 - Layer merging with precedence rules
 """
 
@@ -147,8 +147,8 @@ def _layer_name(path: Path) -> str:
 
 
 @dataclass
-class SteeringDefinition:
-    """Parsed steering rule definition."""
+class GuidelinesDefinition:
+    """Parsed guidelines rule definition."""
 
     filename: str
     body: str
@@ -156,28 +156,28 @@ class SteeringDefinition:
     source_path: Path | None = None
 
 
-def parse_steering(steering_md_path: Path) -> SteeringDefinition:
-    """Parse a steering .md file with optional frontmatter.
+def parse_guidelines(guidelines_md_path: Path) -> GuidelinesDefinition:
+    """Parse a guidelines .md file with optional frontmatter.
 
-    Steering rules follow the same format as skills but are simpler:
+    Guidelines rules follow the same format as skills but are simpler:
     - Optional frontmatter with 'extends' field
     - Body content (markdown)
     
     If no frontmatter, defaults to extends: true (additive).
     """
-    content = steering_md_path.read_text()
-    filename = steering_md_path.name
+    content = guidelines_md_path.read_text()
+    filename = guidelines_md_path.name
 
     # Extract frontmatter if present
     frontmatter_match = re.match(r'^---\s*\n(.*?)\n---\s*\n(.*)$', content, re.DOTALL)
 
     if not frontmatter_match:
         # No frontmatter - entire file is body, defaults to extends: true
-        return SteeringDefinition(
+        return GuidelinesDefinition(
             filename=filename,
             body=content.strip(),
             extends=True,
-            source_path=steering_md_path,
+            source_path=guidelines_md_path,
         )
 
     frontmatter_text, body = frontmatter_match.groups()
@@ -188,48 +188,48 @@ def parse_steering(steering_md_path: Path) -> SteeringDefinition:
     if isinstance(extends, str):
         extends = extends.lower() in ('true', 'yes', '1')
 
-    return SteeringDefinition(
+    return GuidelinesDefinition(
         filename=filename,
         body=body.strip(),
         extends=extends,
-        source_path=steering_md_path,
+        source_path=guidelines_md_path,
     )
 
 
-def cascade_steering(steering_definitions: list[SteeringDefinition]) -> str:
-    """Cascade multiple steering definitions from lowest to highest precedence.
+def cascade_guidelines(guidelines_definitions: list[GuidelinesDefinition]) -> str:
+    """Cascade multiple guidelines definitions from lowest to highest precedence.
 
     If a higher layer has extends=false, only that layer is returned.
     Otherwise, all layers with extends=true are concatenated.
 
     Args:
-        steering_definitions: List in precedence order (lowest first)
+        guidelines_definitions: List in precedence order (lowest first)
 
     Returns:
-        Merged steering content with layer markers
+        Merged guidelines content with layer markers
     """
-    if not steering_definitions:
+    if not guidelines_definitions:
         return ""
 
     # Check if highest layer has extends=false
-    if not steering_definitions[-1].extends:
+    if not guidelines_definitions[-1].extends:
         # Complete override - only use highest layer
-        return steering_definitions[-1].body
+        return guidelines_definitions[-1].body
 
     # Cascade: include all layers that have extends=true
     parts = []
-    for i, steering_def in enumerate(steering_definitions):
-        if not steering_def.extends and i < len(steering_definitions) - 1:
+    for i, guidelines_def in enumerate(guidelines_definitions):
+        if not guidelines_def.extends and i < len(guidelines_definitions) - 1:
             # This layer wants to reset, skip all lower layers
             parts.clear()
 
-        if steering_def.source_path:
-            layer_name = _layer_name(steering_def.source_path)
+        if guidelines_def.source_path:
+            layer_name = _layer_name(guidelines_def.source_path)
             parts.append(f"<!-- Layer: {layer_name} -->")
 
-        parts.append(steering_def.body)
+        parts.append(guidelines_def.body)
 
-        if i < len(steering_definitions) - 1:
+        if i < len(guidelines_definitions) - 1:
             parts.append("\n---\n")
 
     return "\n\n".join(parts)

@@ -7,7 +7,7 @@
 name: retro-auto
 description: >
   Autonomous learning loop: promotes learnable rules from observations
-  and pending suggestions to steering/skills. Runs headless via session-start hook.
+  and pending suggestions to guidelines/skills. Runs headless via session-start hook.
 model: sonnet
 tools:
   - file_read
@@ -22,8 +22,8 @@ prompt: >
     promotion thresholds, and consolidation strategy
   - `{skills}/retro/references/retro-templates.md` for file formats
   Then execute the promotion job described in the user message.
-  Write learnable rules to `{steering}/auto-learned.md` (cross-cutting)
+  Write learnable rules to `{guidelines}/auto-learned.md` (cross-cutting)
   or `{skills}/<name>/learned.md` (skill-specific).
 resources:
-  - "{steering}/*.md"
+  - "{guidelines}/*.md"
   - "{skills}/retro/SKILL.md"

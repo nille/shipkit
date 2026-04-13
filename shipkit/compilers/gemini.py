@@ -1,7 +1,7 @@
 """Gemini CLI compiler for shipkit.
 
 Generates:
-- GEMINI.md (merged steering rules + skill catalog)
+- GEMINI.md (merged guidelines rules + skill catalog)
 - .gemini/settings.json (hooks + MCP servers)
 - .gemini/commands/<skill>.toml (skills as custom commands)
 
@@ -44,27 +44,27 @@ class GeminiCliCompiler(Compiler):
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
     def _compile_gemini_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate GEMINI.md with steering rules and skill catalog."""
+        """Generate GEMINI.md with guidelines rules and skill catalog."""
         written, skipped, warnings = [], [], []
 
-        # Collect ALL layers of each steering rule by filename
-        from shipkit.skill_parser import parse_steering, cascade_steering
+        # Collect ALL layers of each guidelines rule by filename
+        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
 
-        steering_by_name: dict[str, list[Path]] = {}
-        for steering_dir in ctx.steering_layers:
-            if not steering_dir.exists():
+        guidelines_by_name: dict[str, list[Path]] = {}
+        for guidelines_dir in ctx.guidelines_layers:
+            if not guidelines_dir.exists():
                 continue
-            for md_file in sorted(steering_dir.glob("*.md")):
-                if md_file.name not in steering_by_name:
-                    steering_by_name[md_file.name] = []
-                steering_by_name[md_file.name].append(md_file)
+            for md_file in sorted(guidelines_dir.glob("*.md")):
+                if md_file.name not in guidelines_by_name:
+                    guidelines_by_name[md_file.name] = []
+                guidelines_by_name[md_file.name].append(md_file)
 
-        # Cascade each steering rule
+        # Cascade each guidelines rule
         sections = []
-        for filename in sorted(steering_by_name.keys()):
-            steering_paths = steering_by_name[filename]
-            steering_defs = [parse_steering(p) for p in steering_paths]
-            cascaded = cascade_steering(steering_defs)
+        for filename in sorted(guidelines_by_name.keys()):
+            guidelines_paths = guidelines_by_name[filename]
+            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
+            cascaded = cascade_guidelines(guidelines_defs)
             sections.append(cascaded)
 
         # Collect skill catalog from all layers, deduplicating by name

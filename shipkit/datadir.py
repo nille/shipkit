@@ -1,7 +1,7 @@
 """Data directory management for shipkit.
 
 The shipkit home directory (~/.config/shipkit/ by default) holds all user
-content: skills, steering, projects, plugins, and machine state. It is
+content: skills, guidelines, projects, plugins, and machine state. It is
 auto-created on first use via ensure_home().
 """
 
@@ -17,7 +17,7 @@ SEED_DIR = Path(__file__).parent.parent / "seed"
 
 HOME_DIRS = [
     "skills",
-    "steering",
+    "guidelines",
     "references",
     "templates",
     "projects",

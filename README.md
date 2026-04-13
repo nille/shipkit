@@ -91,7 +91,7 @@ Marketplace stores as tool-agnostic SKILL.md
 
 ## How It Works
 
-Shipkit is a content compiler. You write skills and guidelines once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
+Shipkit is a content compiler. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
 
 Content flows through three layers (lowest to highest precedence):
 

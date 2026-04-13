@@ -153,21 +153,21 @@ class TestKiroCompiler:
     def test_generates_guidelines(self, compile_ctx):
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        assert guidelines_dir.exists()
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        assert steering_dir\.exists()
         assert any("guidelines/" in f for f in result.files_written)
 
     def test_managed_marker(self, compile_ctx):
         compiler = get_compiler("kiro")
         compiler.compile(compile_ctx)
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        for md_file in guidelines_dir.glob("*.md"):
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        for md_file in steering_dir\.glob("*.md"):
             content = md_file.read_text()
             assert content.startswith("<!-- shipkit:managed -->")
 
     def test_preserves_repo_native(self, compile_ctx):
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        guidelines_dir.mkdir(parents=True)
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        steering_dir\.mkdir(parents=True)
         (guidelines_dir / "native.md").write_text("# My native rule\n")
 
         compiler = get_compiler("kiro")
@@ -179,8 +179,8 @@ class TestKiroCompiler:
 
     def test_skips_repo_native_conflict(self, compile_ctx):
         """When a layer has a file with the same name as a repo-native one, skip it."""
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        guidelines_dir.mkdir(parents=True)
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        steering_dir\.mkdir(parents=True)
 
         # Find a guidelines file that will actually be compiled from layers
         layers = compile_ctx.guidelines_layers

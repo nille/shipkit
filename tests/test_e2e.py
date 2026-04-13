@@ -125,7 +125,7 @@ class TestEndToEndKiro:
         init_project(tmp_repo, name="e2e-kiro")
         result = sync_project(repo_path=tmp_repo, tool="kiro")
 
-        # Steering
+        # Guidelines
         guidelines_dir = tmp_repo / ".kiro" / "guidelines"
         assert guidelines_dir.exists()
         md_files = list(guidelines_dir.glob("*.md"))

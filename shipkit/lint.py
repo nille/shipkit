@@ -55,9 +55,9 @@ def _fm_field(fm: str, field: str) -> str | None:
     return m.group(1).strip().strip("'\"") if m else None
 
 
-# ── Content root ─────────────────────────────────────────
+# ── Core content root ────────────────────────────────────
 
-CONTENT_DIR = Path(__file__).parent / "content"
+CORE_DIR = Path(__file__).parent / "core"
 
 
 # ── Checks ───────────────────────────────────────────────
@@ -65,7 +65,7 @@ CONTENT_DIR = Path(__file__).parent / "content"
 def check_json(results: Results) -> None:
     """Validate all JSON files in seed/ and content/."""
     pkg_root = Path(__file__).parent.parent
-    json_files = list(pkg_root.glob("seed/**/*.json")) + list(CONTENT_DIR.glob("**/*.json"))
+    json_files = list(pkg_root.glob("seed/**/*.json")) + list(CORE_DIR.glob("**/*.json"))
 
     if not json_files:
         results.warn("json", "no JSON files found")
@@ -82,7 +82,7 @@ def check_json(results: Results) -> None:
 
 def check_skills(results: Results) -> None:
     """Validate skill structure: SKILL.md must exist in each skill directory."""
-    skills_dir = CONTENT_DIR / "skills"
+    skills_dir = CORE_DIR / "skills"
     if not skills_dir.is_dir():
         results.err("skills/", "directory not found")
         return
@@ -115,7 +115,7 @@ def check_skills(results: Results) -> None:
 
 def check_guidelines(results: Results) -> None:
     """Validate guidelines files: must be markdown, have reasonable content."""
-    guidelines_dir = CONTENT_DIR / "guidelines"
+    guidelines_dir = CORE_DIR / "guidelines"
     if not guidelines_dir.is_dir():
         results.err("guidelines/", "directory not found")
         return
@@ -140,7 +140,7 @@ def check_guidelines(results: Results) -> None:
 
 def check_hooks(results: Results) -> None:
     """Validate hook YAML definitions: required fields, valid events."""
-    hooks_dir = CONTENT_DIR / "hooks"
+    hooks_dir = CORE_DIR / "hooks"
     if not hooks_dir.is_dir():
         results.err("hooks/", "directory not found")
         return
@@ -224,7 +224,7 @@ def check_plugins(results: Results, home_path: Path | None = None) -> None:
 
 def check_subagents(results: Results) -> None:
     """Validate subagent YAML definitions: required fields, valid models."""
-    subagents_dir = CONTENT_DIR / "subagents"
+    subagents_dir = CORE_DIR / "subagents"
     if not subagents_dir.is_dir():
         results.warn("subagents/", "directory not found")
         return
@@ -271,7 +271,7 @@ def check_pii(results: Results) -> None:
 
     skip_parts = {".venv", "venv", "node_modules", "__pycache__", ".git"}
 
-    scan_dirs = [CONTENT_DIR, Path(__file__).parent.parent / "seed"]
+    scan_dirs = [CORE_DIR, Path(__file__).parent.parent / "seed"]
     files = [
         p for d in scan_dirs if d.is_dir()
         for p in d.rglob("*")
@@ -301,7 +301,7 @@ def check_pii(results: Results) -> None:
 def check_links(results: Results) -> None:
     """Validate relative markdown links in content files."""
     pkg_root = Path(__file__).parent.parent
-    md_files = list(CONTENT_DIR.rglob("*.md"))
+    md_files = list(CORE_DIR.rglob("*.md"))
 
     # Patterns that are templates/examples, not real links
     placeholder_patterns = re.compile(r"^(url|NNNN|example|placeholder|TODO)", re.IGNORECASE)

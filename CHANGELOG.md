@@ -47,6 +47,12 @@ All notable changes to this project will be documented in this file.
   - Full hook support (session.created, session.idle, tool.execute.before/after)
   - Self-learning loop compatible (retro hooks work)
   - Plugin-based architecture (JS/TS wrappers around Python hooks)
+- Documentation section on versioning personal content:
+  - How to version ~/.config/shipkit/ with git
+  - What to include (skills, steering, config) vs exclude (.state, plugins, projects)
+  - Syncing across machines
+  - Using dotfiles managers (chezmoi, yadm)
+  - Sharing within teams
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

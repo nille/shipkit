@@ -40,10 +40,17 @@ All notable changes to this project will be documented in this file.
   - Full hook support (SessionStart, SessionEnd, BeforeTool, AfterTool, etc.)
   - Self-learning loop compatible (retro-analyze, retro-auto hooks)
   - MCP server support
+- OpenCode compiler for Anomaly's OpenCode tool:
+  - Generates .opencode/plugins/shipkit-hooks.ts (TypeScript plugin wrapping Python hooks)
+  - Generates .opencode/plugins/shipkit-tools.ts (custom tools from skills)
+  - Generates opencode.json with plugin registration and MCP servers
+  - Full hook support (session.created, session.idle, tool.execute.before/after)
+  - Self-learning loop compatible (retro hooks work)
+  - Plugin-based architecture (JS/TS wrappers around Python hooks)
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip
-- Updated .gitignore to include .gemini/ and GEMINI.md
+- Updated .gitignore to include .gemini/, .opencode/, GEMINI.md, opencode.json
 
 ## [0.1.0] - 2026-04-13
 

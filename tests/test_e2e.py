@@ -99,20 +99,6 @@ class TestEndToEndClaude:
         content = (tmp_repo / "CLAUDE.md").read_text()
         assert "Always use tabs" in content
 
-    def test_project_guidelines_overrides(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
-        from shipkit.sync import sync_project
-
-        name = init_project(tmp_repo, name="e2e-override")
-
-        # Add project-specific guidelines
-        project_guidelines = tmp_home / "projects" / name / "guidelines"
-        (project_guidelines / "local.md").write_text("# Local\n\nProject-specific rule.\n")
-
-        sync_project(repo_path=tmp_repo)
-
-        content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "Project-specific rule" in content
 
 
 class TestEndToEndKiro:

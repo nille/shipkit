@@ -132,18 +132,15 @@ def cascade_skills(skill_definitions: list[SkillDefinition]) -> str:
 def _layer_name(path: Path) -> str:
     """Extract human-readable layer name from path."""
     path_str = str(path)
-    if '/content/skills/' in path_str:
+    if '/content/skills/' in path_str or '/content/guidelines/' in path_str:
         return "package core"
-    elif '/.config/shipkit/skills/' in path_str:
+    elif '/.config/shipkit/skills/' in path_str or '/.config/shipkit/guidelines/' in path_str:
         return "user global"
     elif '/plugins/' in path_str:
         plugin_name = path_str.split('/plugins/')[1].split('/')[0]
         return f"plugin:{plugin_name}"
-    elif '/projects/' in path_str:
-        project_name = path_str.split('/projects/')[1].split('/')[0]
-        return f"project:{project_name}"
     else:
-        return "unknown"
+        return "repo"
 
 
 @dataclass

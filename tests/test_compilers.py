@@ -15,12 +15,10 @@ def compile_ctx(initialized_home, tmp_repo):
     """Create a CompileContext for testing."""
     from shipkit.project import init_project
     name = init_project(tmp_repo, name="test-proj")
-    project_dir = initialized_home / "projects" / name
     return CompileContext(
         home_path=initialized_home,
         repo_path=tmp_repo,
         project_name=name,
-        project_dir=project_dir,
     )
 
 
@@ -30,13 +28,12 @@ class TestCompileContext:
         ctx = compile_ctx
         assert ctx.package_guidelines.name == "guidelines"
         assert ctx.user_guidelines == ctx.home_path / "guidelines"
-        assert ctx.project_guidelines == ctx.project_dir / "guidelines"
 
     def test_guidelines_layers_order(self, compile_ctx):
         layers = compile_ctx.guidelines_layers
-        assert len(layers) >= 3  # package, user, project
+        assert len(layers) >= 2  # package, user (plugins may be added)
         assert layers[0] == compile_ctx.package_guidelines
-        assert layers[-1] == compile_ctx.project_guidelines
+        assert layers[1] == compile_ctx.user_guidelines
 
     def test_plugin_dirs_empty(self, compile_ctx):
         assert compile_ctx.plugin_dirs == []
@@ -54,8 +51,8 @@ class TestCompileContext:
         (plugins_dir / "guidelines").mkdir()
 
         layers = compile_ctx.guidelines_layers
-        # package, user, plugin, project
-        assert len(layers) == 4
+        # package, user, plugins
+        assert len(layers) == 3
         assert "plugins" in str(layers[2])
 
 

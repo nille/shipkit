@@ -81,15 +81,15 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip
 - Updated .gitignore to include .gemini/, .opencode/, GEMINI.md, opencode.json
-- Skills now cascade by default instead of complete replacement
-  - Package core → User global → Plugins → Project (each extends previous)
-  - Breaking change: Skills are now composable, not replacements
-  - To get old behavior: add 'extends: false' to your custom skills
-- Guidelines rules now cascade by default (same extends mechanism)
+- Skills and guidelines now cascade by default instead of complete replacement
+  - Three layers: Package core → User global → Plugins (highest)
+  - Skills and guidelines are now composable, not replacements
+  - To get complete override: add 'extends: false' to custom skills/guidelines
   - Same filename in multiple layers = cascade with layer markers
-  - Breaking change: Guidelines rules are now composable
-  - Previously: all steering files concatenated (duplicates possible)
-  - Now: Cascaded by filename with override support
+- Renamed "steering" to "guidelines" throughout for clarity
+  - All 48 files updated consistently
+- Removed project-specific content layer for simplicity
+  - For team-shared content: commit to `.shipkit/` in your repo
 
 ## [0.1.0] - 2026-04-13
 

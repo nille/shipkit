@@ -33,7 +33,7 @@ def sync_project(
     repo_path = repo_path.resolve()
 
     home_path = resolve_home()
-    project_name, project_dir = resolve_project(repo_path)
+    project_name, _project_dir = resolve_project(repo_path)
 
     # Resolve which tool to compile for
     if tool is None:
@@ -46,7 +46,6 @@ def sync_project(
         home_path=home_path,
         repo_path=repo_path,
         project_name=project_name,
-        project_dir=project_dir,
     )
 
     return compiler.compile(ctx, dry_run=dry_run)

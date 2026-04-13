@@ -45,40 +45,28 @@ class OpenCodeCompiler(Compiler):
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
     def _compile_agents_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate AGENTS.md with discovery instructions and guidelines."""
+        """Generate AGENTS.md with discovery instructions only."""
         written, skipped, warnings = [], [], []
 
-        # Generate tool-specific discovery instructions
+        # Generate tool-specific discovery instructions for both skills AND guidelines
         from shipkit.compilers.discovery_template import generate_discovery_instructions
-        discovery_instructions = generate_discovery_instructions(
+        from shipkit.compilers.guideline_discovery_template import generate_guideline_discovery_instructions
+
+        skill_discovery = generate_discovery_instructions(
             tool_name="OpenCode",
             tool_project_path=".opencode/skills",
             tool_user_path="~/.opencode/skills"
         )
 
-        # Collect and cascade guidelines (same as Claude/Gemini)
-        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
+        guideline_discovery = generate_guideline_discovery_instructions(
+            tool_name="OpenCode",
+            tool_project_path=".opencode/guidelines",
+            tool_user_path="~/.opencode/guidelines"
+        )
 
-        guidelines_by_name: dict[str, list[Path]] = {}
-        for guidelines_dir in ctx.guidelines_layers:
-            if not guidelines_dir.exists():
-                continue
-            for md_file in sorted(guidelines_dir.glob("*.md")):
-                if md_file.name == "skill-discovery.md":
-                    continue
-                if md_file.name not in guidelines_by_name:
-                    guidelines_by_name[md_file.name] = []
-                guidelines_by_name[md_file.name].append(md_file)
-
-        # Start with discovery, then add other guidelines
-        sections = [discovery_instructions]
-        for filename in sorted(guidelines_by_name.keys()):
-            guidelines_paths = guidelines_by_name[filename]
-            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
-            cascaded = cascade_guidelines(guidelines_defs)
-            sections.append(cascaded)
-
-        managed_content = "\n\n---\n\n".join(sections)
+        # AGENTS.md contains ONLY discovery instructions (minimal bootstrap)
+        # Agent will discover and read guidelines at runtime
+        managed_content = f"{skill_discovery}\n\n---\n\n{guideline_discovery}"
 
         # Write to AGENTS.md (OpenCode's equivalent of CLAUDE.md)
         agents_md_path = ctx.repo_path / "AGENTS.md"

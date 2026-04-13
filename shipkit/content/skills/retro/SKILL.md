@@ -11,7 +11,7 @@ Two modes of operation:
 
 The retro-analyzer hook runs automatically after each session (via `SessionEnd` / stop hook) and saves transcript summaries to `<home>/.state/retro/pending/`. This skill processes those pending items alongside live session analysis.
 
-Learnings are stored as skill improvements, steering updates, or knowledge entries.
+Learnings are stored as skill improvements, guidelines updates, or knowledge entries.
 
 ## Parameters
 
@@ -39,7 +39,7 @@ Analyze the current conversation for learnings.
 - Categorize each finding:
   - **skill_improvement** — a workflow change, missing step, or better default for an existing skill
   - **new_skill** — an entirely new capability that was needed
-  - **steering_update** — a behavioral rule that should apply across all conversations
+  - **guidelines_update** — a behavioral rule that should apply across all conversations
   - **knowledge** — a factual finding, gotcha, or debugging insight worth preserving
 - Apply severity:
   - **high** — user had to correct the agent, issue wasted significant time, or caused data loss risk
@@ -55,7 +55,7 @@ Process suggestions from the retro-analyzer hook.
 - Read each pending JSON file — it contains `session_id`, `timestamp`, `turn_count`, and `transcript_summary`
 - Analyze the transcript summary to identify learnings (same categories and severity as step 2a)
 - You MUST check recent git commits (`git log --oneline -20`) before triaging — a suggestion may already be addressed
-- For each pending file, check whether its findings are already encoded in existing skills/steering (sweep for already-implemented items)
+- For each pending file, check whether its findings are already encoded in existing skills/guidelines (sweep for already-implemented items)
 - Auto-clear pending files whose findings are all already implemented — move them to `<home>/.state/retro/processed/`
 - Report swept items: "Cleared N already-addressed items from M sessions"
 
@@ -76,7 +76,7 @@ Show all findings — both live session and pending — in a unified view.
 ### Pending (from previous sessions)
 | # | Severity | Type | Finding | Session |
 |---|----------|------|---------|---------|
-| 3 | high | steering_update | Agent over-explains after fixes | 2d ago |
+| 3 | high | guidelines_update | Agent over-explains after fixes | 2d ago |
 | 4 | medium | skill_improvement | Test skill missed edge case | 5d ago |
 ```
 
@@ -100,8 +100,8 @@ For each finding the user wants to act on:
 **For new_skill:**
 - Defer to the /skill-builder skill with the requirements gathered here
 
-**For steering_update:**
-- Identify the appropriate steering file (or propose a new one)
+**For guidelines_update:**
+- Identify the appropriate guidelines file (or propose a new one)
 - Propose the rule addition
 - Apply if approved
 
@@ -114,7 +114,7 @@ For each finding the user wants to act on:
 **Constraints:**
 - You MUST ask the user which findings to act on before making changes
 - You MUST show the specific change (diff or new content) before applying
-- For skill/steering changes, run `shipkit sync` after applying
+- For skill/guidelines changes, run `shipkit sync` after applying
 - Applied findings: mark as resolved, move pending JSON to `<home>/.state/retro/processed/`
 - Discarded findings: remove from pending
 - Skipped findings: leave in pending for next triage
@@ -150,12 +150,12 @@ Agent: [checks pending: 2 items from previous sessions]
        | # | Severity | Type | Finding | Session |
        |---|----------|------|---------|---------|
        | 2 | medium | knowledge | Staging DB requires VPN | 3d ago |
-       | 3 | medium | steering_update | Prefers terse responses | 1w ago |
+       | 3 | medium | guidelines_update | Prefers terse responses | 1w ago |
 
        Act on which? (1-3, all, or skip)"
 
 User: "all"
-Agent: [updates debug skill, saves VPN note, adds steering rule]
+Agent: [updates debug skill, saves VPN note, adds guidelines rule]
        [moves pending items to processed/]
        "Applied all 3. Commit?"
 ```

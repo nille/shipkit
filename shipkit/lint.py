@@ -1,7 +1,7 @@
 """Content validation for shipkit.
 
 Validates the structure and integrity of shipkit content:
-skills, steering, hooks, plugins, JSON configs, and PII scanning.
+skills, guidelines, hooks, plugins, JSON configs, and PII scanning.
 
 Can be run as:
     shipkit doctor --lint    (via CLI)
@@ -113,15 +113,15 @@ def check_skills(results: Results) -> None:
         results.ok(prefix)
 
 
-def check_steering(results: Results) -> None:
-    """Validate steering files: must be markdown, have reasonable content."""
-    steering_dir = CONTENT_DIR / "steering"
-    if not steering_dir.is_dir():
-        results.err("steering/", "directory not found")
+def check_guidelines(results: Results) -> None:
+    """Validate guidelines files: must be markdown, have reasonable content."""
+    guidelines_dir = CONTENT_DIR / "guidelines"
+    if not guidelines_dir.is_dir():
+        results.err("guidelines/", "directory not found")
         return
 
-    for f in sorted(steering_dir.glob("*.md")):
-        rel = f"steering/{f.name}"
+    for f in sorted(guidelines_dir.glob("*.md")):
+        rel = f"guidelines/{f.name}"
         text = f.read_text()
 
         if len(text.strip()) < 20:
@@ -325,7 +325,7 @@ def check_links(results: Results) -> None:
 CHECKS = [
     ("json",     "JSON Validation",    check_json),
     ("skills",   "Skill Structure",    check_skills),
-    ("steering", "Steering Rules",     check_steering),
+    ("guidelines", "Guideline Rules",     check_guidelines),
     ("hooks",    "Hook Definitions",   check_hooks),
     ("subagents","Subagent Definitions",check_subagents),
     ("plugins",  "Plugin Validation",  check_plugins),

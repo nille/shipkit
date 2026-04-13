@@ -1,7 +1,7 @@
 """Claude Code compiler for shipkit.
 
 Generates:
-- CLAUDE.md (merged steering rules + skill catalog)
+- CLAUDE.md (merged guidelines rules + skill catalog)
 - .mcp.json (merged MCP server config)
 - .claude/commands/<skill>.md (skills as custom slash commands)
 
@@ -46,12 +46,12 @@ class ClaudeCodeCompiler(Compiler):
     def _compile_claude_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
         written, skipped, warnings = [], [], []
 
-        # Collect steering content from all layers (package → user → project)
+        # Collect guidelines content from all layers (package → user → project)
         sections = []
-        for steering_dir in ctx.steering_layers:
-            if not steering_dir.exists():
+        for guidelines_dir in ctx.guidelines_layers:
+            if not guidelines_dir.exists():
                 continue
-            for md_file in sorted(steering_dir.glob("*.md")):
+            for md_file in sorted(guidelines_dir.glob("*.md")):
                 sections.append(md_file.read_text().strip())
 
         # Collect skill catalog from all layers, deduplicating by name

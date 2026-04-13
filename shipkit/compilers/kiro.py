@@ -1,7 +1,7 @@
 """Kiro compiler for shipkit.
 
 Generates:
-- .kiro/steering/<name>.md (merged steering rules)
+- .kiro/guidelines/<name>.md (merged guidelines rules)
 - .kiro/skills/<name>/SKILL.md (skills copied from content layers)
 - .kiro/agents/<name>.json (subagent configs)
 
@@ -34,7 +34,7 @@ class KiroCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_steering, self._compile_skills, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
+        for step in [self._compile_guidelines, self._compile_skills, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -42,41 +42,41 @@ class KiroCompiler(Compiler):
 
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
-    def _compile_steering(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+    def _compile_guidelines(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
         written, skipped, warnings = [], [], []
 
-        steering_dir = ctx.repo_path / ".kiro" / "steering"
+        guidelines_dir = ctx.repo_path / ".kiro" / "guidelines"
 
-        # Collect steering files from all layers, deduplicating by filename
+        # Collect guidelines files from all layers, deduplicating by filename
         # Higher layers override lower layers
-        steering_files: dict[str, Path] = {}
-        for layer_dir in ctx.steering_layers:
+        guidelines_files: dict[str, Path] = {}
+        for layer_dir in ctx.guidelines_layers:
             if not layer_dir.exists():
                 continue
             for md_file in sorted(layer_dir.glob("*.md")):
-                steering_files[md_file.name] = md_file
+                guidelines_files[md_file.name] = md_file
 
-        if not steering_files:
-            skipped.append(".kiro/steering/ (no steering rules found)")
+        if not guidelines_files:
+            skipped.append(".kiro/guidelines/ (no guidelines rules found)")
             return written, skipped, warnings
 
-        for filename, source_path in sorted(steering_files.items()):
-            target = steering_dir / filename
+        for filename, source_path in sorted(guidelines_files.items()):
+            target = guidelines_dir / filename
 
-            # Preserve repo-native steering files
+            # Preserve repo-native guidelines files
             if target.exists() and not self._is_managed(target):
-                skipped.append(f".kiro/steering/{filename} (repo-native, preserved)")
+                skipped.append(f".kiro/guidelines/{filename} (repo-native, preserved)")
                 continue
 
             if dry_run:
-                written.append(f".kiro/steering/{filename} (dry-run)")
+                written.append(f".kiro/guidelines/{filename} (dry-run)")
             else:
-                steering_dir.mkdir(parents=True, exist_ok=True)
+                guidelines_dir.mkdir(parents=True, exist_ok=True)
                 content = source_path.read_text()
                 # Add a managed marker comment at the top
                 managed_content = f"<!-- shipkit:managed -->\n{content}"
                 target.write_text(managed_content)
-                written.append(f".kiro/steering/{filename}")
+                written.append(f".kiro/guidelines/{filename}")
 
         return written, skipped, warnings
 
@@ -187,7 +187,7 @@ class KiroCompiler(Compiler):
             # Resolve prompt path placeholders
             prompt = agent_def.get("prompt", "")
             prompt = prompt.replace("{skills}", ".kiro/skills")
-            prompt = prompt.replace("{steering}", ".kiro/steering")
+            prompt = prompt.replace("{guidelines}", ".kiro/guidelines")
             prompt = prompt.replace("{state}", str(ctx.home_path / ".state"))
 
             kiro_agent = {
@@ -205,7 +205,7 @@ class KiroCompiler(Compiler):
             if resources:
                 resolved = []
                 for res in resources:
-                    res = res.replace("{steering}", ".kiro/steering")
+                    res = res.replace("{guidelines}", ".kiro/guidelines")
                     res = res.replace("{skills}", ".kiro/skills")
                     if res.endswith(".md"):
                         resolved.append(f"file://{res}")

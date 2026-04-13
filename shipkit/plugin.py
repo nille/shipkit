@@ -1,13 +1,13 @@
 """Plugin system for shipkit.
 
-Plugins are Git repositories that provide skills, hooks, steering, and
+Plugins are Git repositories that provide skills, hooks, guidelines, and
 references that extend shipkit. They install into <home>/plugins/<name>/.
 
 Plugin structure:
     plugin.yaml          # Manifest (name, description, author, version)
     skills/              # Skills (same format as shipkit skills)
     hooks/               # Hooks (same YAML + script format)
-    steering/            # Steering rules (markdown)
+    guidelines/            # Guideline rules (markdown)
     references/          # Shared reference docs
 """
 

@@ -8,12 +8,12 @@ Rules for the retro-analyzer hook and for inline retro analysis.
 |----------|-------------|-------------|
 | `skill_improvement` | Workflow changes, missing steps, better defaults for existing skills | On demand (skill invocation) |
 | `new_skill` | Entirely new capability needed | On demand |
-| `steering_update` | Cross-cutting behavioral rules that apply to ALL conversations | Every conversation |
-| `new_steering` | New cross-cutting rule file needed | Every conversation |
+| `guidelines_update` | Cross-cutting behavioral rules that apply to ALL conversations | Every conversation |
+| `new_guidelines` | New cross-cutting rule file needed | Every conversation |
 | `knowledge` | Facts, gotchas, debugging findings worth preserving | Search only |
 
 **Decision criteria:**
-- "Would this improve EVERY conversation?" → steering
+- "Would this improve EVERY conversation?" → guidelines
 - "Only useful for a specific workflow?" → skill_improvement
 - "Only useful for a specific topic/project?" → knowledge
 - "Entirely new capability?" → new_skill
@@ -42,7 +42,7 @@ Apply severity using this decision heuristic — stop at first "yes":
 
 ```json
 {
-  "type": "skill_improvement|new_skill|steering_update|new_steering|knowledge",
+  "type": "skill_improvement|new_skill|guidelines_update|new_guidelines|knowledge",
   "severity": "high|medium",
   "target": "file path or null for new items",
   "title": "short description (max 60 chars)",

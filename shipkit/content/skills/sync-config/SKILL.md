@@ -8,7 +8,7 @@
 
 Before starting, verify:
 - `~/.config/shipkit/` exists
-- User wants to version their personal content (skills, steering, learned preferences)
+- User wants to version their personal content (skills, guidelines, learned preferences)
 
 ## Process
 
@@ -36,7 +36,7 @@ If not yet a git repo, offer to initialize:
 
 Want me to initialize it so you can version your personal content?
   - skills/
-  - steering/ (including auto-learned.md)
+  - guidelines/ (including auto-learned.md)
   - config.yaml, mcp.json
   - templates/
 
@@ -71,7 +71,7 @@ cd ~/.config/shipkit
 git status --short
 
 # Stage versionable content
-git add skills/ steering/ config.yaml mcp.json templates/ .gitignore 2>/dev/null || true
+git add skills/ guidelines/ config.yaml mcp.json templates/ .gitignore 2>/dev/null || true
 ```
 
 ### 4. Check if There Are Changes

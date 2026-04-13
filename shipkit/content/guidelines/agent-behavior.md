@@ -1,6 +1,6 @@
 # Agent Behavior
 
-General rules for how the agent operates. These complement domain-specific steering (verification-rules for source hierarchy, sustainability for cognitive budget, safety-defaults for risk).
+General rules for how the agent operates. These complement domain-specific guidelines (verification-rules for source hierarchy, sustainability for cognitive budget, safety-defaults for risk).
 
 ## Verify Output Before Presenting
 
@@ -35,7 +35,7 @@ When input is ambiguous, resolve it before acting — not after delivering parti
 
 - **Scope propagation** — when applying a change (formatting fix, convention update, structural improvement), apply it to all analogous targets in the same scope. Don't fix one instance and leave identical issues in sibling files.
 - **Retroactive consistency** — when a convention is established or extracted mid-session, apply it retroactively to output already produced in the same session. Don't wait for the user to notice the inconsistency.
-- **Prefer steering over scripts** — for agent behavior constraints, encode them as steering rules rather than wrapper scripts. Steering is portable across sessions; scripts require infrastructure.
+- **Prefer guidelines over scripts** — for agent behavior constraints, encode them as guidelines rules rather than wrapper scripts. Steering is portable across sessions; scripts require infrastructure.
 
 ## Formatting
 

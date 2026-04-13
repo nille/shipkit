@@ -1,7 +1,7 @@
 """Gemini CLI compiler for shipkit.
 
 Generates:
-- GEMINI.md (merged steering rules + skill catalog)
+- GEMINI.md (merged guidelines rules + skill catalog)
 - .gemini/settings.json (hooks + MCP servers)
 - .gemini/commands/<skill>.toml (skills as custom commands)
 
@@ -44,15 +44,15 @@ class GeminiCliCompiler(Compiler):
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
     def _compile_gemini_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate GEMINI.md with steering rules and skill catalog."""
+        """Generate GEMINI.md with guidelines rules and skill catalog."""
         written, skipped, warnings = [], [], []
 
-        # Collect steering content from all layers
+        # Collect guidelines content from all layers
         sections = []
-        for steering_dir in ctx.steering_layers:
-            if not steering_dir.exists():
+        for guidelines_dir in ctx.guidelines_layers:
+            if not guidelines_dir.exists():
                 continue
-            for md_file in sorted(steering_dir.glob("*.md")):
+            for md_file in sorted(guidelines_dir.glob("*.md")):
                 sections.append(md_file.read_text().strip())
 
         # Collect skill catalog from all layers, deduplicating by name

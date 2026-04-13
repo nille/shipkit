@@ -1,7 +1,7 @@
 """Configuration management for shipkit.
 
 Two config layers:
-1. Shipkit home: ~/.config/shipkit/ (skills, steering, projects, state — all user data)
+1. Shipkit home: ~/.config/shipkit/ (skills, guidelines, projects, state — all user data)
 2. Project config: <home>/projects/<name>/project.yaml (per-project overrides)
 
 The home directory is configurable via SHIPKIT_HOME env var.

@@ -6,8 +6,8 @@ Schemas, file locations, and format templates for the retrospective system.
 
 ```
 <home>/
-├── steering/
-│   ├── ...                   # User steering rules
+├── guidelines/
+│   ├── ...                   # User guidelines rules
 │   └── auto-learned.md       # Cross-cutting auto-learned preferences
 ├── skills/
 │   ├── commit/
@@ -67,7 +67,7 @@ Schemas, file locations, and format templates for the retrospective system.
 One JSON object per line (append-only):
 
 ```json
-{"timestamp": "2026-04-12T20:00:00Z", "session_id": "abc123", "title": "Agent over-explains", "type": "steering_update", "target": null}
+{"timestamp": "2026-04-12T20:00:00Z", "session_id": "abc123", "title": "Agent over-explains", "type": "guidelines_update", "target": null}
 ```
 
 ## Session Record File
@@ -89,7 +89,7 @@ One JSON object per line (append-only):
 
 ## Auto-Learned Steering File
 
-**Path:** `<home>/steering/auto-learned.md`
+**Path:** `<home>/guidelines/auto-learned.md`
 
 ```markdown
 ---

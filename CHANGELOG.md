@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0] - TBD
+
+### BREAKING CHANGES
+
+**"steering" renamed to "guidelines" throughout codebase and documentation**
+
+This is a complete rename to use clearer, more developer-friendly terminology:
+
+- `~/.config/shipkit/steering/` → `~/.config/shipkit/guidelines/`
+- `steering_layers` → `guidelines_layers`
+- All API references updated
+- All documentation updated
+
+**Migration required:** See [MIGRATION-0.2.0.md](MIGRATION-0.2.0.md) for migration steps.
+
+Quick migration:
+```bash
+mv ~/.config/shipkit/steering ~/.config/shipkit/guidelines
+# For each project:
+mv ~/.config/shipkit/projects/<name>/steering ~/.config/shipkit/projects/<name>/guidelines
+```
+
+### Added
+
 ### Added
 - `shipkit alias` command: generate a shell alias to launch a project from any directory
   - `--install` flag to auto-append to ~/.zshrc or ~/.bashrc
@@ -34,7 +58,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added (continued)
 - Gemini CLI compiler for Google's Gemini CLI tool:
-  - Generates GEMINI.md with steering rules and skill catalog
+  - Generates GEMINI.md with guidelines rules and skill catalog
   - Generates .gemini/settings.json with hooks and MCP servers
   - Generates .gemini/commands/*.toml for each skill (TOML format)
   - Full hook support (SessionStart, SessionEnd, BeforeTool, AfterTool, etc.)
@@ -49,12 +73,12 @@ All notable changes to this project will be documented in this file.
   - Plugin-based architecture (JS/TS wrappers around Python hooks)
 - Documentation section on versioning personal content:
   - How to version ~/.config/shipkit/ with git
-  - What to include (skills, steering, config) vs exclude (.state, plugins, projects)
+  - What to include (skills, guidelines, config) vs exclude (.state, plugins, projects)
   - Syncing across machines
   - Using dotfiles managers (chezmoi, yadm)
   - Sharing within teams
 - `/sync-config` skill - automates backing up personal content:
-  - Commits changes to skills, steering, config, templates
+  - Commits changes to skills, guidelines, config, templates
   - Pushes to git remote
   - Initializes git repo if needed
   - Guides user through remote setup if not configured
@@ -91,13 +115,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Python CLI (`shipkit`) with commands: init, sync, status, doctor, run, projects, template, plugin
 - Claude Code compiler: CLAUDE.md, .mcp.json, .claude/commands/, .claude/settings.json
-- Kiro compiler: .kiro/steering/, .kiro/skills/, .kiro/agents/, .kiro/config/mcp.json, .kiro/hooks/
+- Kiro compiler: .kiro/guidelines/, .kiro/skills/, .kiro/agents/, .kiro/config/mcp.json, .kiro/hooks/
 - 19 skills: commit, pr, review, research, test, debug, release, explain, refactor, scaffold, docs, deps, adr, ci, skill-builder, retro, shipkit, update, setup
-- 8 steering rules: agent-behavior, safety-defaults, skill-loading-rules, sustainability, verification-rules, dev-principles, extensibility, subagent-catalog
+- 8 guidelines rules: agent-behavior, safety-defaults, skill-loading-rules, sustainability, verification-rules, dev-principles, extensibility, subagent-catalog
 - 5 hooks: context-inject, retro-analyze, retro-auto, session-save, update-check
 - 3 subagent definitions: retro-analyzer, session-summarizer, retro-auto
 - Plugin system (install/uninstall/list/update from local path or git)
-- Content linter with 8 checks (json, skills, steering, hooks, subagents, plugins, pii, links)
+- Content linter with 8 checks (json, skills, guidelines, hooks, subagents, plugins, pii, links)
 - Content layering: package → plugins → user global → project → repo-native
 - Project templates: default, python, typescript
 - MIT license

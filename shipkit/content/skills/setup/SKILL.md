@@ -97,7 +97,7 @@ This directory isn't registered as a shipkit project.
 
 Register it now? This will:
   - Create a .shipkit marker file
-  - Generate CLAUDE.md with steering rules and skill catalog
+  - Generate CLAUDE.md with guidelines rules and skill catalog
   - Set up slash commands in .claude/commands/
 
 1. Yes, register with default template

@@ -63,9 +63,28 @@ All notable changes to this project will be documented in this file.
   - Excludes .state/, plugins/, projects/
   - Includes helpful comments on what to version
 
+### Added (continued)
+- Skill cascading and composition system:
+  - Skills now cascade across layers by default (extends: true)
+  - Higher layers extend lower layers rather than replacing them
+  - Support for complete override (extends: false)
+  - New skill_parser module for Agent Skills standard compliance
+  - Layer markers in merged output show skill composition
+  - References from all layers are merged
+  - All 4 compilers updated to support cascading
+- Agent Skills open standard compliance:
+  - Follows https://agentskills.io/specification format
+  - Compatible with 20+ tools (Claude Code, Cursor, Gemini CLI, etc.)
+  - Custom 'extends' field for shipkit cascading (backward compatible)
+  - Skills work across Agent Skills ecosystem
+
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip
 - Updated .gitignore to include .gemini/, .opencode/, GEMINI.md, opencode.json
+- Skills now cascade by default instead of complete replacement
+  - Package core → User global → Plugins → Project (each extends previous)
+  - Breaking change: Skills are now composable, not replacements
+  - To get old behavior: add 'extends: false' to your custom skills
 
 ## [0.1.0] - 2026-04-13
 

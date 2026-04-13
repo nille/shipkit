@@ -223,20 +223,32 @@ class GeminiCliCompiler(Compiler):
 
         commands_dir = ctx.repo_path / ".gemini" / "commands"
 
-        # Collect skills from all layers; higher layers override by name
-        skills: dict[str, Path] = {}
+        # Collect ALL layers of each skill
+        skills_by_name: dict[str, list[Path]] = {}
         for skills_dir in ctx.skills_layers:
             if not skills_dir.exists():
                 continue
             for skill_dir in sorted(skills_dir.iterdir()):
                 if not skill_dir.is_dir():
                     continue
-                if (skill_dir / "SKILL.md").exists():
-                    skills[skill_dir.name] = skill_dir
+                skill_md = skill_dir / "SKILL.md"
+                if skill_md.exists():
+                    if skill_dir.name not in skills_by_name:
+                        skills_by_name[skill_dir.name] = []
+                    skills_by_name[skill_dir.name].append(skill_md)
 
-        for skill_name, skill_dir in sorted(skills.items()):
-            skill_md = skill_dir / "SKILL.md"
-            skill_content = skill_md.read_text()
+        # Cascade and write each skill
+        from shipkit.skill_parser import parse_skill, cascade_skills
+
+        for skill_name, skill_paths in sorted(skills_by_name.items()):
+            # Parse all layers
+            skill_defs = [parse_skill(p) for p in skill_paths]
+
+            # Cascade layers (respects extends field)
+            cascaded_content = cascade_skills(skill_defs)
+
+            # Use description from highest layer
+            description = skill_defs[-1].description
 
             # Generate TOML command file
             # Gemini CLI uses TOML format for custom commands
@@ -245,11 +257,11 @@ class GeminiCliCompiler(Compiler):
 
 [command]
 name = "{skill_name}"
-description = "{self._extract_description(skill_content)}"
+description = "{description}"
 
 [command.prompt]
 content = """
-{skill_content}
+{cascaded_content}
 """
 '''
 

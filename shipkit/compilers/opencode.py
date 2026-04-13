@@ -134,18 +134,21 @@ class OpenCodeCompiler(Compiler):
         """Generate .opencode/plugins/shipkit-tools.ts with custom tools from skills."""
         written, skipped, warnings = [], [], []
 
-        # Collect skills from all layers
-        skills: dict[str, Path] = {}
+        # Collect ALL layers of each skill
+        skills_by_name: dict[str, list[Path]] = {}
         for skills_dir in ctx.skills_layers:
             if not skills_dir.exists():
                 continue
             for skill_dir in sorted(skills_dir.iterdir()):
                 if not skill_dir.is_dir():
                     continue
-                if (skill_dir / "SKILL.md").exists():
-                    skills[skill_dir.name] = skill_dir
+                skill_md = skill_dir / "SKILL.md"
+                if skill_md.exists():
+                    if skill_dir.name not in skills_by_name:
+                        skills_by_name[skill_dir.name] = []
+                    skills_by_name[skill_dir.name].append(skill_md)
 
-        if not skills:
+        if not skills_by_name:
             skipped.append(".opencode/plugins/shipkit-tools.ts (no skills configured)")
             return written, skipped, warnings
 
@@ -161,14 +164,22 @@ class OpenCodeCompiler(Compiler):
             "    tool: {",
         ]
 
+        # Cascade and write each skill
+        from shipkit.skill_parser import parse_skill, cascade_skills
+
         tool_defs = []
-        for skill_name, skill_dir in sorted(skills.items()):
-            skill_md = skill_dir / "SKILL.md"
-            skill_content = skill_md.read_text()
-            description = self._extract_description(skill_content)
+        for skill_name, skill_paths in sorted(skills_by_name.items()):
+            # Parse all layers
+            skill_defs = [parse_skill(p) for p in skill_paths]
+
+            # Cascade layers (respects extends field)
+            cascaded_content = cascade_skills(skill_defs)
+
+            # Use description from highest layer
+            description = skill_defs[-1].description
 
             # Escape skill content for TypeScript string literal
-            escaped_content = skill_content.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
+            escaped_content = cascaded_content.replace('\\', '\\\\').replace('`', '\\`').replace('${', '\\${')
 
             # Generate tool definition with embedded skill content
             tool_def = f'''      {skill_name}: tool({{

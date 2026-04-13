@@ -20,8 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # Core content shipped with the shipkit package
-PACKAGE_CONTENT_DIR = Path(__file__).parent.parent / "content"
-PACKAGE_HOOKS_DIR = PACKAGE_CONTENT_DIR / "hooks"
+PACKAGE_CORE_DIR = Path(__file__).parent.parent / "core"
+PACKAGE_HOOKS_DIR = PACKAGE_CORE_DIR / "hooks"
 
 
 @dataclass
@@ -36,15 +36,15 @@ class CompileContext:
 
     @property
     def package_guidelines(self) -> Path:
-        return PACKAGE_CONTENT_DIR / "guidelines"
+        return PACKAGE_CORE_DIR / "guidelines"
 
     @property
     def package_skills(self) -> Path:
-        return PACKAGE_CONTENT_DIR / "skills"
+        return PACKAGE_CORE_DIR / "skills"
 
     @property
     def package_mcp(self) -> Path:
-        return PACKAGE_CONTENT_DIR / "mcp.json"
+        return PACKAGE_CORE_DIR / "mcp.json"
 
     # --- Layer 2: User global (personal additions/overrides) ---
 
@@ -64,7 +64,7 @@ class CompileContext:
 
     @property
     def package_subagents(self) -> Path:
-        return PACKAGE_CONTENT_DIR / "subagents"
+        return PACKAGE_CORE_DIR / "subagents"
 
     @property
     def user_subagents(self) -> Path:

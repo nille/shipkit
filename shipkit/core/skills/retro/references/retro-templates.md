@@ -45,7 +45,7 @@ Schemas, file locations, and format templates for the retrospective system.
     {
       "type": "skill_improvement",
       "severity": "high",
-      "target": "shipkit/content/skills/commit/SKILL.md",
+      "target": "shipkit/core/skills/commit/SKILL.md",
       "title": "Commit skill misses monorepo scope",
       "suggestion": "Add a step to detect monorepo structure and offer per-package commits",
       "evidence": "User: 'no, scope it to the api package'\nAssistant: 'I'll redo the commit...'"

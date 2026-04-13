@@ -4,7 +4,7 @@ Where skills live and how they're promoted between categories.
 
 ## Categories
 
-### Package Core (`shipkit/content/skills/`)
+### Package Core (`shipkit/core/skills/`)
 
 Skills shipped with shipkit. Battle-tested, generic, maintained by the shipkit project.
 

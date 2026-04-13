@@ -40,7 +40,7 @@ Decide where the skill should live.
 **Locations:**
 - `<home>/skills/<name>/` — personal skills, available across all projects
 - `<home>/projects/<project>/skills/<name>/` — project-specific skills
-- `shipkit/content/skills/<name>/` — core package skills (for shipkit contributors only)
+- `shipkit/core/skills/<name>/` — core package skills (for shipkit contributors only)
 
 **Constraints:**
 - You MUST default to personal skills unless the user explicitly requests project-specific

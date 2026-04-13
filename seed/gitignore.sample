@@ -1,0 +1,32 @@
+# Shipkit Personal Content Gitignore
+#
+# This file helps you version your personal shipkit content while excluding
+# machine-specific or plugin-managed files.
+#
+# What TO version:
+#   - skills/          Your custom skills
+#   - steering/        Your behavioral rules (including auto-learned.md)
+#   - mcp.json         MCP server configs
+#   - config.yaml      Global settings
+#   - templates/       Custom project templates
+#
+# What NOT to version:
+#   - .state/          Machine state (sessions, retro pending)
+#   - plugins/         Installed from git, not yours
+#   - projects/        Machine-specific project paths
+
+# Machine-managed state
+.state/
+
+# Plugins (managed via shipkit plugin install)
+plugins/
+
+# Project registrations (machine-specific paths)
+projects/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

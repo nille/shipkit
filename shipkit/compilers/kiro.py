@@ -49,6 +49,21 @@ class KiroCompiler(Compiler):
 
         guidelines_dir = ctx.repo_path / ".kiro" / "guidelines"
 
+        # Generate tool-specific discovery instructions
+        from shipkit.compilers.discovery_template import generate_discovery_instructions
+        discovery_instructions = generate_discovery_instructions(
+            tool_name="Kiro",
+            tool_project_path=".kiro/skills",
+            tool_user_path="~/.kiro/skills"
+        )
+
+        # Write discovery as a guideline file
+        if not dry_run:
+            guidelines_dir.mkdir(parents=True, exist_ok=True)
+            discovery_file = guidelines_dir / "skill-discovery.md"
+            discovery_file.write_text(f"<!-- shipkit:managed -->\n{discovery_instructions}")
+            written.append(".kiro/guidelines/skill-discovery.md")
+
         # Collect ALL layers of each guidelines rule by filename
         from shipkit.skill_parser import parse_guidelines, cascade_guidelines
 
@@ -57,6 +72,9 @@ class KiroCompiler(Compiler):
             if not layer_dir.exists():
                 continue
             for md_file in sorted(layer_dir.glob("*.md")):
+                # Skip skill-discovery.md (we generate it dynamically)
+                if md_file.name == "skill-discovery.md":
+                    continue
                 if md_file.name not in guidelines_by_name:
                     guidelines_by_name[md_file.name] = []
                 guidelines_by_name[md_file.name].append(md_file)

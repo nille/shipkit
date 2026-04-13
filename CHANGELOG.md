@@ -77,6 +77,14 @@ All notable changes to this project will be documented in this file.
   - Compatible with 20+ tools (Claude Code, Cursor, Gemini CLI, etc.)
   - Custom 'extends' field for shipkit cascading (backward compatible)
   - Skills work across Agent Skills ecosystem
+- Interactive, visible self-learning system:
+  - Analysis happens in-conversation (fully transparent, not hidden)
+  - Works on all tools (Claude Code, Kiro, Gemini CLI, OpenCode)
+  - Works with any LLM provider (Bedrock, Ollama, models.dev, etc.)
+  - Uses the CLI tool you're already running (no separate API keys)
+  - User sees analysis and guides it interactively
+  - Updated hooks: context-inject prompts about pending sessions
+  - Updated /retro skill for interactive analysis workflow
 
 ### Changed
 - Quick Start now recommends `uv tool install shipkit` over pip

@@ -24,20 +24,16 @@ class TestEndToEndClaude:
         # 2. Sync for Claude Code (default)
         result = sync_project(repo_path=tmp_repo)
 
-        # 3. Verify CLAUDE.md
+        # 3. Verify CLAUDE.md with discovery instructions
         claude_md = tmp_repo / "CLAUDE.md"
         assert claude_md.exists()
         content = claude_md.read_text()
         assert "SHIPKIT:BEGIN" in content
         assert "SHIPKIT:END" in content
-        assert "Available Skills" in content
-        assert "/commit" in content
+        assert "Skill Discovery" in content
 
-        # 4. Verify skills compiled to .claude/commands/
-        commands_dir = tmp_repo / ".claude" / "commands"
-        assert commands_dir.exists()
-        skill_files = list(commands_dir.glob("*.md"))
-        assert len(skill_files) >= 10  # we ship 19 skills
+        # 4. Skills NOT compiled (discovery mode)
+        # No .claude/commands/ expected
 
         # 5. Verify .claude/settings.json (hooks)
         settings = tmp_repo / ".claude" / "settings.json"

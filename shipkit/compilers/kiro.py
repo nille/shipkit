@@ -1,7 +1,7 @@
 """Kiro compiler for shipkit.
 
 Generates:
-- .kiro/guidelines/<name>.md (merged guidelines rules)
+- \.kiro/steering/<name>.md (merged guidelines rules)
 - .kiro/skills/<name>/SKILL.md (skills copied from content layers)
 - .kiro/agents/<name>.json (subagent configs)
 
@@ -47,7 +47,8 @@ class KiroCompiler(Compiler):
     def _compile_guidelines(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
         written, skipped, warnings = [], [], []
 
-        guidelines_dir = ctx.repo_path / ".kiro" / "guidelines"
+        # Kiro uses "steering" not "guidelines" (their native terminology)
+        steering_dir = ctx.repo_path / ".kiro" / "steering"
 
         # Generate tool-specific discovery instructions
         from shipkit.compilers.discovery_template import generate_discovery_instructions
@@ -59,10 +60,10 @@ class KiroCompiler(Compiler):
 
         # Write discovery as a guideline file
         if not dry_run:
-            guidelines_dir.mkdir(parents=True, exist_ok=True)
-            discovery_file = guidelines_dir / "skill-discovery.md"
+            steering_dir.mkdir(parents=True, exist_ok=True)
+            discovery_file = steering_dir / "skill-discovery.md"
             discovery_file.write_text(f"<!-- shipkit:managed -->\n{discovery_instructions}")
-            written.append(".kiro/guidelines/skill-discovery.md")
+            written.append("\.kiro/steering/skill-discovery.md")
 
         # Collect ALL layers of each guidelines rule by filename
         from shipkit.skill_parser import parse_guidelines, cascade_guidelines
@@ -80,16 +81,16 @@ class KiroCompiler(Compiler):
                 guidelines_by_name[md_file.name].append(md_file)
 
         if not guidelines_by_name:
-            skipped.append(".kiro/guidelines/ (no guidelines rules found)")
+            skipped.append("\.kiro/steering/ (no guidelines rules found)")
             return written, skipped, warnings
 
         # Cascade and write each guidelines rule
         for filename, guidelines_paths in sorted(guidelines_by_name.items()):
-            target = guidelines_dir / filename
+            target = steering_dir / filename
 
             # Preserve repo-native guidelines files
             if target.exists() and not self._is_managed(target):
-                skipped.append(f".kiro/guidelines/{filename} (repo-native, preserved)")
+                skipped.append(f"\.kiro/steering/{filename} (repo-native, preserved)")
                 continue
 
             # Parse all layers
@@ -99,13 +100,13 @@ class KiroCompiler(Compiler):
             cascaded_content = cascade_guidelines(guidelines_defs)
 
             if dry_run:
-                written.append(f".kiro/guidelines/{filename} (dry-run)")
+                written.append(f"\.kiro/steering/{filename} (dry-run)")
             else:
-                guidelines_dir.mkdir(parents=True, exist_ok=True)
+                steering_dir.mkdir(parents=True, exist_ok=True)
                 # Add a managed marker comment at the top
                 managed_content = f"<!-- shipkit:managed -->\n{cascaded_content}"
                 target.write_text(managed_content)
-                written.append(f".kiro/guidelines/{filename}")
+                written.append(f"\.kiro/steering/{filename}")
 
         return written, skipped, warnings
 
@@ -216,7 +217,7 @@ class KiroCompiler(Compiler):
             # Resolve prompt path placeholders
             prompt = agent_def.get("prompt", "")
             prompt = prompt.replace("{skills}", ".kiro/skills")
-            prompt = prompt.replace("{guidelines}", ".kiro/guidelines")
+            prompt = prompt.replace("{guidelines}", "\.kiro/steering")
             prompt = prompt.replace("{state}", str(ctx.home_path / ".state"))
 
             kiro_agent = {
@@ -234,7 +235,7 @@ class KiroCompiler(Compiler):
             if resources:
                 resolved = []
                 for res in resources:
-                    res = res.replace("{guidelines}", ".kiro/guidelines")
+                    res = res.replace("{guidelines}", "\.kiro/steering")
                     res = res.replace("{skills}", ".kiro/skills")
                     if res.endswith(".md"):
                         resolved.append(f"file://{res}")

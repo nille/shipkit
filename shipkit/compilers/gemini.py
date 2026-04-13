@@ -49,6 +49,14 @@ class GeminiCliCompiler(Compiler):
         """Generate GEMINI.md with guidelines rules and skill catalog."""
         written, skipped, warnings = [], [], []
 
+        # Generate tool-specific discovery instructions
+        from shipkit.compilers.discovery_template import generate_discovery_instructions
+        discovery_instructions = generate_discovery_instructions(
+            tool_name="Gemini CLI",
+            tool_project_path=".gemini/skills",
+            tool_user_path="~/.gemini/skills"
+        )
+
         # Collect ALL layers of each guidelines rule by filename
         from shipkit.skill_parser import parse_guidelines, cascade_guidelines
 
@@ -57,12 +65,17 @@ class GeminiCliCompiler(Compiler):
             if not guidelines_dir.exists():
                 continue
             for md_file in sorted(guidelines_dir.glob("*.md")):
+                # Skip skill-discovery.md (we generate it dynamically)
+                if md_file.name == "skill-discovery.md":
+                    continue
                 if md_file.name not in guidelines_by_name:
                     guidelines_by_name[md_file.name] = []
                 guidelines_by_name[md_file.name].append(md_file)
 
-        # Cascade each guidelines rule
-        sections = []
+        # Start with discovery instructions
+        sections = [discovery_instructions]
+        
+        # Then cascade each guideline
         for filename in sorted(guidelines_by_name.keys()):
             guidelines_paths = guidelines_by_name[filename]
             guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]

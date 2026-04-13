@@ -106,12 +106,13 @@ class TestClaudeCompiler:
         assert "My custom notes" in content
         assert "old managed" not in content  # replaced
 
-    def test_skill_catalog_in_claude_md(self, compile_ctx):
+    def test_discovery_instructions_in_claude_md(self, compile_ctx):
+        """CLAUDE.md contains discovery instructions (not compiled skill catalog)."""
         compiler = get_compiler("claude")
         compiler.compile(compile_ctx)
         content = (compile_ctx.repo_path / "CLAUDE.md").read_text()
-        assert "Available Skills" in content
-        assert "/commit" in content
+        assert "Skill Discovery" in content
+        assert "Guideline Discovery" in content
 
     def test_skills_not_compiled_uses_discovery(self, compile_ctx):
         """Skills are NOT compiled - discovered at runtime via guideline."""
@@ -145,61 +146,49 @@ class TestClaudeCompiler:
         compiler = get_compiler("claude")
         compiler.compile(compile_ctx)
         content = (compile_ctx.repo_path / "CLAUDE.md").read_text()
-        assert "Be concise" in content
+        assert "Be concise" not in content  # Not compiled, discovered at runtime
+        assert "Guideline Discovery" in content
 
 
 class TestKiroCompiler:
 
-    def test_generates_guidelines(self, compile_ctx):
+    def test_generates_steering(self, compile_ctx):
+        """Kiro uses 'steering' not 'guidelines'."""
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        assert guidelines_dir.exists()
-        assert any("guidelines/" in f for f in result.files_written)
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        assert steering_dir.exists()
+        assert any("steering/" in f for f in result.files_written)
 
     def test_managed_marker(self, compile_ctx):
         compiler = get_compiler("kiro")
         compiler.compile(compile_ctx)
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        for md_file in guidelines_dir.glob("*.md"):
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        for md_file in steering_dir.glob("*.md"):
             content = md_file.read_text()
             assert content.startswith("<!-- shipkit:managed -->")
 
     def test_preserves_repo_native(self, compile_ctx):
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        guidelines_dir.mkdir(parents=True)
-        (guidelines_dir / "native.md").write_text("# My native rule\n")
+        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
+        steering_dir.mkdir(parents=True)
+        (steering_dir / "native.md").write_text("# My native rule\n")
 
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
-        content = (guidelines_dir / "native.md").read_text()
+        content = (steering_dir / "native.md").read_text()
         assert "My native rule" in content  # Not overwritten
         # native.md is not in any layer, so compiler ignores it entirely
         assert "shipkit:managed" not in content
 
-    def test_skips_repo_native_conflict(self, compile_ctx):
-        """When a layer has a file with the same name as a repo-native one, skip it."""
-        guidelines_dir = compile_ctx.repo_path / ".kiro" / "guidelines"
-        guidelines_dir.mkdir(parents=True)
+    def test_only_writes_discovery_files(self, compile_ctx):
+        """Kiro only writes discovery files now."""
+        compiler = get_compiler("kiro")
+        result = compiler.compile(compile_ctx)
+        # Should only write discovery files
+        written_steering = [f for f in result.files_written if "steering/" in f]
+        assert len(written_steering) == 2  # skill-discovery + guideline-discovery
 
-        # Find a guidelines file that will actually be compiled from layers
-        layers = compile_ctx.guidelines_layers
-        layer_file = None
-        for layer_dir in layers:
-            if layer_dir.exists():
-                for md in layer_dir.glob("*.md"):
-                    layer_file = md.name
-                    break
-            if layer_file:
-                break
-
-        if layer_file:
-            # Pre-create in repo WITHOUT managed marker → repo-native
-            (guidelines_dir / layer_file).write_text("# Repo-native override\n")
-            compiler = get_compiler("kiro")
-            result = compiler.compile(compile_ctx)
-            assert any("preserved" in s for s in result.files_skipped)
-
+    
     def test_skills_not_compiled(self, compile_ctx):
         """Skills are NOT compiled - discovered at runtime."""
         compiler = get_compiler("kiro")

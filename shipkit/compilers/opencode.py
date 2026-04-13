@@ -34,15 +34,68 @@ class OpenCodeCompiler(Compiler):
         skipped = []
         warnings = []
 
-        # Skills are discovered at runtime via skill-discovery.md guideline
-        # Only compile: hooks plugin, opencode.json (with MCP + guidelines)
-        for step in [self._compile_hooks_plugin, self._compile_opencode_json]:
+        # Skills are discovered at runtime via AGENTS.md
+        # Compile: AGENTS.md (with discovery + guidelines), hooks plugin, opencode.json
+        for step in [self._compile_agents_md, self._compile_hooks_plugin, self._compile_opencode_json]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
             warnings.extend(warn)
 
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
+
+    def _compile_agents_md(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate AGENTS.md with discovery instructions only."""
+        written, skipped, warnings = [], [], []
+
+        # Generate tool-specific discovery instructions for both skills AND guidelines
+        from shipkit.compilers.discovery_template import generate_discovery_instructions
+        from shipkit.compilers.guideline_discovery_template import generate_guideline_discovery_instructions
+
+        skill_discovery = generate_discovery_instructions(
+            tool_name="OpenCode",
+            tool_project_path=".opencode/skills",
+            tool_user_path="~/.opencode/skills"
+        )
+
+        guideline_discovery = generate_guideline_discovery_instructions(
+            tool_name="OpenCode",
+            tool_project_path=".opencode/guidelines",
+            tool_user_path="~/.opencode/guidelines"
+        )
+
+        # AGENTS.md contains ONLY discovery instructions (minimal bootstrap)
+        # Agent will discover and read guidelines at runtime
+        managed_content = f"{skill_discovery}\n\n---\n\n{guideline_discovery}"
+
+        # Write to AGENTS.md (OpenCode's equivalent of CLAUDE.md)
+        agents_md_path = ctx.repo_path / "AGENTS.md"
+
+        # Preserve user content below sentinel (like Claude compiler)
+        SENTINEL_BEGIN = "<!-- SHIPKIT:BEGIN — managed by shipkit, do not edit above SHIPKIT:END -->"
+        SENTINEL_END = "<!-- SHIPKIT:END -->"
+
+        user_content = ""
+        if agents_md_path.exists():
+            existing = agents_md_path.read_text()
+            if SENTINEL_END in existing:
+                _, _, user_content = existing.partition(SENTINEL_END)
+                user_content = user_content.strip()
+            elif SENTINEL_BEGIN not in existing:
+                user_content = existing.strip()
+                warnings.append("Existing AGENTS.md was not shipkit-managed; preserved as user content below sentinel.")
+
+        full_content = f"{SENTINEL_BEGIN}\n\n{managed_content}\n\n{SENTINEL_END}\n"
+        if user_content:
+            full_content += f"\n{user_content}\n"
+
+        if dry_run:
+            written.append("AGENTS.md (dry-run)")
+        else:
+            agents_md_path.write_text(full_content)
+            written.append("AGENTS.md")
+
+        return written, skipped, warnings
 
     # Map shipkit hook events to OpenCode events
     HOOK_EVENT_MAP = {

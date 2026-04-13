@@ -93,7 +93,7 @@ class TestEndToEndClaude:
         sync_project(repo_path=tmp_repo)
 
         content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "Always use tabs" in content
+        assert "Guideline Discovery" in content
 
 
 
@@ -107,19 +107,19 @@ class TestEndToEndKiro:
         init_project(tmp_repo, name="e2e-kiro")
         result = sync_project(repo_path=tmp_repo, tool="kiro")
 
-        # Guidelines
-        guidelines_dir = tmp_repo / ".kiro" / "guidelines"
-        assert guidelines_dir.exists()
-        md_files = list(guidelines_dir.glob("*.md"))
-        assert len(md_files) >= 5
+        # Steering (Kiro uses "steering" not "guidelines")
+        steering_dir = tmp_repo / ".kiro" / "steering"
+        assert steering_dir.exists()
+        md_files = list(steering_dir.glob("*.md"))
+        assert len(md_files) >= 2  # skill-discovery + guideline-discovery
 
         # All managed files have marker
         for f in md_files:
             assert f.read_text().startswith("<!-- shipkit:managed -->")
 
         # Skills should NOT be compiled (discovery mode)
-        # Discovery guideline should be in guidelines
-        discovery_file = guidelines_dir / "skill-discovery.md"
+        # Discovery guideline should be in steering
+        discovery_file = steering_dir / "skill-discovery.md"
         assert discovery_file.exists()
 
         # Agents (subagents still compiled for Kiro)
@@ -151,4 +151,5 @@ class TestEndToEndPlugins:
         sync_project(repo_path=tmp_repo)
 
         content = (tmp_repo / "CLAUDE.md").read_text()
-        assert "From plugin" in content
+        assert "From plugin" not in content  # Not compiled
+        assert "Guideline Discovery" in content

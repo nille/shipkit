@@ -121,11 +121,12 @@ class TestEndToEndKiro:
         for f in md_files:
             assert f.read_text().startswith("<!-- shipkit:managed -->")
 
-        # Skills
-        skills_dir = tmp_repo / ".kiro" / "skills"
-        assert skills_dir.exists()
+        # Skills should NOT be compiled (discovery mode)
+        # Discovery guideline should be in guidelines
+        discovery_file = guidelines_dir / "skill-discovery.md"
+        assert discovery_file.exists()
 
-        # Agents
+        # Agents (subagents still compiled for Kiro)
         agents_dir = tmp_repo / ".kiro" / "agents"
         assert agents_dir.exists()
         json_files = list(agents_dir.glob("*.json"))

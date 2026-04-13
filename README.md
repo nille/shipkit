@@ -198,7 +198,13 @@ shipkit sync --tool opencode
 
 ## Steering Rules
 
-Behavioral rules compiled into the agent's context on every sync. These shape how the agent works across all conversations.
+Steering rules are behavioral guidelines compiled into the agent's system context. They shape how the agent works across all conversations — execution style, verification standards, development principles, and safety defaults.
+
+**Think of steering rules as "house rules" for the agent.** They're always loaded, unlike skills which are activated on-demand.
+
+### Core Steering Rules
+
+8 steering rules ship with the package:
 
 | Rule | Purpose |
 |------|---------|
@@ -210,6 +216,97 @@ Behavioral rules compiled into the agent's context on every sync. These shape ho
 | `dev-principles` | Ship small, test at boundaries, prefer simple |
 | `extensibility` | How content layering works, adding personal content |
 | `subagent-catalog` | Available background agents and when they run |
+
+### How Steering Rules Work
+
+**Steering rules are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/steering/`, etc.
+
+Like skills, they **cascade across layers** - you can extend core rules with your own preferences:
+
+```
+Core:    dev-principles.md → "Ship small, test at boundaries"
+User:    dev-principles.md → "Additionally, always use TypeScript strict mode"
+Project: dev-principles.md → "For this API, follow REST conventions"
+```
+
+**Result:** Agent sees all three layers merged together.
+
+### Adding Your Own Steering Rules
+
+**Global rule (all projects):**
+```bash
+cat > ~/.config/shipkit/steering/my-conventions.md << 'EOF'
+# My Conventions
+
+- Always use TypeScript strict mode
+- Prefer functional components
+- Use ruff for Python formatting
+EOF
+```
+
+**Extend existing rule:**
+```bash
+cat > ~/.config/shipkit/steering/dev-principles.md << 'EOF'
+---
+extends: true  # Default - adds to core dev-principles
+---
+
+# Additional Principles
+
+- Always write API tests before implementation
+- Never commit commented-out code
+EOF
+```
+
+**Replace existing rule:**
+```bash
+cat > ~/.config/shipkit/steering/dev-principles.md << 'EOF'
+---
+extends: false  # Ignore core, use only this
+---
+
+# Custom Dev Principles
+
+My completely different development philosophy.
+EOF
+```
+
+**Project-specific rule:**
+```bash
+cat > ~/.config/shipkit/projects/my-api/steering/api-rules.md << 'EOF'
+# API Rules
+
+- This project uses PostgreSQL — never suggest MySQL
+- API responses follow JSON:API spec
+- Rate limiting is handled by nginx
+EOF
+```
+
+### When to Use Steering Rules vs Skills
+
+| Use Steering Rules For | Use Skills For |
+|------------------------|----------------|
+| General behavior and principles | Specific workflows and tasks |
+| Always-active guidance | On-demand capabilities |
+| Cross-cutting concerns | Domain-specific operations |
+| Development philosophy | Executable procedures |
+
+**Example:**
+- **Steering:** "Always write tests" (general principle, always applies)
+- **Skill:** `/test` (specific action to generate tests)
+
+### Precedence and Cascading
+
+Steering rules follow the same precedence as skills:
+
+1. **Package core** (lowest) - Built-in steering rules
+2. **User global** - Your personal preferences
+3. **Plugins** - From installed plugins
+4. **Project** (highest) - Project-specific rules
+
+When the same filename exists in multiple layers:
+- **`extends: true` (default):** All layers merged with markers
+- **`extends: false`:** Only that layer, lower layers ignored
 
 ## Hooks
 

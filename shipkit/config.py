@@ -22,17 +22,24 @@ CONFIG_PATH = SHIPKIT_HOME / "config.yaml"
 @dataclass
 class ShipkitConfig:
     cli_tool: str = "claude"
+    plugin_registries: list[str] = field(default_factory=lambda: ["github.com/nille/shipkit-marketplace"])
 
     def save(self) -> None:
         SHIPKIT_HOME.mkdir(parents=True, exist_ok=True)
-        CONFIG_PATH.write_text(yaml.dump({"cli_tool": self.cli_tool}, default_flow_style=False))
+        data = {"cli_tool": self.cli_tool}
+        if self.plugin_registries != ["github.com/nille/shipkit-marketplace"]:
+            data["plugin_registries"] = self.plugin_registries
+        CONFIG_PATH.write_text(yaml.dump(data, default_flow_style=False))
 
     @classmethod
     def load(cls) -> ShipkitConfig:
         if not CONFIG_PATH.exists():
             return cls()
         data = yaml.safe_load(CONFIG_PATH.read_text()) or {}
-        return cls(cli_tool=data.get("cli_tool", "claude"))
+        return cls(
+            cli_tool=data.get("cli_tool", "claude"),
+            plugin_registries=data.get("plugin_registries", ["github.com/nille/shipkit-marketplace"])
+        )
 
 
 @dataclass

@@ -150,12 +150,13 @@ class TestClaudeCompiler:
 
 class TestKiroCompiler:
 
-    def test_generates_guidelines(self, compile_ctx):
+    def test_generates_steering(self, compile_ctx):
+        """Kiro uses 'steering' not 'guidelines'."""
         compiler = get_compiler("kiro")
         result = compiler.compile(compile_ctx)
         steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
         assert steering_dir.exists()
-        assert any("guidelines/" in f for f in result.files_written)
+        assert any("steering/" in f for f in result.files_written)
 
     def test_managed_marker(self, compile_ctx):
         compiler = get_compiler("kiro")

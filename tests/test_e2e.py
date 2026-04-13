@@ -107,10 +107,10 @@ class TestEndToEndKiro:
         init_project(tmp_repo, name="e2e-kiro")
         result = sync_project(repo_path=tmp_repo, tool="kiro")
 
-        # Guidelines
-        guidelines_dir = tmp_repo / ".kiro" / "guidelines"
-        assert guidelines_dir.exists()
-        md_files = list(guidelines_dir.glob("*.md"))
+        # Steering (Kiro uses "steering" not "guidelines")
+        steering_dir = tmp_repo / ".kiro" / "steering"
+        assert steering_dir.exists()
+        md_files = list(steering_dir.glob("*.md"))
         assert len(md_files) >= 5
 
         # All managed files have marker
@@ -118,8 +118,8 @@ class TestEndToEndKiro:
             assert f.read_text().startswith("<!-- shipkit:managed -->")
 
         # Skills should NOT be compiled (discovery mode)
-        # Discovery guideline should be in guidelines
-        discovery_file = guidelines_dir / "skill-discovery.md"
+        # Discovery guideline should be in steering
+        discovery_file = steering_dir / "skill-discovery.md"
         assert discovery_file.exists()
 
         # Agents (subagents still compiled for Kiro)

@@ -4,28 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.2.0] - TBD
-
-### BREAKING CHANGES
-
-**"steering" renamed to "guidelines" throughout codebase and documentation**
-
-This is a complete rename to use clearer, more developer-friendly terminology:
-
-- `~/.config/shipkit/steering/` → `~/.config/shipkit/guidelines/`
-- `steering_layers` → `guidelines_layers`
-- All API references updated
-- All documentation updated
-
-**Migration required:** See [MIGRATION-0.2.0.md](MIGRATION-0.2.0.md) for migration steps.
-
-Quick migration:
-```bash
-mv ~/.config/shipkit/steering ~/.config/shipkit/guidelines
-# For each project:
-mv ~/.config/shipkit/projects/<name>/steering ~/.config/shipkit/projects/<name>/guidelines
-```
-
 ### Added
 
 ### Added

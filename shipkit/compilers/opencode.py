@@ -35,14 +35,37 @@ class OpenCodeCompiler(Compiler):
         warnings = []
 
         # Skills are discovered at runtime via skill-discovery.md guideline
-        # Only compile: hooks plugin, opencode.json (with MCP + guidelines)
-        for step in [self._compile_hooks_plugin, self._compile_opencode_json]:
+        # Compile: discovery guideline, hooks plugin, opencode.json
+        for step in [self._compile_discovery_guideline, self._compile_hooks_plugin, self._compile_opencode_json]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
             warnings.extend(warn)
 
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
+
+    def _compile_discovery_guideline(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate .opencode/guidelines/skill-discovery.md with OpenCode-specific paths."""
+        written, skipped, warnings = [], [], []
+
+        from shipkit.compilers.discovery_template import generate_discovery_instructions
+        discovery_instructions = generate_discovery_instructions(
+            tool_name="OpenCode",
+            tool_project_path=".opencode/skills",
+            tool_user_path="~/.opencode/skills"
+        )
+
+        guidelines_dir = ctx.repo_path / ".opencode" / "guidelines"
+        discovery_file = guidelines_dir / "skill-discovery.md"
+
+        if dry_run:
+            written.append(".opencode/guidelines/skill-discovery.md (dry-run)")
+        else:
+            guidelines_dir.mkdir(parents=True, exist_ok=True)
+            discovery_file.write_text(discovery_instructions)
+            written.append(".opencode/guidelines/skill-discovery.md")
+
+        return written, skipped, warnings
 
     # Map shipkit hook events to OpenCode events
     HOOK_EVENT_MAP = {

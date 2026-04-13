@@ -85,9 +85,9 @@ All notable changes to this project will be documented in this file.
   - Package core → User global → Plugins → Project (each extends previous)
   - Breaking change: Skills are now composable, not replacements
   - To get old behavior: add 'extends: false' to your custom skills
-- Steering rules now cascade by default (same extends mechanism)
+- Guidelines rules now cascade by default (same extends mechanism)
   - Same filename in multiple layers = cascade with layer markers
-  - Breaking change: Steering rules are now composable
+  - Breaking change: Guidelines rules are now composable
   - Previously: all steering files concatenated (duplicates possible)
   - Now: Cascaded by filename with override support
 

@@ -103,10 +103,10 @@ def status():
             click.echo(f"  CLI tool: {cfg.cli_tool}")
 
         # Check what's in the home for this project
-        steering_count = len(list((project_dir / "steering").glob("*.md"))) if (project_dir / "steering").exists() else 0
+        guidelines_count = len(list((project_dir / "guidelines").glob("*.md"))) if (project_dir / "guidelines").exists() else 0
         skills_count = len([d for d in (project_dir / "skills").iterdir() if d.is_dir()]) if (project_dir / "skills").exists() else 0
         knowledge_count = len(list((project_dir / "knowledge").glob("*"))) if (project_dir / "knowledge").exists() else 0
-        click.echo(f"  Project steering: {steering_count} files")
+        click.echo(f"  Project guidelines: {guidelines_count} files")
         click.echo(f"  Project skills: {skills_count}")
         click.echo(f"  Knowledge: {knowledge_count} files")
     except ProjectError:
@@ -242,7 +242,7 @@ def template_create(name: str):
         raise click.ClickException(f"Template '{name}' already exists.")
 
     template_dir.mkdir(parents=True)
-    for subdir in ["steering", "skills"]:
+    for subdir in ["guidelines", "skills"]:
         src = project_dir / subdir
         if src.exists() and any(src.iterdir()):
             shutil.copytree(src, template_dir / subdir)

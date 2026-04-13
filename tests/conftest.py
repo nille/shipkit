@@ -61,9 +61,9 @@ def sample_skill(tmp_path):
 
 
 @pytest.fixture
-def sample_steering(tmp_path):
-    """Create a sample steering file."""
-    steering_dir = tmp_path / "steering"
-    steering_dir.mkdir(parents=True)
-    (steering_dir / "my-rule.md").write_text("# My Rule\n\nAlways be polite.\n")
-    return steering_dir
+def sample_guidelines(tmp_path):
+    """Create a sample guidelines file."""
+    guidelines_dir = tmp_path / "guidelines"
+    guidelines_dir.mkdir(parents=True)
+    (guidelines_dir / "my-rule.md").write_text("# My Rule\n\nAlways be polite.\n")
+    return guidelines_dir

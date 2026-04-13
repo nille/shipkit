@@ -1,7 +1,7 @@
 """Kiro compiler for shipkit.
 
 Generates:
-- .kiro/steering/<name>.md (merged steering rules)
+- .kiro/guidelines/<name>.md (merged guidelines rules)
 - .kiro/skills/<name>/SKILL.md (skills copied from content layers)
 - .kiro/agents/<name>.json (subagent configs)
 
@@ -34,7 +34,7 @@ class KiroCompiler(Compiler):
         skipped = []
         warnings = []
 
-        for step in [self._compile_steering, self._compile_skills, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
+        for step in [self._compile_guidelines, self._compile_skills, self._compile_subagents, self._compile_mcp, self._compile_hooks]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -42,50 +42,50 @@ class KiroCompiler(Compiler):
 
         return CompileResult(files_written=written, files_skipped=skipped, warnings=warnings)
 
-    def _compile_steering(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+    def _compile_guidelines(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
         written, skipped, warnings = [], [], []
 
-        steering_dir = ctx.repo_path / ".kiro" / "steering"
+        guidelines_dir = ctx.repo_path / ".kiro" / "guidelines"
 
-        # Collect ALL layers of each steering rule by filename
-        from shipkit.skill_parser import parse_steering, cascade_steering
+        # Collect ALL layers of each guidelines rule by filename
+        from shipkit.skill_parser import parse_guidelines, cascade_guidelines
 
-        steering_by_name: dict[str, list[Path]] = {}
-        for layer_dir in ctx.steering_layers:
+        guidelines_by_name: dict[str, list[Path]] = {}
+        for layer_dir in ctx.guidelines_layers:
             if not layer_dir.exists():
                 continue
             for md_file in sorted(layer_dir.glob("*.md")):
-                if md_file.name not in steering_by_name:
-                    steering_by_name[md_file.name] = []
-                steering_by_name[md_file.name].append(md_file)
+                if md_file.name not in guidelines_by_name:
+                    guidelines_by_name[md_file.name] = []
+                guidelines_by_name[md_file.name].append(md_file)
 
-        if not steering_by_name:
-            skipped.append(".kiro/steering/ (no steering rules found)")
+        if not guidelines_by_name:
+            skipped.append(".kiro/guidelines/ (no guidelines rules found)")
             return written, skipped, warnings
 
-        # Cascade and write each steering rule
-        for filename, steering_paths in sorted(steering_by_name.items()):
-            target = steering_dir / filename
+        # Cascade and write each guidelines rule
+        for filename, guidelines_paths in sorted(guidelines_by_name.items()):
+            target = guidelines_dir / filename
 
-            # Preserve repo-native steering files
+            # Preserve repo-native guidelines files
             if target.exists() and not self._is_managed(target):
-                skipped.append(f".kiro/steering/{filename} (repo-native, preserved)")
+                skipped.append(f".kiro/guidelines/{filename} (repo-native, preserved)")
                 continue
 
             # Parse all layers
-            steering_defs = [parse_steering(p) for p in steering_paths]
+            guidelines_defs = [parse_guidelines(p) for p in guidelines_paths]
 
             # Cascade layers (respects extends field)
-            cascaded_content = cascade_steering(steering_defs)
+            cascaded_content = cascade_guidelines(guidelines_defs)
 
             if dry_run:
-                written.append(f".kiro/steering/{filename} (dry-run)")
+                written.append(f".kiro/guidelines/{filename} (dry-run)")
             else:
-                steering_dir.mkdir(parents=True, exist_ok=True)
+                guidelines_dir.mkdir(parents=True, exist_ok=True)
                 # Add a managed marker comment at the top
                 managed_content = f"<!-- shipkit:managed -->\n{cascaded_content}"
                 target.write_text(managed_content)
-                written.append(f".kiro/steering/{filename}")
+                written.append(f".kiro/guidelines/{filename}")
 
         return written, skipped, warnings
 
@@ -196,7 +196,7 @@ class KiroCompiler(Compiler):
             # Resolve prompt path placeholders
             prompt = agent_def.get("prompt", "")
             prompt = prompt.replace("{skills}", ".kiro/skills")
-            prompt = prompt.replace("{steering}", ".kiro/steering")
+            prompt = prompt.replace("{guidelines}", ".kiro/guidelines")
             prompt = prompt.replace("{state}", str(ctx.home_path / ".state"))
 
             kiro_agent = {
@@ -214,7 +214,7 @@ class KiroCompiler(Compiler):
             if resources:
                 resolved = []
                 for res in resources:
-                    res = res.replace("{steering}", ".kiro/steering")
+                    res = res.replace("{guidelines}", ".kiro/guidelines")
                     res = res.replace("{skills}", ".kiro/skills")
                     if res.endswith(".md"):
                         resolved.append(f"file://{res}")

@@ -4,7 +4,7 @@ Run shipkit commands using natural language. Use when user wants to manage their
 
 ## Overview
 
-Maps natural language requests to shipkit CLI commands. Shipkit manages skills, steering rules, and MCP server configurations that compile into tool-native config files (CLAUDE.md, .mcp.json, etc.).
+Maps natural language requests to shipkit CLI commands. Shipkit manages skills, guidelines rules, and MCP server configurations that compile into tool-native config files (CLAUDE.md, .mcp.json, etc.).
 
 ## Intent Mapping
 
@@ -78,7 +78,7 @@ Shipkit home: ~/.config/shipkit
 Project: my-api
   Repo: /Users/alice/Code/my-api
   Template: python
-  Project steering: 2 files
+  Project guidelines: 2 files
   Project skills: 1
   Knowledge: 3 files
 ```

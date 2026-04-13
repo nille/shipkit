@@ -21,7 +21,7 @@ class TestInitProject:
 
         project_dir = initialized_home / "projects" / name
         assert project_dir.exists()
-        assert (project_dir / "steering").is_dir()
+        assert (project_dir / "guidelines").is_dir()
         assert (project_dir / "skills").is_dir()
         assert (project_dir / "knowledge").is_dir()
         assert (project_dir / "project.yaml").exists()

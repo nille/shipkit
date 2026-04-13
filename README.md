@@ -196,13 +196,13 @@ shipkit sync --tool opencode
 | `/shipkit` | Natural language interface to shipkit CLI commands |
 | `/update` | Self-update and re-sync all projects |
 
-## Steering Rules
+## Guidelines
 
-Steering rules are behavioral guidelines compiled into the agent's system context. They shape how the agent works across all conversations — execution style, verification standards, development principles, and safety defaults.
+Guidelines rules are behavioral guidelines compiled into the agent's system context. They shape how the agent works across all conversations — execution style, verification standards, development principles, and safety defaults.
 
 **Think of steering rules as "house rules" for the agent.** They're always loaded, unlike skills which are activated on-demand.
 
-### Core Steering Rules
+### Core Guidelines
 
 8 steering rules ship with the package:
 
@@ -217,9 +217,9 @@ Steering rules are behavioral guidelines compiled into the agent's system contex
 | `extensibility` | How content layering works, adding personal content |
 | `subagent-catalog` | Available background agents and when they run |
 
-### How Steering Rules Work
+### How Guidelines Work
 
-**Steering rules are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/steering/`, etc.
+**Guidelines rules are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/steering/`, etc.
 
 Like skills, they **cascade across layers** - you can extend core rules with your own preferences:
 
@@ -231,7 +231,7 @@ Project: dev-principles.md → "For this API, follow REST conventions"
 
 **Result:** Agent sees all three layers merged together.
 
-### Adding Your Own Steering Rules
+### Adding Your Own Guidelines
 
 **Global rule (all projects):**
 ```bash
@@ -282,9 +282,9 @@ cat > ~/.config/shipkit/projects/my-api/steering/api-rules.md << 'EOF'
 EOF
 ```
 
-### When to Use Steering Rules vs Skills
+### When to Use Guidelines vs Skills
 
-| Use Steering Rules For | Use Skills For |
+| Use Guidelines For | Use Skills For |
 |------------------------|----------------|
 | General behavior and principles | Specific workflows and tasks |
 | Always-active guidance | On-demand capabilities |
@@ -292,12 +292,12 @@ EOF
 | Development philosophy | Executable procedures |
 
 **Example:**
-- **Steering:** "Always write tests" (general principle, always applies)
+- **Guidelines:** "Always write tests" (general principle, always applies)
 - **Skill:** `/test` (specific action to generate tests)
 
 ### Precedence and Cascading
 
-Steering rules follow the same precedence as skills:
+Guidelines rules follow the same precedence as skills:
 
 1. **Package core** (lowest) - Built-in steering rules
 2. **User global** - Your personal preferences
@@ -493,7 +493,7 @@ Shipkit's `extends` field is a **custom extension** - tools that don't understan
 
 ## Adding Personal Content
 
-### Steering rules
+### Guidelines rules
 
 ```bash
 # Global rule (applies to all projects)

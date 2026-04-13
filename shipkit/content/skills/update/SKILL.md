@@ -4,9 +4,9 @@ Update shipkit to the latest version. Use when user says "update shipkit", "upgr
 
 ## Overview
 
-Updates the shipkit package from its origin repository, then re-syncs registered projects so they pick up new/improved steering rules and skills.
+Updates the shipkit package from its origin repository, then re-syncs registered projects so they pick up new/improved guidelines rules and skills.
 
-Since core content (steering, skills) lives in the shipkit package — not user content — updating is conflict-free. User content (personal overrides, project config, knowledge) is never touched by updates.
+Since core content (guidelines, skills) lives in the shipkit package — not user content — updating is conflict-free. User content (personal overrides, project config, knowledge) is never touched by updates.
 
 ## Workflow
 
@@ -30,7 +30,7 @@ Compare local vs upstream version.
 - Compare versions: read local `shipkit/__init__.py` vs `git show origin/main:shipkit/__init__.py`
 - If already up to date, tell user and stop
 - If a `CHANGELOG.md` exists upstream, extract entries between current and latest version
-- Present what changed: new skills, steering improvements, bug fixes, breaking changes
+- Present what changed: new skills, guidelines improvements, bug fixes, breaking changes
 - You MUST NOT proceed without user confirmation
 
 ### 3. Apply Update
@@ -62,7 +62,7 @@ Updated package means new/improved core content — projects need re-syncing.
 **Constraints:**
 - Ask user: re-sync all projects, just the current one, or skip?
 - Run `shipkit sync` for selected projects
-- Report what changed in the compiled output (new skills added, steering updated, etc.)
+- Report what changed in the compiled output (new skills added, guidelines updated, etc.)
 
 ### 6. Summary
 
@@ -75,7 +75,7 @@ Shipkit updated: v0.1.0 → v0.2.0
 What's new:
   + New skill: /debug — systematic debugging workflow
   + Improved: /commit — better merge commit handling
-  + New steering: sustainability.md — cognitive budget management
+  + New guidelines: sustainability.md — cognitive budget management
 
 Projects re-synced:
   + my-api — 5 commands updated
@@ -96,7 +96,7 @@ Agent: [locates installation, fetches origin]
 
        What's new:
        - New 'debug' skill for systematic debugging
-       - sustainability.md steering rule
+       - sustainability.md guidelines rule
        - commit skill: better merge commit handling
 
        Update now?"

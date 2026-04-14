@@ -145,22 +145,39 @@ def uninstall(yes: bool):
     click.echo()
 
     # 1. Remove symlinks from ~/.claude/skills/
+    removed_links = 0
     if (CLAUDE_HOME / "skills").exists():
-        removed_links = 0
         for skill_link in (CLAUDE_HOME / "skills").iterdir():
             if skill_link.is_symlink():
                 # Only remove shipkit symlinks (core-*, experimental-*, advanced-*)
                 if skill_link.name.startswith(("core-", "experimental-", "advanced-")):
                     skill_link.unlink()
                     removed_links += 1
-        if removed_links:
-            click.echo(f"  ✓ Removed {removed_links} shipkit skill symlinks from ~/.claude/skills/")
+    if removed_links:
+        click.echo(f"  ✓ Removed {removed_links} shipkit skill symlinks from ~/.claude/skills/")
 
     # 2. Remove shipkit agent
     shipkit_agent = CLAUDE_HOME / "agents" / "shipkit.md"
     if shipkit_agent.exists():
         shipkit_agent.unlink()
         click.echo("  ✓ Removed ~/.claude/agents/shipkit.md")
+
+    # 2b. Remove installer agent
+    installer_agent = CLAUDE_HOME / "agents" / "shipkit-installer.md"
+    if installer_agent.exists():
+        installer_agent.unlink()
+        click.echo("  ✓ Removed ~/.claude/agents/shipkit-installer.md")
+
+    # 2c. Remove MCP config
+    mcp_config = CLAUDE_HOME / "mcp.json"
+    if mcp_config.exists():
+        # Backup before removing
+        import shutil
+        from datetime import datetime
+        backup_name = f"mcp.json.backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+        shutil.copy2(mcp_config, CLAUDE_HOME / backup_name)
+        mcp_config.unlink()
+        click.echo(f"  ✓ Removed ~/.claude/mcp.json (backed up to {backup_name})")
 
     # 3. Remove shipkit hooks from settings.json
     settings_path = CLAUDE_HOME / "settings.json"

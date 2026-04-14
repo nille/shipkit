@@ -78,7 +78,7 @@ def main():
         if newest_change <= last_promoted_time:
             debug_log(HOOK_NAME, "No changes since last promotion")
             # Still check consolidation
-            _maybe_consolidate(vault_path, learned_dir)
+            _maybe_consolidate(vault_path)
             sys.exit(0)
 
     # Process observations — count occurrences, promote if threshold met

@@ -1,0 +1,1 @@
+"""Shipkit hooks package."""

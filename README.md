@@ -205,6 +205,7 @@ shipkit sync --tool opencode
 | `/skill-builder` | Create and improve shipkit skills |
 | `/contribute-skill` | Submit local skills to marketplace — fork, PR, automate |
 | `/sync-config` | Commit and push personal config to git remote for backup |
+| `/migrate-tool` | Switch between AI coding tools — moves personal skills/guidelines |
 | `/retro` | Session review, self-improvement, triage pending learnings |
 | `/shipkit` | Natural language interface to shipkit CLI commands |
 | `/update` | Self-update and re-sync all projects |
@@ -643,6 +644,7 @@ shipkit sync [--tool NAME] [--dry-run] [--all] Compile to tool-native config
 shipkit status                                 Show project info and sync status
 shipkit run [PROMPT]                           Sync + launch AI coding CLI
 shipkit alias <name> [--install] [--project P] Generate shell alias for a project
+shipkit migrate --to TOOL [--dry-run]          Migrate personal content between tools
 
 shipkit projects list                          List all registered projects
 shipkit doctor [--lint] [--check NAME]         Health check + content validation
@@ -680,6 +682,45 @@ cli_tool: opencode
 # Or override at sync time
 shipkit sync --tool opencode
 ```
+
+### Switching Tools
+
+Want to switch from one AI coding tool to another? Shipkit makes it seamless.
+
+**Auto-detection:** Shipkit notices when you're using a different tool and offers to migrate:
+
+```
+I notice you're using kiro but shipkit is configured for claude.
+Want to migrate? Say 'migrate tool' or run /migrate-tool
+```
+
+**Interactive migration:**
+```bash
+/migrate-tool    # Guides you through switching tools interactively
+```
+
+**Direct migration:**
+```bash
+# Preview what will be migrated
+shipkit migrate --to kiro --dry-run
+
+# Migrate personal skills and guidelines
+shipkit migrate --to kiro
+```
+
+**What gets migrated:**
+- Personal skills: `~/.claude/skills/` → `~/.kiro/skills/`
+- Personal guidelines: `~/.claude/guidelines/` → `~/.kiro/steering/`
+- Config preference: `config.yaml` updated to new tool
+
+**What stays the same:**
+- Core content in `~/.config/shipkit/core/` (shared across all tools)
+- Plugins in `~/.config/shipkit/plugins/` (shared across all tools)
+- Project content in repos (team-shared via git)
+
+**Note:** Kiro uses "steering" instead of "guidelines" - shipkit handles this automatically.
+
+After migration, run `shipkit sync` to generate tool-native config files for the new tool.
 
 ## Architecture
 

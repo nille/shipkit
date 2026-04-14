@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Phase 4: Migration tooling** for seamless tool switching:
+  - `shipkit migrate --to <tool>` command: migrate personal skills/guidelines between tools
+  - `--dry-run` flag to preview migration without moving files
+  - Handles tool-specific conventions (Kiro uses "steering" not "guidelines")
+  - Merges content when target directories already exist
+  - Updates config.yaml with new tool preference
+  - `/migrate-tool` skill: interactive guided migration with explanation
+  - Auto-detection hook: warns when running tool differs from configured tool
+  - 7 migration test cases covering dry-run, merging, tool-specific paths
+  - README section on switching tools with examples
+
 - `shipkit alias` command: generate a shell alias to launch a project from any directory
   - `--install` flag to auto-append to ~/.zshrc or ~/.bashrc
   - `--project` flag to target a specific registered project

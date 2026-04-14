@@ -77,13 +77,16 @@ def install():
     click.echo("  4. Merge hooks (preserves your config)")
     click.echo("  5. Verify installation worked")
     click.echo()
-    click.echo("Starting Claude Code...")
+    click.echo("Note: Using installer agent with broader permissions for smooth setup")
     click.echo()
 
     # Get path to the install skill (now in user space)
     install_skill = shipkit_home / "core" / "skills" / "install" / "SKILL.md"
 
-    # Launch Claude Code and tell it to read and execute the install skill
+    # Check if installer agent exists
+    installer_agent_path = shipkit_home / "core" / "agents" / "installer.md"
+
+    # Launch Claude Code with installer agent (has permissionMode: auto for smooth setup)
     initial_prompt = (
         f"Read the installation instructions at {install_skill} and execute them to install Shipkit. "
         f"Follow the skill's workflow exactly: Phase 1 (diagnose), Phase 2 (report), Phase 3 (preferences), "
@@ -91,7 +94,12 @@ def install():
     )
 
     try:
-        subprocess.run(["claude", initial_prompt], check=False)
+        if installer_agent_path.exists():
+            # Use dedicated installer agent with broader permissions
+            subprocess.run(["claude", "--agent", "shipkit-installer", initial_prompt], check=False)
+        else:
+            # Fallback to regular claude if installer agent not found
+            subprocess.run(["claude", initial_prompt], check=False)
     except KeyboardInterrupt:
         click.echo("\n\nInstallation cancelled.")
         raise SystemExit(0)

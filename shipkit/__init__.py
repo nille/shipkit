@@ -1,3 +1,3 @@
 """Shipkit — CLI-agnostic AI dev productivity kit."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

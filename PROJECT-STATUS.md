@@ -12,9 +12,10 @@ Shipkit has completed a major architectural transformation to **instruction-driv
 - ✅ **Phase 3:** Tool-Native Paths + Guideline Discovery - Guidelines also runtime-discovered
 - ✅ **Phase 4:** Migration Tooling - Seamless tool switching with `shipkit migrate`
 - ✅ **Phase 5A:** Custom Agent Generation - Branded "shipkit" agents for all 4 tools
+- ✅ **Phase 5B:** Launch Wrapper - Unified `shipkit run` command with tool auto-detection
 
-**In Progress:**
-- 🚧 **Phase 5B:** Launch Wrapper - Unified `shipkit run` command
+**Optional Next:**
+- Phase 5C: Advanced Features (MCP servers, hooks, memory - see PHASE-5-PLAN.md)
 
 See [PHASE-5-PLAN.md](PHASE-5-PLAN.md) for detailed implementation plan.
 

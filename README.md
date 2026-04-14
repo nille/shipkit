@@ -145,13 +145,20 @@ uv tool install shipkit
 cd ~/Code/my-project
 shipkit init
 
-# Compile to tool-native config
+# Compile to tool-native config (generates agent configs)
 shipkit sync
 
-# Or: sync + launch your CLI tool
+# Launch branded shipkit assistant
 shipkit run
+# → Auto-detects tool and launches: claude --agent shipkit
+# → Or: kiro-cli chat --agent shipkit
+# → Or: opencode --agent shipkit
 
-# Create a shell alias to launch from anywhere
+# Create a global alias for quick access
+shipkit alias sk --install
+sk "add tests for the auth module"
+
+# Or create a project-specific alias
 shipkit alias sk --install
 # Now just type 'sk' from any directory
 ```
@@ -639,12 +646,12 @@ Your learned preferences (guidelines/auto-learned.md) are especially valuable to
 ## CLI Reference
 
 ```
-shipkit init [--template TYPE] [--name NAME]   Register current repo as a project
-shipkit sync [--tool NAME] [--dry-run] [--all] Compile to tool-native config
-shipkit status                                 Show project info and sync status
-shipkit run [PROMPT]                           Sync + launch AI coding CLI
-shipkit alias <name> [--install] [--project P] Generate shell alias for a project
-shipkit migrate --to TOOL [--dry-run]          Migrate personal content between tools
+shipkit init [--template TYPE] [--name NAME]     Register current repo as a project
+shipkit sync [--tool NAME] [--dry-run] [--all]   Compile to tool-native config (generates agents)
+shipkit status                                   Show project info and sync status
+shipkit run [PROMPT] [--tool TOOL] [--no-agent]  Sync + launch with custom shipkit agent
+shipkit alias [NAME] [--install] [--project P]   Generate shell alias (global or project-specific)
+shipkit migrate --to TOOL [--dry-run]            Migrate personal content between tools
 
 shipkit projects list                          List all registered projects
 shipkit doctor [--lint] [--check NAME]         Health check + content validation
@@ -663,10 +670,10 @@ Shipkit compiles to:
 
 | Tool | Generated Files |
 |------|----------------|
-| **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/commands/`, `.claude/settings.json` |
-| **Kiro** | `.kiro/guidelines/`, `.kiro/skills/`, `.kiro/agents/`, `.kiro/config/mcp.json`, `.kiro/hooks/` |
-| **Gemini CLI** | `GEMINI.md`, `.gemini/settings.json`, `.gemini/commands/*.toml` |
-| **OpenCode** | `opencode.json`, `.opencode/plugins/shipkit-hooks.ts`, `.opencode/plugins/shipkit-tools.ts` |
+| **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/settings.json`, **`.claude/agents/shipkit.md`** |
+| **Kiro** | `.kiro/steering/`, `.kiro/agents/` (subagents + **shipkit.json**), `.kiro/config/mcp.json`, `.kiro/hooks/` |
+| **Gemini CLI** | `GEMINI.md` (with shipkit branding), `.gemini/settings.json` |
+| **OpenCode** | `AGENTS.md`, `opencode.json`, **`.opencode/agents/shipkit.md`**, `.opencode/plugins/shipkit-hooks.ts` |
 
 Set your preferred tool globally, per-project (metadata only), or at sync time:
 

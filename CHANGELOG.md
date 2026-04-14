@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Phase 5A: Custom Agent Generation** for branded shipkit experience:
+- **Phase 5A & 5B: Custom Agent Generation & Launch Wrapper** for branded shipkit experience:
   - New module: `shipkit/compilers/agents.py` with agent generation functions
   - Claude Code: Generates `.claude/agents/shipkit.md` with markdown + YAML frontmatter
   - Kiro CLI: Generates `.kiro/agents/shipkit.json` with schema-validated JSON
@@ -21,6 +21,18 @@ All notable changes to this project will be documented in this file.
   - 21 agent generation tests (all passing)
   - 2 e2e tests verifying agent creation during sync
   - Total: 170 tests passing
+- **Phase 5B: Launch wrapper** for unified branded launches:
+  - Updated `shipkit run` command to launch with `--agent shipkit` flag
+  - Added `--no-agent` flag to launch without custom agent
+  - Tool auto-detection when not in a project
+  - Updated `shipkit alias` to support both global and project-specific aliases
+  - Default alias name: 'sk' (customizable)
+  - 18 new tests for tool detection and launch command building
+  - Total: 188 tests passing
+- README updates:
+  - Quick Start shows branded launch workflow
+  - CLI Reference updated with new flags
+  - Multi-Tool Support table shows agent files
 
 - **Phase 4: Migration tooling** for seamless tool switching:
   - `shipkit migrate --to <tool>` command: migrate personal skills/guidelines between tools

@@ -81,22 +81,21 @@ def _offer_alias_installation():
 # --- sync command ---
 
 @main.command()
-@click.option("--tool", "-t", default=None, help="Target CLI tool (claude, kiro, gemini)")
 @click.option("--dry-run", is_flag=True, help="Show what would change without writing")
 @click.option("--all", "sync_all_flag", is_flag=True, help="Sync all registered projects")
-def sync(tool: str | None, dry_run: bool, sync_all_flag: bool):
-    """Compile shipkit content into tool-native configuration."""
+def sync(dry_run: bool, sync_all_flag: bool):
+    """Compile shipkit content into Claude Code configuration."""
     from shipkit.sync import sync_project, sync_all
     from shipkit.project import ProjectError
     from shipkit.datadir import DataDirError
 
     try:
         if sync_all_flag:
-            results = sync_all(tool=tool, dry_run=dry_run)
+            results = sync_all(dry_run=dry_run)
             for project_name, result in results.items():
                 _print_result(project_name, result, dry_run)
         else:
-            result = sync_project(tool=tool, dry_run=dry_run)
+            result = sync_project(dry_run=dry_run)
             _print_result(None, result, dry_run)
     except (ProjectError, DataDirError, ValueError) as e:
         raise click.ClickException(str(e))
@@ -144,8 +143,6 @@ def status():
         click.echo(f"Project: {name}")
         click.echo(f"  Repo: {cfg.repo_path}")
         click.echo(f"  Template: {cfg.template}")
-        if cfg.cli_tool:
-            click.echo(f"  CLI tool: {cfg.cli_tool}")
 
         # Check what's in the home for this project
         guidelines_count = len(list((project_dir / "guidelines").glob("*.md"))) if (project_dir / "guidelines").exists() else 0
@@ -156,108 +153,6 @@ def status():
         click.echo(f"  Knowledge: {knowledge_count} files")
     except ProjectError:
         click.echo("Project: not registered (run 'shipkit init')")
-
-
-# --- migrate command ---
-
-@main.command()
-@click.option("--to", "target_tool", required=True, type=click.Choice(["claude", "kiro", "gemini", "opencode"]), help="Target CLI tool")
-@click.option("--dry-run", is_flag=True, help="Show what would be migrated without moving files")
-def migrate(target_tool: str, dry_run: bool):
-    """Migrate user skills and guidelines to tool-native locations.
-
-    Moves content from one tool's directory to another:
-      ~/.claude/skills/ → ~/.kiro/skills/ (example)
-
-    Updates config.yaml to reflect the new tool preference.
-    """
-    import shutil
-    from shipkit.config import ShipkitConfig
-
-    # Load current config
-    cfg = ShipkitConfig.load()
-    current_tool = cfg.cli_tool
-
-    if current_tool == target_tool:
-        click.echo(f"Already configured for {target_tool}. Nothing to migrate.")
-        return
-
-    # Define tool-specific paths
-    tool_paths = {
-        "claude": {"base": Path.home() / ".claude", "guidelines_dir": "guidelines"},
-        "kiro": {"base": Path.home() / ".kiro", "guidelines_dir": "steering"},
-        "gemini": {"base": Path.home() / ".gemini", "guidelines_dir": "guidelines"},
-        "opencode": {"base": Path.home() / ".opencode", "guidelines_dir": "guidelines"},
-    }
-
-    source_base = tool_paths[current_tool]["base"]
-    target_base = tool_paths[target_tool]["base"]
-    source_guidelines_dir = tool_paths[current_tool]["guidelines_dir"]
-    target_guidelines_dir = tool_paths[target_tool]["guidelines_dir"]
-
-    # Collect migration tasks
-    migrations = []
-
-    # Skills migration
-    source_skills = source_base / "skills"
-    target_skills = target_base / "skills"
-    if source_skills.exists() and any(source_skills.iterdir()):
-        migrations.append(("skills", source_skills, target_skills))
-
-    # Guidelines/steering migration
-    source_guidelines = source_base / source_guidelines_dir
-    target_guidelines = target_base / target_guidelines_dir
-    if source_guidelines.exists() and any(source_guidelines.iterdir()):
-        migrations.append((target_guidelines_dir, source_guidelines, target_guidelines))
-
-    if not migrations:
-        click.echo(f"No content to migrate from {current_tool} to {target_tool}.")
-        click.echo(f"  Checked: {source_base}/skills/, {source_base}/{source_guidelines_dir}/")
-        if not dry_run:
-            # Update config anyway
-            cfg.cli_tool = target_tool
-            cfg.save()
-            click.echo(f"\nUpdated config.yaml: cli_tool → {target_tool}")
-        return
-
-    # Show migration plan
-    click.echo(f"Migration plan: {current_tool} → {target_tool}\n")
-    for label, src, dst in migrations:
-        count = len(list(src.iterdir())) if src.is_dir() else 0
-        click.echo(f"  {label}: {src} → {dst} ({count} items)")
-
-    if dry_run:
-        click.echo("\n(dry-run: no files moved)")
-        return
-
-    # Confirm before proceeding
-    click.echo()
-    if not click.confirm(f"Proceed with migration?"):
-        click.echo("Migration cancelled.")
-        return
-
-    # Perform migrations
-    click.echo()
-    for label, src, dst in migrations:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        if dst.exists():
-            click.echo(f"! {dst} already exists, merging content...")
-            for item in src.iterdir():
-                target_item = dst / item.name
-                if target_item.exists():
-                    click.echo(f"  ! Skipping {item.name} (already exists)")
-                else:
-                    shutil.move(str(item), str(dst))
-                    click.echo(f"  ✓ Moved {item.name}")
-        else:
-            shutil.move(str(src), str(dst))
-            click.echo(f"✓ Moved {label}: {src} → {dst}")
-
-    # Update config
-    cfg.cli_tool = target_tool
-    cfg.save()
-    click.echo(f"\n✓ Updated config.yaml: cli_tool → {target_tool}")
-    click.echo(f"\nMigration complete! Run 'shipkit sync' to compile for {target_tool}.")
 
 
 # --- projects command ---
@@ -306,8 +201,6 @@ def doctor(lint: bool, check_name: str | None):
     # Check home directory
     if SHIPKIT_HOME.exists():
         click.echo(f"+ Home: {SHIPKIT_HOME}")
-        cfg = ShipkitConfig.load()
-        click.echo(f"  CLI tool: {cfg.cli_tool}")
         warnings = validate_home(SHIPKIT_HOME)
         for w in warnings:
             click.echo(f"  ! {w}")
@@ -598,23 +491,21 @@ def _install_alias(name: str, snippet: str, shell: str):
 
 @main.command()
 @click.argument("prompt", nargs=-1)
-@click.option("--tool", "-t", default=None, help="Override CLI tool")
 @click.option("--no-agent", is_flag=True, help="Launch without custom shipkit agent")
-def run(prompt: tuple[str, ...], tool: str | None, no_agent: bool):
-    """Sync config then launch the AI coding CLI with custom shipkit agent.
+def run(prompt: tuple[str, ...], no_agent: bool):
+    """Sync config then launch Claude Code with custom shipkit agent.
 
     Optionally pass a PROMPT to start with.
     """
     import subprocess
     import shutil
     from shipkit.sync import sync_project
-    from shipkit.config import ResolvedConfig, ConfigError
-    from shipkit.project import resolve_project, ProjectError
+    from shipkit.project import ProjectError
     from shipkit.datadir import DataDirError
 
     # Sync first
     try:
-        result = sync_project(tool=tool)
+        result = sync_project()
         if result.files_written:
             click.echo("Synced:")
             for f in result.files_written:
@@ -622,82 +513,21 @@ def run(prompt: tuple[str, ...], tool: str | None, no_agent: bool):
     except (ProjectError, DataDirError, ValueError) as e:
         raise click.ClickException(str(e))
 
-    # Resolve which tool to launch
-    try:
-        project_name, _ = resolve_project()
-        cfg = ResolvedConfig.resolve(project_name)
-        cli_tool = tool or cfg.cli_tool
-    except (ConfigError, ProjectError) as e:
-        # Not in a project - try to auto-detect installed tool
-        cli_tool = tool or _detect_installed_tool()
-        if not cli_tool:
-            raise click.ClickException(
-                "No supported AI coding tool found. Install one:\n"
-                "  - Claude Code: curl -fsSL https://claude.ai/install.sh | bash\n"
-                "  - Kiro CLI: pip install kiro-cli\n"
-                "  - OpenCode: See https://opencode.ai\n"
-                "  - Gemini CLI: See https://github.com/google-gemini/gemini-cli"
-            )
+    # Check if Claude Code is installed
+    if not shutil.which("claude"):
+        raise click.ClickException(
+            "Claude Code not found. Install it with:\n"
+            "  curl -fsSL https://claude.ai/install.sh | bash"
+        )
 
     # Build launch command with shipkit agent (unless --no-agent)
-    cmd = _build_launch_command(cli_tool, prompt, use_agent=not no_agent)
+    cmd = ["claude"]
+    if not no_agent:
+        cmd.extend(["--agent", "shipkit"])
+    if prompt:
+        cmd.append(" ".join(prompt))
 
-    click.echo(f"Launching shipkit on {cli_tool}...")
-    try:
-        subprocess.run(cmd, check=False)
-    except FileNotFoundError:
-        raise click.ClickException(f"'{cmd[0]}' not found. Is {cli_tool} installed?")
-
-
-def _detect_installed_tool() -> str | None:
-    """Auto-detect which AI coding tool is installed."""
-    import shutil
-
-    # Check in priority order (prefer Claude Code if multiple installed)
-    if shutil.which("claude"):
-        return "claude"
-    if shutil.which("kiro-cli"):
-        return "kiro"
-    if shutil.which("opencode"):
-        return "opencode"
-    if shutil.which("gemini"):
-        return "gemini"
-    return None
+    click.echo("Launching shipkit on Claude Code...")
+    subprocess.run(cmd, check=False)
 
 
-def _build_launch_command(cli_tool: str, prompt: tuple[str, ...], use_agent: bool = True) -> list[str]:
-    """Build the launch command for the specified tool."""
-    prompt_str = " ".join(prompt) if prompt else None
-
-    if cli_tool == "claude":
-        cmd = ["claude"]
-        if use_agent:
-            cmd.extend(["--agent", "shipkit"])
-        if prompt_str:
-            cmd.append(prompt_str)
-        return cmd
-
-    if cli_tool == "kiro":
-        cmd = ["kiro-cli", "chat"]
-        if use_agent:
-            cmd.extend(["--agent", "shipkit"])
-        if prompt_str:
-            cmd.append(prompt_str)
-        return cmd
-
-    if cli_tool == "opencode":
-        cmd = ["opencode"]
-        if use_agent:
-            cmd.extend(["--agent", "shipkit"])
-        if prompt_str:
-            cmd.extend(["--prompt", prompt_str])
-        return cmd
-
-    if cli_tool == "gemini":
-        # Gemini has no agent flag, just launch (reads GEMINI.md)
-        cmd = ["gemini"]
-        if prompt_str:
-            cmd.extend(["-p", prompt_str])
-        return cmd
-
-    raise ValueError(f"Unknown tool: {cli_tool}")

@@ -4,13 +4,19 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-CLI-agnostic AI dev productivity kit. Skills, guidelines, hooks, and MCP server configs that compile into tool-native configuration for Claude Code, Kiro, Gemini CLI, OpenCode, and other AI coding tools.
+**Stop configuring Claude Code. Start shipping.**
+
+Production-grade Claude Code setup with 21 battle-tested skills, self-learning capabilities, and team workflows—built by a developer with 20+ years in the trenches. Zero FOMO, maximum productivity.
 
 ## Why Shipkit?
 
-Most AI coding tools come with their own conventions: custom slash commands, tool-specific configs, proprietary skill systems. When you invest time customizing one tool, that work is locked in. Switch tools? Start from scratch.
+**Tired of Twitter threads telling you what you're missing?** Every day there's a new Claude Code tip, a new config hack, a must-have setup tweak. You're either constantly reconfiguring or watching your productivity fall behind.
 
-**Shipkit flips this.** Write your workflows, preferences, and automation once. Compile to any AI coding CLI. Your investment moves with you.
+**Shipkit solves this once and for all.** You get a production-grade Claude Code setup built by someone who's been shipping AI agent tooling since day one. 21 skills, hooks, MCP servers, and a self-learning system that adapts to your workflow—all tested in real production environments.
+
+**For solo developers:** You're instantly ahead of 95% of Claude Code users. No more setup FOMO, no more copying configs from Reddit threads. Just the best setup, ready to go.
+
+**For teams:** Everyone gets the same powerful baseline. Share custom skills via git. Build team conventions that actually stick.
 
 ### Three superpowers that compound over time:
 
@@ -28,17 +34,7 @@ You → approve → guidelines/auto-learned.md updated
 
 **Fully transparent** - you see the analysis happen and can guide it.
 
-**2. CLI-agnostic architecture**  
-Switching from Claude Code to Kiro? Trying out Gemini CLI or OpenCode? Your skills, guidelines, and learned preferences compile to whatever tool you're using. Same content, different output formats. No lock-in, no migration scripts, no starting over.
-
-```bash
-shipkit sync --tool claude    # Generates CLAUDE.md + .claude/commands/
-shipkit sync --tool kiro      # Generates .kiro/skills/ + .kiro/guidelines/
-shipkit sync --tool gemini    # Generates GEMINI.md + .gemini/commands/
-shipkit sync --tool opencode  # Generates .opencode/plugins/ + opencode.json
-```
-
-**3. Content layering that never breaks**  
+**2. Content layering that never breaks**  
 Updates to core skills don't overwrite your customizations. Content flows through layers — package core, user global, plugins, repo — with higher layers always winning. Your preferences are sacred. Updates bring new capabilities without touching your setup.
 
 ### Ship faster, every single day:
@@ -63,7 +59,7 @@ Updates to core skills don't overwrite your customizations. Content flows throug
 /release minor
 ```
 
-Every skill runs in any supported tool. Write it once, use it everywhere.
+**You're not missing out—you're ahead.** These skills took months to build and refine in real production workflows.
 
 ### Extend without limits:
 
@@ -73,30 +69,36 @@ Every skill runs in any supported tool. Write it once, use it everywhere.
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
 - **Team-shared content** — commit skills/guidelines to your repo and share via git
 
-### Teams can collaborate across different tools:
+### Teams get shared workflows:
 
-Your team doesn't need to standardize on one AI coding tool. Each developer uses their preferred tool, but everyone shares the same skills and workflows.
+Build custom skills once, share them via git. Everyone on your team gets the same capabilities automatically.
 
 **Example:** Your team builds a custom `/deploy` skill for your production pipeline:
 
 ```
-Alice (Claude Code) creates /deploy skill
+Alice creates /deploy skill in team repo
    │
-   ├─ Shares to marketplace (shipkit official or private): /contribute-skill deploy
+   ├─ Commits to .claude/skills/deploy/
    │
    ↓
-Marketplace stores as tool-agnostic SKILL.md
+Everyone else pulls and runs shipkit sync
    │
-   ├──→ Bob (Kiro):        shipkit plugin install deploy → /deploy works ✅
-   ├──→ Carol (Gemini):    shipkit plugin install deploy → /deploy works ✅
-   └──→ David (OpenCode):  shipkit plugin install deploy → /deploy works ✅
+   ├──→ Bob:     /deploy works ✅
+   ├──→ Carol:   /deploy works ✅
+   └──→ David:   /deploy works ✅
 ```
 
-**One skill, four tools, zero conversion.** The skill is stored in tool-agnostic markdown. Each developer's `shipkit sync` compiles it to their tool's native format. Team workflows stay consistent regardless of individual tool preferences.
+**Team workflows, git-based distribution.** Commit skills and guidelines to your repo. Everyone on the team gets them through git pull + shipkit sync.
+
+## Built by someone who's been there from day one
+
+Shipkit isn't a weekend project or a viral Twitter thread. It's 20+ years of software engineering experience applied to AI agents since the early days. Every skill, every hook, every design decision comes from real production use—not theory, not hype, not FOMO bait.
+
+You're getting the setup I wish existed when I started. Battle-tested, opinionated, and always improving.
 
 ## How It Works
 
-Shipkit is a content compiler. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates the right files for whichever AI coding tool you use.
+Shipkit is a content compiler for Claude Code. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates Claude Code configuration.
 
 Content flows through three source layers, then compiles to your repo:
 
@@ -107,7 +109,7 @@ Content flows through three source layers, then compiles to your repo:
         ↓
    Compile & Merge
         ↓
-4. Repo             ← Output (.claude/, .kiro/, etc.)
+4. Repo             ← Output (.claude/)
 ```
 
 **How merging works:**
@@ -124,7 +126,7 @@ Higher source layers win on conflict. Repo content is protected from being overw
 |-------------|---------|-------|
 | Python | >= 3.10 | Runtime for shipkit itself |
 | Git | any | Required by `/commit`, `/pr`, `/release` |
-| An AI coding CLI | — | [Claude Code](https://claude.ai/code), [Kiro CLI](https://kiro.dev), [Gemini CLI](https://geminicli.com), or [OpenCode](https://opencode.ai) |
+| Claude Code | latest | Get it at [claude.ai/code](https://claude.ai/code) |
 
 **Optional but recommended:**
 

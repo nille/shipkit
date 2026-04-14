@@ -73,11 +73,6 @@ class TestSync:
         assert "dry-run" in result.output
         assert not (cli_project / "CLAUDE.md").exists()
 
-    def test_sync_tool_override(self, runner, cli_project):
-        result = runner.invoke(main, ["sync", "--tool", "kiro"])
-        assert result.exit_code == 0
-        assert (cli_project / ".kiro" / "steering").exists()
-
     def test_sync_not_registered(self, runner, initialized_home, tmp_path, monkeypatch):
         unregistered = tmp_path / "nope"
         unregistered.mkdir()

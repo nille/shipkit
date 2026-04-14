@@ -246,7 +246,7 @@ Guidelines are behavioral guidelines compiled into the agent's system context. T
 
 ### How Guidelines Work
 
-**Guidelines are markdown files** that get compiled into `CLAUDE.md`, `GEMINI.md`, `.kiro/guidelines/`, etc.
+**Guidelines are markdown files** that get compiled into `CLAUDE.md` for Claude Code.
 
 Like skills, they **cascade across layers** - you can extend core rules with your own preferences:
 

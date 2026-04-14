@@ -16,6 +16,10 @@ Run these checks and collect results:
 1. **Claude Code installed** - `which claude` (required)
 2. **Git installed** - `which git` (required for /commit, /pr, etc.)
 3. **Git user configured** - `git config user.name && git config user.email`
+   - **IMPORTANT:** Only CHECK if configured, do NOT modify
+   - If missing: Report in Phase 2 as "❌ Git user not configured"
+   - If present: Report in Phase 2 as "✅ Git user configured (Name <email>)"
+   - **Never change git config without explicit user request**
 4. **Claude home exists** - `test -d ~/.claude`
 5. **Existing settings.json** - `test -f ~/.claude/settings.json`
 6. **Existing hooks** - Parse ~/.claude/settings.json, count hooks
@@ -41,6 +45,17 @@ Display a status dashboard:
 ✅ Git installed (2.40.1)
 ✅ Git user configured (Nicklas af Ekenstam <nick@example.com>)
 ✅ Python 3.14.3 (>= 3.10 ✓)
+
+**Note:** If git user is not configured or user wants to change it, ask:
+```
+Would you like to configure git user?
+  Current: Nicklas af Ekenstam <ekenstam@amazon.com>
+  
+  Keep current, or change?
+  (Leave blank to keep, or enter: Name <email>)
+```
+
+Only change if user explicitly provides new values.
 
 ### Current Claude Code Setup
 ✅ ~/.claude/ exists

@@ -34,7 +34,12 @@ You → approve → guidelines/auto-learned.md updated
 
 **Fully transparent** - you see the analysis happen and can guide it.
 
-**2. Content layering that never breaks**  
+**2. Dual learning systems**
+- **Pattern Learner:** Detects repeated workflows (command sequences, file patterns) → Creates automation skills
+- **Retro:** Learns your preferences and conventions → Updates behavioral guidelines
+- **Together:** Skills automate WHAT you do, guidelines shape HOW you work
+
+**3. Content layering that never breaks**  
 Updates to core skills don't overwrite your customizations. Content flows through layers — package core, user global, plugins, repo — with higher layers always winning. Your preferences are sacred. Updates bring new capabilities without touching your setup.
 
 ### Ship faster, every single day:
@@ -351,14 +356,30 @@ Intelligent automation that runs at session boundaries. Shipkit ships with 8 pro
 |------|-------|---------|
 | **`pre-commit-safety`** | Pre-tool-use | **Hybrid regex + LLM scanner** - Prevents secrets, debug code, merge conflicts from being committed. Context-aware: distinguishes test fixtures from real secrets. |
 
-### 🧠 Learning & Automation
+### 🧠 Two Complementary Learning Systems
+
+Shipkit learns from your work in two ways:
+
+**Pattern Learner → Automate Tasks (Skills)**
+- Detects repeated **command sequences** and **file edit patterns**
+- After 3+ occurrences: "Create /restart-service skill?"
+- **Output:** New skills that automate workflows
+- **Example:** You run the same 5 debug commands → Becomes `/debug-auth` skill
+
+**Retro → Learn Behaviors (Guidelines)**
+- Detects **preferences**, **mistakes**, **conventions**
+- You say "retro" → Interactive analysis → Approve suggestions
+- **Output:** Updated guidelines that shape all future work
+- **Example:** You always validate at API boundaries → Guideline reminder
+
+**TL;DR:** Pattern Learner automates WHAT you do (tasks → skills). Retro learns HOW you work (behaviors → guidelines).
 
 | Hook | Event | Purpose |
 |------|-------|---------|
-| **`pattern-learner`** | Session end | **AI learns your workflows** - Detects repeated command sequences and file edit patterns. After 3 occurrences, suggests creating automation skills. Your toolkit grows from YOUR work. |
-| **`session-goals`** | Session start/end | **Focus tracker** - Prompts for goals at start, tracks accomplishments vs plans at end. Helps identify time sinks and maintain accountability. |
+| **`pattern-learner`** | Session end | Detects repeated workflows, suggests skill automation |
 | `retro-analyze` | Session end | Saves session metadata for interactive retrospectives |
 | `retro-auto` | Session start | Auto-promotes learnable rules from retro suggestions |
+| **`session-goals`** | Session start/end | Prompts for goals at start, tracks accomplishments at end |
 
 ### 📊 Context & Coordination
 

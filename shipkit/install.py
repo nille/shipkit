@@ -90,7 +90,8 @@ def create_symlinks_to_claude(shipkit_home: Path, claude_home: Path) -> dict[str
                 continue
 
             skill_name = skill_dir.name
-            target_link = claude_home / "skills" / f"{layer_name}-{skill_name}"
+            # Just use skill name (no layer prefix)
+            target_link = claude_home / "skills" / skill_name
 
             # Create ~/.claude/skills/ if needed
             (claude_home / "skills").mkdir(parents=True, exist_ok=True)
@@ -107,7 +108,7 @@ def create_symlinks_to_claude(shipkit_home: Path, claude_home: Path) -> dict[str
             # Create symlink
             try:
                 target_link.symlink_to(skill_dir)
-                result["created"].append(f"{layer_name}/{skill_name} → ~/.claude/skills/{layer_name}-{skill_name}")
+                result["created"].append(f"{layer_name}/{skill_name} → ~/.claude/skills/{skill_name}")
             except Exception as e:
                 result["errors"].append(f"Failed to link {skill_name}: {e}")
 

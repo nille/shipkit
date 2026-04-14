@@ -28,9 +28,9 @@
     },
 
     "playwright": {
-      "_comment": "Browser automation. Requires: Node.js",
+      "_comment": "Browser automation. Requires: Node.js. Package: @playwright/mcp or @anthropic-ai/mcp-server-playwright",
       "command": "npx",
-      "args": ["@playwright/mcp@latest", "--extension"]
+      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
     },
 
     "sqlite": {

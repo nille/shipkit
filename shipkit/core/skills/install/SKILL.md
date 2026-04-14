@@ -291,12 +291,8 @@ Example merge strategy:
 }
 ```
 
-Use the Bash tool to run:
-```bash
-shipkit sync --install-hooks-only
-```
-
-Or manually merge JSON if that command doesn't exist yet.
+**Note:** Hooks are merged by reading hook YAML definitions and merging into settings.json manually.
+Do NOT use `shipkit sync` for hooks - it syncs project files, not global hooks.
 
 Explain which hooks were added and confirm existing hooks were preserved.
 

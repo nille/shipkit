@@ -159,10 +159,14 @@ def uninstall(yes: bool):
     if (CLAUDE_HOME / "skills").exists():
         for skill_link in (CLAUDE_HOME / "skills").iterdir():
             if skill_link.is_symlink():
-                # Only remove shipkit symlinks (core-*, experimental-*, advanced-*)
-                if skill_link.name.startswith(("core-", "experimental-", "advanced-")):
-                    skill_link.unlink()
-                    removed_links += 1
+                # Check if symlink points to shipkit content
+                try:
+                    target = skill_link.resolve()
+                    if "/.config/shipkit/" in str(target):
+                        skill_link.unlink()
+                        removed_links += 1
+                except Exception:
+                    pass
     if removed_links:
         click.echo(f"  ✓ Removed {removed_links} shipkit skill symlinks from ~/.claude/skills/")
 

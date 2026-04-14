@@ -78,11 +78,15 @@ Add to ~/.claude/settings.json:
   "mcpServers": {
     "playwright": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest", "--extension"]
+      "args": ["-y", "@anthropic-ai/mcp-server-playwright"]
     }
   }
 }
 ```
+
+**Note:** There are two Playwright MCP packages:
+- `@anthropic-ai/mcp-server-playwright` (Anthropic official, recommended)
+- `@playwright/mcp` (needs `--extension` flag for Chrome bridge)
 
 **Chrome MCP Bridge (Advanced):**
 Playwright MCP can connect to your real Chrome browser using the [Chrome MCP Bridge extension](https://chromewebstore.google.com/detail/playwright-mcp-bridge/mmlmfjhmonkocbjadbfplnigmagldckm).

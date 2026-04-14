@@ -151,7 +151,7 @@ def write_claude_agent_with_hooks(
     # Build YAML frontmatter with hooks
     import yaml
     frontmatter_data = {
-        "name": "shipkit",
+        "name": f"shipkit v{__version__}",
         "description": "Production-grade Claude Code assistant with battle-tested skills and self-learning capabilities",
         "model": "sonnet",
         "tools": "*",

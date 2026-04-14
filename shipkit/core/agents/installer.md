@@ -3,9 +3,9 @@ name: shipkit-installer
 description: Shipkit installation agent with broader permissions for smooth setup
 model: sonnet
 tools: "*"
-permissionMode: auto
+permissionMode: dontAsk
 memory: none
-maxTurns: 30
+maxTurns: 50
 color: green
 ---
 

@@ -66,6 +66,16 @@ def install():
     for item in link_result["errors"]:
         click.echo(f"  ! {item}")
 
+    # Step 3b: Copy installer agent to ~/.claude/agents/ (so Claude can find it)
+    installer_agent_source = shipkit_home / "core" / "agents" / "installer.md"
+    installer_agent_dest = CLAUDE_HOME / "agents" / "shipkit-installer.md"
+
+    if installer_agent_source.exists():
+        installer_agent_dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(installer_agent_source, installer_agent_dest)
+        click.echo()
+        click.echo("  ✓ Installed shipkit-installer agent (broader permissions for smooth setup)")
+
     # Step 4: Launch LLM installer for configuration
     click.echo()
     click.echo("🚀 Launching interactive installer...")

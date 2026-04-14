@@ -1,33 +1,71 @@
 {
-  "_comment": "Add MCP servers here to extend shipkit's defaults. These merge with the package defaults (playwright, context7). Place this file at <home>/mcp.json to apply globally, or <home>/projects/<name>/mcp.json for project-specific servers.",
+  "_comment": "Sample MCP server configurations. Copy servers you want to ~/.claude/mcp.json (user-wide) or .mcp.json in your project (team-shared).",
+  "_note": "Shipkit has NO default MCPs - you choose what to install. The /install skill guides you through popular options.",
+
   "mcpServers": {
+    "brave-search": {
+      "_comment": "Powers /research skill. Free API key: https://brave.com/search/api/",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+
     "github": {
+      "_comment": "Enhances /pr and /review skills. Uses your existing GITHUB_TOKEN.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       }
     },
-    "slack": {
+
+    "filesystem": {
+      "_comment": "Enhanced file operations. No API key needed.",
       "command": "npx",
-      "args": ["-y", "@anthropics/mcp-server-slack"],
-      "env": {
-        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
-      }
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${HOME}"]
     },
+
+    "playwright": {
+      "_comment": "Browser automation. Requires: Node.js",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--extension"]
+    },
+
+    "sqlite": {
+      "_comment": "Local database queries. Replace path with your db.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sqlite", "--db-path", "/path/to/database.db"]
+    },
+
     "postgres": {
+      "_comment": "PostgreSQL database queries",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
         "DATABASE_URL": "postgresql://user:pass@localhost:5432/mydb"
       }
     },
+
+    "slack": {
+      "_comment": "Team communication. Requires: SLACK_BOT_TOKEN",
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+      }
+    },
+
     "linear": {
+      "_comment": "Issue tracking. Requires: LINEAR_API_KEY",
       "command": "npx",
       "args": ["-y", "@linear/mcp-server"],
       "env": {
         "LINEAR_API_KEY": "${LINEAR_API_KEY}"
       }
     }
-  }
+  },
+
+  "_usage": "Copy the servers you want to ~/.claude/mcp.json. Set required env vars in ~/.claude/settings.json under 'env' key. More info: docs/mcp-servers.md"
 }

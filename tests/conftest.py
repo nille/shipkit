@@ -29,9 +29,15 @@ def tmp_home(tmp_path, monkeypatch):
 
 @pytest.fixture
 def initialized_home(tmp_home):
-    """A fully initialized shipkit home directory."""
+    """A fully initialized shipkit home directory with core content."""
     from shipkit.datadir import ensure_home
+    from shipkit.install import sync_package_core_to_user_space
+
     ensure_home()
+
+    # Copy package core to user space (simulates install)
+    sync_package_core_to_user_space(tmp_home, force=False)
+
     return tmp_home
 
 

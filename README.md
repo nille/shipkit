@@ -697,8 +697,18 @@ shipkit doctor [--lint] [--check NAME]             # Health check + content vali
 ├── settings.json                      Hooks installed here
 └── mcp.json                           MCP server configs (optional)
 
-~/.config/shipkit/                     Shipkit metadata only
+~/.config/shipkit/                     Shipkit metadata and core content
 ├── config.yaml                        Layer preferences (core, experimental, advanced)
+├── core/                              Core content (copied during install)
+│   ├── skills/                        21 battle-tested skills
+│   ├── guidelines/                    8 core guidelines
+│   └── hooks/                         8 production hooks
+├── experimental/                      Experimental content (if enabled)
+│   ├── skills/
+│   └── guidelines/
+├── advanced/                          Advanced content (if enabled)
+│   ├── skills/
+│   └── guidelines/
 ├── plugins/                           Installed marketplace plugins
 │   └── <name>/
 │       ├── plugin.yaml

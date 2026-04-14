@@ -84,6 +84,25 @@ Add to ~/.claude/settings.json:
 }
 ```
 
+**Chrome MCP Bridge (Advanced):**
+Playwright MCP can connect to your real Chrome browser using the [Chrome MCP Bridge extension](https://chromewebstore.google.com/detail/playwright-mcp-bridge/mmlmfjhmonkocbjadbfplnigmagldckm).
+
+**Benefits:**
+- Use your logged-in browser sessions (no test authentication)
+- Access real cookies, localStorage, session state
+- Test with actual user context
+
+**Setup:**
+1. Install [Chrome extension](https://chromewebstore.google.com/detail/playwright-mcp-bridge/mmlmfjhmonkocbjadbfplnigmagldckm)
+2. Add Playwright MCP with `--extension` flag (see config above)
+3. Open Chrome, ensure extension shows green icon (connected)
+4. Use `/browser-test` skill (Advanced layer) to leverage this
+
+**Use cases:**
+- Test authenticated flows without login automation
+- Debug issues in your actual browser context
+- Record user actions and generate test code
+
 #### SQLite
 **Powers:** Local database queries  
 **API Key:** None  

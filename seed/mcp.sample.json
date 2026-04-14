@@ -67,5 +67,14 @@
     }
   },
 
+  "_advanced": {
+    "playwright-chrome-bridge": {
+      "_comment": "Playwright with Chrome MCP Bridge extension - Control your real browser",
+      "_requires": "Chrome extension: https://chromewebstore.google.com/detail/playwright-mcp-bridge/mmlmfjhmonkocbjadbfplnigmagldckm",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--extension"]
+    }
+  },
+
   "_usage": "Copy the servers you want to ~/.claude/mcp.json. Set required env vars in ~/.claude/settings.json under 'env' key. More info: docs/mcp-servers.md"
 }

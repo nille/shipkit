@@ -17,14 +17,22 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-from shipkit.config import ShipkitConfig, CLAUDE_HOME
+from shipkit.config import ShipkitConfig, CLAUDE_HOME, SHIPKIT_HOME
 
-# Package content layers
+# Package content layers (source - in pip package)
 PACKAGE_ROOT = Path(__file__).parent.parent
-PACKAGE_CORE_DIR = PACKAGE_ROOT / "core"
-PACKAGE_EXPERIMENTAL_DIR = PACKAGE_ROOT / "experimental"
-PACKAGE_ADVANCED_DIR = PACKAGE_ROOT / "advanced"
-PACKAGE_HOOKS_DIR = PACKAGE_CORE_DIR / "hooks"
+PACKAGE_CORE_SOURCE = PACKAGE_ROOT / "core"
+PACKAGE_EXPERIMENTAL_SOURCE = PACKAGE_ROOT / "experimental"
+PACKAGE_ADVANCED_SOURCE = PACKAGE_ROOT / "advanced"
+
+# User-space content (installed to ~/.config/shipkit/)
+# Core content is copied here during 'shipkit install' for user-friendly access
+USER_CORE_DIR = SHIPKIT_HOME / "core"
+USER_EXPERIMENTAL_DIR = SHIPKIT_HOME / "experimental"
+USER_ADVANCED_DIR = SHIPKIT_HOME / "advanced"
+
+# Backwards compatibility export for hooks
+PACKAGE_HOOKS_DIR = USER_CORE_DIR / "hooks"
 
 
 @dataclass
@@ -43,31 +51,38 @@ class CompileContext:
 
     @property
     def package_core_guidelines(self) -> Path:
-        return PACKAGE_CORE_DIR / "guidelines"
+        """Core guidelines in user space (copied during install)."""
+        return USER_CORE_DIR / "guidelines"
 
     @property
     def package_core_skills(self) -> Path:
-        return PACKAGE_CORE_DIR / "skills"
+        """Core skills in user space (copied during install)."""
+        return USER_CORE_DIR / "skills"
 
     @property
     def package_experimental_guidelines(self) -> Path:
-        return PACKAGE_EXPERIMENTAL_DIR / "guidelines"
+        """Experimental guidelines in user space (copied during install)."""
+        return USER_EXPERIMENTAL_DIR / "guidelines"
 
     @property
     def package_experimental_skills(self) -> Path:
-        return PACKAGE_EXPERIMENTAL_DIR / "skills"
+        """Experimental skills in user space (copied during install)."""
+        return USER_EXPERIMENTAL_DIR / "skills"
 
     @property
     def package_advanced_guidelines(self) -> Path:
-        return PACKAGE_ADVANCED_DIR / "guidelines"
+        """Advanced guidelines in user space (copied during install)."""
+        return USER_ADVANCED_DIR / "guidelines"
 
     @property
     def package_advanced_skills(self) -> Path:
-        return PACKAGE_ADVANCED_DIR / "skills"
+        """Advanced skills in user space (copied during install)."""
+        return USER_ADVANCED_DIR / "skills"
 
     @property
     def package_mcp(self) -> Path:
-        return PACKAGE_CORE_DIR / "mcp.json"
+        """Package MCP config in user space."""
+        return USER_CORE_DIR / "mcp.json"
 
     # --- User personal (Claude Code native location) ---
 
@@ -97,7 +112,8 @@ class CompileContext:
 
     @property
     def package_subagents(self) -> Path:
-        return PACKAGE_CORE_DIR / "subagents"
+        """Package subagents in user space."""
+        return USER_CORE_DIR / "subagents"
 
     @property
     def user_subagents(self) -> Path:
@@ -107,7 +123,8 @@ class CompileContext:
 
     @property
     def package_hooks(self) -> Path:
-        return PACKAGE_HOOKS_DIR
+        """Package hooks in user space (copied during install)."""
+        return USER_CORE_DIR / "hooks"
 
     @property
     def user_hooks(self) -> Path:

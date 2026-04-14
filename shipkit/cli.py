@@ -21,16 +21,16 @@ def main():
 def install():
     """Install Shipkit into your Claude Code setup (interactive).
 
-    Launches an intelligent installer agent that:
-    - Scans your existing Claude Code setup
-    - Safely merges Shipkit (preserves your config)
-    - Guides you through layer selection
-    - Verifies installation worked
+    Copies package core to ~/.config/shipkit/ and creates symlinks to ~/.claude/
+    Then launches an intelligent installer agent that configures everything.
 
     Safe for existing setups - your personal skills/guidelines/hooks are preserved.
     """
     import subprocess
     import shutil
+    from shipkit.datadir import ensure_home
+    from shipkit.config import CLAUDE_HOME, SHIPKIT_HOME
+    from shipkit.install import sync_package_core_to_user_space, create_symlinks_to_claude
 
     # Check Claude Code is installed
     if not shutil.which("claude"):
@@ -40,23 +40,48 @@ def install():
             "\nThen run: shipkit install"
         )
 
-    # Create minimal config directory (the /install skill will complete setup)
-    from shipkit.datadir import ensure_home
-    ensure_home()
+    # Step 1: Create shipkit metadata directory
+    shipkit_home = ensure_home()
 
-    click.echo("🚀 Launching Shipkit installer...")
+    # Step 2: Copy package core to user space
+    click.echo("📦 Copying shipkit core to ~/.config/shipkit/...")
+    copy_result = sync_package_core_to_user_space(shipkit_home, force=False)
+
+    for item in copy_result["copied"]:
+        click.echo(f"  ✓ {item}")
+    for item in copy_result["skipped"]:
+        click.echo(f"  - {item}")
+    for item in copy_result["errors"]:
+        click.echo(f"  ! {item}")
+
+    # Step 3: Create symlinks to ~/.claude/
+    click.echo()
+    click.echo("🔗 Creating symlinks to ~/.claude/skills/...")
+    link_result = create_symlinks_to_claude(shipkit_home, CLAUDE_HOME)
+
+    for item in link_result["created"]:
+        click.echo(f"  ✓ {item}")
+    for item in link_result["skipped"]:
+        click.echo(f"  - {item}")
+    for item in link_result["errors"]:
+        click.echo(f"  ! {item}")
+
+    # Step 4: Launch LLM installer for configuration
+    click.echo()
+    click.echo("🚀 Launching interactive installer...")
     click.echo()
     click.echo("The installer agent will:")
     click.echo("  1. Scan your existing Claude Code setup")
-    click.echo("  2. Safely merge Shipkit (preserves your config)")
-    click.echo("  3. Guide you through layer selection")
-    click.echo("  4. Verify installation worked")
+    click.echo("  2. Configure layer preferences")
+    click.echo("  3. Set up MCP servers")
+    click.echo("  4. Merge hooks (preserves your config)")
+    click.echo("  5. Verify installation worked")
     click.echo()
-    click.echo("Starting Claude Code with installer agent...")
+    click.echo("Starting Claude Code...")
     click.echo()
 
-    # Get path to the install skill in the package
-    install_skill = Path(__file__).parent / "core" / "skills" / "install" / "SKILL.md"
+    # Get path to the install skill (now in user space)
+    install_skill = shipkit_home / "core" / "skills" / "install" / "SKILL.md"
 
     # Launch Claude Code and tell it to read and execute the install skill
     initial_prompt = (
@@ -70,6 +95,178 @@ def install():
     except KeyboardInterrupt:
         click.echo("\n\nInstallation cancelled.")
         raise SystemExit(0)
+
+
+@main.command()
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
+def uninstall(yes: bool):
+    """Completely remove shipkit from your system.
+
+    Removes:
+    - ~/.config/shipkit/ (all shipkit metadata and core content)
+    - ~/.claude/skills/core-*, experimental-*, advanced-* (symlinks)
+    - Shipkit hooks from ~/.claude/settings.json
+    - ~/.claude/agents/shipkit.md
+
+    Your personal skills in ~/.claude/skills/ are preserved (only shipkit symlinks removed).
+    """
+    import json
+    from shipkit.config import CLAUDE_HOME, SHIPKIT_HOME
+
+    click.echo("⚠️  This will remove all shipkit installation:")
+    click.echo()
+    click.echo("  Will remove:")
+    click.echo(f"    - {SHIPKIT_HOME} (all shipkit content)")
+    click.echo("    - ~/.claude/skills/core-*, experimental-*, advanced-* (symlinks)")
+    click.echo("    - Shipkit hooks from ~/.claude/settings.json")
+    click.echo("    - ~/.claude/agents/shipkit.md")
+    click.echo()
+    click.echo("  Will preserve:")
+    click.echo("    - Your personal skills in ~/.claude/skills/")
+    click.echo("    - Your personal guidelines in ~/.claude/guidelines/")
+    click.echo("    - Your other hooks and Claude Code settings")
+    click.echo()
+
+    if not yes:
+        if not click.confirm("Are you sure you want to uninstall shipkit?"):
+            click.echo("Cancelled.")
+            return
+
+    click.echo()
+    click.echo("Uninstalling shipkit...")
+    click.echo()
+
+    # 1. Remove symlinks from ~/.claude/skills/
+    if (CLAUDE_HOME / "skills").exists():
+        removed_links = 0
+        for skill_link in (CLAUDE_HOME / "skills").iterdir():
+            if skill_link.is_symlink():
+                # Only remove shipkit symlinks (core-*, experimental-*, advanced-*)
+                if skill_link.name.startswith(("core-", "experimental-", "advanced-")):
+                    skill_link.unlink()
+                    removed_links += 1
+        if removed_links:
+            click.echo(f"  ✓ Removed {removed_links} shipkit skill symlinks from ~/.claude/skills/")
+
+    # 2. Remove shipkit agent
+    shipkit_agent = CLAUDE_HOME / "agents" / "shipkit.md"
+    if shipkit_agent.exists():
+        shipkit_agent.unlink()
+        click.echo("  ✓ Removed ~/.claude/agents/shipkit.md")
+
+    # 3. Remove shipkit hooks from settings.json
+    settings_path = CLAUDE_HOME / "settings.json"
+    if settings_path.exists():
+        try:
+            settings = json.loads(settings_path.read_text())
+            hooks = settings.get("hooks", {})
+            removed_hooks = 0
+
+            # Remove hooks that point to shipkit
+            for event_name, hook_list in hooks.items():
+                if not isinstance(hook_list, list):
+                    continue
+
+                filtered = []
+                for hook_group in hook_list:
+                    if not isinstance(hook_group, dict):
+                        filtered.append(hook_group)
+                        continue
+
+                    group_hooks = hook_group.get("hooks", [])
+                    if isinstance(group_hooks, list):
+                        # Filter out shipkit hooks
+                        non_shipkit = [
+                            h for h in group_hooks
+                            if isinstance(h, dict) and "shipkit" not in h.get("command", "")
+                        ]
+
+                        if non_shipkit:
+                            hook_group["hooks"] = non_shipkit
+                            filtered.append(hook_group)
+                        else:
+                            removed_hooks += 1
+                    else:
+                        filtered.append(hook_group)
+
+                hooks[event_name] = filtered
+
+            settings["hooks"] = hooks
+            settings_path.write_text(json.dumps(settings, indent=2) + "\n")
+
+            if removed_hooks:
+                click.echo(f"  ✓ Removed shipkit hooks from ~/.claude/settings.json")
+
+        except Exception as e:
+            click.echo(f"  ! Could not clean hooks from settings.json: {e}")
+
+    # 4. Remove ~/.config/shipkit/
+    if SHIPKIT_HOME.exists():
+        import shutil
+        shutil.rmtree(SHIPKIT_HOME)
+        click.echo(f"  ✓ Removed {SHIPKIT_HOME}")
+
+    click.echo()
+    click.echo("✅ Shipkit uninstalled successfully.")
+    click.echo()
+    click.echo("To reinstall later: pip install shipkit && shipkit install")
+
+
+@main.command()
+def upgrade():
+    """Upgrade shipkit core content to latest version.
+
+    Refreshes core/experimental/advanced content from the pip package to
+    ~/.config/shipkit/, updating skills, guidelines, and hooks to latest versions.
+
+    Your personal customizations in ~/.claude/skills/ are preserved.
+    """
+    from shipkit.datadir import resolve_home
+    from shipkit.config import CLAUDE_HOME, SHIPKIT_HOME
+    from shipkit.install import sync_package_core_to_user_space, create_symlinks_to_claude, remove_broken_symlinks
+
+    try:
+        shipkit_home = resolve_home()
+    except Exception:
+        raise click.ClickException(
+            "Shipkit not installed. Run 'shipkit install' first."
+        )
+
+    click.echo("⬆️  Upgrading shipkit core content...")
+    click.echo()
+
+    # Force refresh core content from package
+    copy_result = sync_package_core_to_user_space(shipkit_home, force=True)
+
+    for item in copy_result["copied"]:
+        click.echo(f"  ✓ {item}")
+    for item in copy_result["errors"]:
+        click.echo(f"  ! {item}")
+
+    # Recreate symlinks (in case new skills added)
+    click.echo()
+    click.echo("🔗 Updating symlinks...")
+    link_result = create_symlinks_to_claude(shipkit_home, CLAUDE_HOME)
+
+    for item in link_result["created"]:
+        click.echo(f"  ✓ {item}")
+
+    # Clean up broken symlinks
+    removed = remove_broken_symlinks(CLAUDE_HOME)
+    if removed:
+        click.echo()
+        click.echo("🧹 Cleaned up broken symlinks:")
+        for item in removed:
+            click.echo(f"  - {item}")
+
+    click.echo()
+    click.echo("✅ Upgrade complete!")
+    click.echo()
+    click.echo("Next steps:")
+    click.echo("  1. Restart Claude Code")
+    click.echo("  2. Run: shipkit sync (in any project)")
+    click.echo()
+    click.echo("New skills and updates are now available.")
 
 
 def _offer_alias_installation():

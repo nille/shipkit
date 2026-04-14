@@ -4,17 +4,29 @@ Each tool gets customized discovery instructions with the correct paths
 for that tool, plus complete cascading logic.
 """
 
-def generate_discovery_instructions(tool_name: str, tool_project_path: str, tool_user_path: str) -> str:
+def generate_discovery_instructions(
+    tool_name: str,
+    tool_project_path: str,
+    tool_user_path: str,
+    package_core_path: str | None = None
+) -> str:
     """Generate tool-specific skill discovery guideline.
 
     Args:
         tool_name: Tool name (e.g., "Claude Code", "Kiro")
         tool_project_path: Project skills path (e.g., ".claude/skills")
         tool_user_path: User skills path (e.g., "~/.claude/skills")
+        package_core_path: Path to package core skills (dynamically resolved)
 
     Returns:
         Complete discovery guideline as markdown
     """
+
+    # If package_core_path not provided, compute it dynamically
+    if package_core_path is None:
+        import shipkit
+        from pathlib import Path
+        package_core_path = str(Path(shipkit.__file__).parent / "core" / "skills")
 
     return f"""# Skill Discovery and Cascading ({tool_name})
 
@@ -41,16 +53,20 @@ When a user mentions a skill (e.g., `/commit`, `/deploy`), check these locations
 ### 3. Plugin Skills
 **Path:** `~/.config/shipkit/plugins/*/skills/*/SKILL.md`
 
-**Purpose:** Skills from marketplace plugins you've installed. These are tool-agnostic and work across all AI coding CLIs.
+**Purpose:** Skills from marketplace plugins you've installed.
 
 **Example:** `~/.config/shipkit/plugins/deploy-wizard/skills/deploy/SKILL.md`
 
-### 4. Package Core Skills (Lowest Precedence)
-**Path:** `~/.config/shipkit/core/skills/*/SKILL.md`
+**Note:** Plugin skills are NOT symlinked - discovered directly from ~/.config/shipkit/plugins/
 
-**Purpose:** Built-in skills shipped with shipkit. These provide baseline functionality.
+---
 
-**Example:** `~/.config/shipkit/core/skills/commit/SKILL.md`
+**IMPORTANT:** Package core skills (Core, Experimental, Advanced layers) are **already symlinked** into `{tool_user_path}` during installation as:
+- `{tool_user_path}/core-*` (Core layer skills)
+- `{tool_user_path}/experimental-*` (Experimental layer, if enabled)
+- `{tool_user_path}/advanced-*` (Advanced layer, if enabled)
+
+This means you'll find them when searching `{tool_user_path}/*/SKILL.md` in Step 2 above. No separate search needed!
 
 ## Discovery Algorithm
 
@@ -64,7 +80,7 @@ Use the Glob tool to search each location:
 1. Glob("{tool_project_path}/commit/SKILL.md")
 2. Glob("{tool_user_path}/commit/SKILL.md")
 3. Glob("~/.config/shipkit/plugins/*/skills/commit/SKILL.md")
-4. Glob("~/.config/shipkit/core/skills/commit/SKILL.md")
+4. Glob("{package_core_path}/commit/SKILL.md")
 ```
 
 Collect ALL found instances (may be 0, 1, or multiple).
@@ -111,7 +127,7 @@ extends: false
 Found in:
 1. {tool_project_path}/commit/SKILL.md (extends: false)
 2. {tool_user_path}/commit/SKILL.md (exists but ignored)
-3. ~/.config/shipkit/core/skills/commit/SKILL.md (exists but ignored)
+3. {package_core_path}/commit/SKILL.md (exists but ignored)
 
 Use ONLY layer 1.
 ```
@@ -132,13 +148,13 @@ Use ONLY layer 1.
 Found in:
 1. {tool_project_path}/commit/SKILL.md (extends: true)
 2. {tool_user_path}/commit/SKILL.md (extends: true)
-3. ~/.config/shipkit/core/skills/commit/SKILL.md (no frontmatter)
+3. {package_core_path}/commit/SKILL.md (no frontmatter)
 
 Result - All three merged:
 ```
 
 ```markdown
-<!-- Layer: package core (~/.config/shipkit/core/skills/commit/) -->
+<!-- Layer: package core ({package_core_path}/commit/) -->
 Create conventional commits using semantic format.
 Use present tense: "Add feature" not "Added feature".
 Include ticket references where applicable.
@@ -249,7 +265,7 @@ These help users understand:
 
 ### Scenario 1: Pure Core Skill
 ```
-Found only in: ~/.config/shipkit/core/skills/commit/SKILL.md
+Found only in: {package_core_path}/commit/SKILL.md
 Result: Use as-is (no other layers exist)
 ```
 
@@ -257,7 +273,7 @@ Result: Use as-is (no other layers exist)
 ```
 Found in:
 - {tool_user_path}/commit/SKILL.md (extends: true)
-- ~/.config/shipkit/core/skills/commit/SKILL.md
+- {package_core_path}/commit/SKILL.md
 
 Result: Merge both layers
 ```
@@ -267,7 +283,7 @@ Result: Merge both layers
 Found in:
 - {tool_project_path}/commit/SKILL.md (extends: false)
 - {tool_user_path}/commit/SKILL.md (exists)
-- ~/.config/shipkit/core/skills/commit/SKILL.md (exists)
+- {package_core_path}/commit/SKILL.md (exists)
 
 Result: Use ONLY project layer
 ```
@@ -276,7 +292,7 @@ Result: Use ONLY project layer
 ```
 Found in:
 - ~/.config/shipkit/plugins/enhanced-commit/skills/commit/SKILL.md (extends: true)
-- ~/.config/shipkit/core/skills/commit/SKILL.md
+- {package_core_path}/commit/SKILL.md
 
 Result: Merge plugin + core
 ```
@@ -303,7 +319,7 @@ When user asks "why is /commit doing X?", you can show:
 /commit skill is composed from:
 - Layer 1 (project): {tool_project_path}/commit/SKILL.md (extends: true)
 - Layer 2 (user): {tool_user_path}/commit/SKILL.md (extends: true)
-- Layer 3 (core): ~/.config/shipkit/core/skills/commit/SKILL.md
+- Layer 3 (core): {package_core_path}/commit/SKILL.md
 
 Behavior X comes from Layer 2 (your personal preferences).
 To change: Edit {tool_user_path}/commit/SKILL.md

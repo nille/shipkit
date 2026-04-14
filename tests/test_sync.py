@@ -6,54 +6,33 @@ from pathlib import Path
 
 import pytest
 
-from shipkit.sync import sync_project, sync_all
+from shipkit.sync import sync_project
 
 
 class TestSyncProject:
 
-    def test_sync_creates_claude_md(self, registered_project):
-        repo, name = registered_project
-        result = sync_project(repo_path=repo)
-        assert (repo / "CLAUDE.md").exists()
+    def test_sync_creates_claude_md(self, initialized_home, tmp_repo, monkeypatch):
+        monkeypatch.chdir(tmp_repo)
+        result = sync_project(repo_path=tmp_repo)
+        assert (tmp_repo / "CLAUDE.md").exists()
         assert any("CLAUDE.md" in f for f in result.files_written)
 
-    def test_sync_dry_run(self, registered_project):
-        repo, name = registered_project
-        result = sync_project(repo_path=repo, dry_run=True)
-        assert not (repo / "CLAUDE.md").exists()
+    def test_sync_dry_run(self, initialized_home, tmp_repo, monkeypatch):
+        monkeypatch.chdir(tmp_repo)
+        result = sync_project(repo_path=tmp_repo, dry_run=True)
+        assert not (tmp_repo / "CLAUDE.md").exists()
 
+    def test_sync_requires_git_repo(self, initialized_home, tmp_path):
+        """Test that sync fails if not in a git repo."""
+        non_git_dir = tmp_path / "not-a-repo"
+        non_git_dir.mkdir()
 
-class TestSyncAll:
+        from shipkit.project import ProjectError
+        with pytest.raises(ProjectError, match="Not a git repository"):
+            sync_project(repo_path=non_git_dir)
 
-    def test_sync_all_multiple_projects(self, initialized_home, tmp_path):
-        from shipkit.project import init_project
-
-        repos = []
-        for i in range(2):
-            repo = tmp_path / f"repo-{i}"
-            repo.mkdir()
-            init_project(repo, name=f"proj-{i}")
-            repos.append(repo)
-
-        results = sync_all()
-        assert len(results) == 2
-        for repo in repos:
-            assert (repo / "CLAUDE.md").exists()
-
-    def test_sync_all_handles_missing_repo(self, initialized_home, tmp_path):
-        from shipkit.project import init_project
-
-        repo = tmp_path / "real-repo"
-        repo.mkdir()
-        init_project(repo, name="real")
-
-        # Manually create a project entry pointing to a nonexistent repo
-        fake_dir = initialized_home / "projects" / "fake"
-        fake_dir.mkdir(parents=True)
-        (fake_dir / "project.yaml").write_text(
-            "name: fake\nrepo_path: /nonexistent/path\ntemplate: default\n"
-        )
-
-        results = sync_all()
-        assert "fake" in results
-        assert len(results["fake"].warnings) > 0
+    def test_sync_defaults_to_cwd(self, initialized_home, tmp_repo, monkeypatch):
+        """Test that sync uses cwd when repo_path not provided."""
+        monkeypatch.chdir(tmp_repo)
+        result = sync_project()  # No repo_path argument
+        assert (tmp_repo / "CLAUDE.md").exists()

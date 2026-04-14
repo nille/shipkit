@@ -37,18 +37,28 @@ def initialized_home(tmp_home):
 
 @pytest.fixture
 def tmp_repo(tmp_path):
-    """Create a temporary repo directory."""
+    """Create a temporary git repo directory."""
     repo = tmp_path / "my-project"
     repo.mkdir()
+
+    # Initialize as git repo (required by shipkit)
+    (repo / ".git").mkdir()
+
     return repo
 
 
 @pytest.fixture
-def registered_project(initialized_home, tmp_repo):
-    """A repo registered as a shipkit project."""
-    from shipkit.project import init_project
-    init_project(tmp_repo, name="test-project")
-    return tmp_repo, "test-project"
+def git_repo(tmp_path):
+    """Create a temporary git repo with actual git init."""
+    repo = tmp_path / "my-project"
+    repo.mkdir()
+
+    import subprocess
+    subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo, check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True, capture_output=True)
+
+    return repo
 
 
 @pytest.fixture

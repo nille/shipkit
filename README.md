@@ -98,27 +98,35 @@ You're getting the setup I wish existed when I started. Battle-tested, opinionat
 
 ## How It Works
 
-Shipkit is a content compiler for Claude Code. You write [skills](#skills) and [guidelines](#guidelines) once, and `shipkit sync` generates Claude Code configuration.
+Shipkit is a layered content system for Claude Code. Skills and guidelines flow through multiple layers, with team-specific content always winning.
 
-Content flows through three source layers, then compiles to your repo:
+### Layer Architecture
 
 ```
-1. Package core     ← Built-in (ships with shipkit)
-2. User global      ← Personal (~/.config/shipkit/)
-3. Plugins          ← Marketplace (shipkit plugin install)
-        ↓
-   Compile & Merge
-        ↓
-4. Repo             ← Output (.claude/)
+📦 Package Layers (pip-installed)
+│
+├─ Core (always included)          ← 21 battle-tested skills
+├─ Experimental (opt-in)           ← Cutting-edge, may change
+└─ Advanced (opt-in)               ← Domain-specific, niche tools
+         ↓
+🌐 Marketplace (on-demand)
+   └─ Community plugins             ← github.com/nille/shipkit-marketplace
+         ↓
+👤 User Personal (~/.claude/)
+   ├─ skills/                       ← Your custom skills
+   └─ guidelines/                   ← Your preferences
+         ↓
+👥 Team (.claude/ in repo)
+   ├─ skills/                       ← Team workflows (git-committed)
+   └─ guidelines/                   ← Team conventions (git-committed)
+         ↓
+   🎯 Compiled Output
+   └─ CLAUDE.md + .claude/agents/shipkit.md
 ```
 
-**How merging works:**
-- Layers 1-3 are **sources** (read by shipkit)
-- Layer 4 (repo) is **output** (written by shipkit)
-- When writing to repo, shipkit preserves existing customizations
-- You can commit repo content to share with your team via git
+**Precedence:** Team overrides User, User overrides Marketplace, Marketplace overrides Package.
 
-Higher source layers win on conflict. Repo content is protected from being overwritten.
+**Layer Selection:** Run `shipkit install` to choose which package layers (Core, Experimental, Advanced) to enable.
 
 ## Prerequisites
 
@@ -138,35 +146,35 @@ Higher source layers win on conflict. Repo content is protected from being overw
 ## Quick Start
 
 ```bash
-# Install
-uv tool install shipkit
-# or: pip install shipkit
-# or: git clone <repo> && cd shipkit && uv sync
+# 1. Install shipkit
+pip install shipkit
 
-# Register a project (auto-creates ~/.config/shipkit/ on first use)
+# 2. Run the interactive installer
+shipkit install
+
+# The installer will:
+# - Scan your existing Claude Code setup
+# - Safely merge Shipkit (preserves your config)
+# - Let you choose which skill sets to enable:
+#   [x] Core - Battle-tested essentials (recommended)
+#   [ ] Experimental - Cutting-edge features
+#   [ ] Advanced - Specialized tools
+# - Install hooks to ~/.claude/settings.json
+# - Create shipkit agent
+# - Offer to install shell alias
+
+# 3. Use shipkit in any git repo
 cd ~/Code/my-project
-shipkit init
+shipkit sync              # Generates .claude/ config for this project
+shipkit run               # Launches: claude --agent shipkit
 
-# On first init, you'll be prompted:
-# 🚀 Quick access: Install a shell alias?
-#   Creates: alias sk='noglob shipkit run'
-#   Install 'sk' alias? [Y/n]
-
-# After install, use the short alias anywhere:
-sk "add tests for the auth module"
+# Or use the 'sk' alias (if you installed it):
+sk "add tests for auth module"
 sk "review my changes"
 sk "create a PR"
 
-# Or use the full command:
-shipkit run
-# → Auto-detects tool and launches: claude --agent shipkit
-# → Or: kiro-cli chat --agent shipkit
-# → Or: opencode --agent shipkit
-
-# Compile configs without launching:
-shipkit sync
-shipkit alias sk --install
-# Now just type 'sk' from any directory
+# Browse available skills:
+/skills                   # In any shipkit session
 ```
 
 After sync, your AI coding CLI has access to all skills as slash commands, guidelines in its system context, and MCP servers configured.

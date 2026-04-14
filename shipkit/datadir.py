@@ -1,8 +1,7 @@
 """Data directory management for shipkit.
 
-The shipkit home directory (~/.config/shipkit/ by default) holds all user
-content: skills, guidelines, projects, plugins, and machine state. It is
-auto-created on first use via ensure_home().
+Shipkit stores metadata in ~/.config/shipkit/ (layer config, plugin state, sessions).
+User skills/guidelines live in Claude Code's native ~/.claude/ directory.
 """
 
 from __future__ import annotations
@@ -15,14 +14,10 @@ from shipkit.config import SHIPKIT_HOME, ShipkitConfig
 
 SEED_DIR = Path(__file__).parent.parent / "seed"
 
+# Shipkit only manages its own metadata, not user skills/guidelines
 HOME_DIRS = [
-    "skills",
-    "guidelines",
-    "references",
-    "templates",
-    "projects",
-    "hooks",
     "plugins",
+    ".state/marketplace-cache",
     ".state/sessions",
     ".state/retro/pending",
     ".state/retro/processed",
@@ -30,32 +25,18 @@ HOME_DIRS = [
 
 
 def ensure_home() -> Path:
-    """Ensure the shipkit home directory exists with required structure.
+    """Ensure the shipkit metadata directory exists.
 
-    Creates the directory and subdirectories on first use. Safe to call
-    repeatedly — existing content is never overwritten.
+    Creates ~/.config/shipkit/ and subdirectories for shipkit's own state.
+    User skills/guidelines live in ~/.claude/ (Claude Code native location).
     """
     home = SHIPKIT_HOME
 
-    if home.exists() and (home / "skills").exists():
-        return home  # Already initialized
-
     home.mkdir(parents=True, exist_ok=True)
 
+    # Create subdirectories
     for d in HOME_DIRS:
         (home / d).mkdir(parents=True, exist_ok=True)
-
-    # Copy seed templates if available and not already present
-    seed_templates = SEED_DIR / "templates"
-    templates_dir = home / "templates"
-    if seed_templates.exists() and not any(templates_dir.iterdir()):
-        shutil.copytree(seed_templates, templates_dir, dirs_exist_ok=True)
-
-    # Copy .gitignore template if not already present
-    seed_gitignore = SEED_DIR / "gitignore.sample"
-    target_gitignore = home / ".gitignore"
-    if seed_gitignore.exists() and not target_gitignore.exists():
-        shutil.copy2(seed_gitignore, target_gitignore)
 
     # Create default config if none exists
     if not (home / "config.yaml").exists():
@@ -65,19 +46,19 @@ def ensure_home() -> Path:
 
 
 def resolve_home() -> Path:
-    """Resolve the shipkit home directory path.
+    """Resolve the shipkit metadata directory path.
 
-    Raises DataDirError if the home directory doesn't exist.
+    Raises DataDirError if the directory doesn't exist.
     """
     if not SHIPKIT_HOME.exists():
         raise DataDirError(
-            "Ship-kit not initialized. Run 'shipkit init' in a project first."
+            "Shipkit not initialized. Run 'shipkit init' first."
         )
     return SHIPKIT_HOME
 
 
 def validate_home(home: Path) -> list[str]:
-    """Validate home directory structure, return list of warnings."""
+    """Validate shipkit metadata directory structure, return list of warnings."""
     warnings = []
     for d in HOME_DIRS:
         if not (home / d).exists():

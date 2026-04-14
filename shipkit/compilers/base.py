@@ -1,16 +1,14 @@
 """Base compiler interface for shipkit.
 
-Each target CLI tool (Claude Code, Kiro, Gemini CLI, etc.) implements this
-interface to compile shipkit content into tool-native configuration.
+Compiles shipkit content into Claude Code native configuration.
 
 Content layering (lowest to highest precedence):
-1. Package core — shipped with shipkit (guidelines, skills, MCP defaults)
-2. User global — personal additions/overrides in shipkit home
-3. Plugins — from marketplace or local installs
-4. Repo — team-shared content committed to the repo
-
-Note: project_dir is kept for storing project metadata (project.yaml) but
-no longer used as a content layer. Use the repo itself for project-specific content.
+1. Package core — shipped with shipkit (always included)
+2. Package experimental — opt-in cutting-edge features
+3. Package advanced — opt-in specialized/niche tools
+4. Marketplace plugins — installed from shipkit-marketplace
+5. User personal — ~/.claude/skills/, ~/.claude/guidelines/
+6. Team — .claude/ in repo (highest precedence)
 """
 
 from __future__ import annotations
@@ -19,8 +17,13 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 
-# Core content shipped with the shipkit package
-PACKAGE_CORE_DIR = Path(__file__).parent.parent / "core"
+from shipkit.config import ShipkitConfig, CLAUDE_HOME
+
+# Package content layers
+PACKAGE_ROOT = Path(__file__).parent.parent
+PACKAGE_CORE_DIR = PACKAGE_ROOT / "core"
+PACKAGE_EXPERIMENTAL_DIR = PACKAGE_ROOT / "experimental"
+PACKAGE_ADVANCED_DIR = PACKAGE_ROOT / "advanced"
 PACKAGE_HOOKS_DIR = PACKAGE_CORE_DIR / "hooks"
 
 
@@ -28,37 +31,67 @@ PACKAGE_HOOKS_DIR = PACKAGE_CORE_DIR / "hooks"
 class CompileContext:
     """Everything a compiler needs to generate tool-native output."""
 
-    home_path: Path
-    repo_path: Path
-    project_name: str
+    shipkit_home: Path  # ~/.config/shipkit/ (metadata only)
+    repo_path: Path     # Current project directory
 
-    # --- Layer 1: Package core (shipped with shipkit) ---
+    # --- Package layers (read from config which are enabled) ---
 
     @property
-    def package_guidelines(self) -> Path:
+    def config(self) -> ShipkitConfig:
+        """Load shipkit config to see which layers are enabled."""
+        return ShipkitConfig.load()
+
+    @property
+    def package_core_guidelines(self) -> Path:
         return PACKAGE_CORE_DIR / "guidelines"
 
     @property
-    def package_skills(self) -> Path:
+    def package_core_skills(self) -> Path:
         return PACKAGE_CORE_DIR / "skills"
+
+    @property
+    def package_experimental_guidelines(self) -> Path:
+        return PACKAGE_EXPERIMENTAL_DIR / "guidelines"
+
+    @property
+    def package_experimental_skills(self) -> Path:
+        return PACKAGE_EXPERIMENTAL_DIR / "skills"
+
+    @property
+    def package_advanced_guidelines(self) -> Path:
+        return PACKAGE_ADVANCED_DIR / "guidelines"
+
+    @property
+    def package_advanced_skills(self) -> Path:
+        return PACKAGE_ADVANCED_DIR / "skills"
 
     @property
     def package_mcp(self) -> Path:
         return PACKAGE_CORE_DIR / "mcp.json"
 
-    # --- Layer 2: User global (personal additions/overrides) ---
+    # --- User personal (Claude Code native location) ---
 
     @property
     def user_guidelines(self) -> Path:
-        return self.home_path / "guidelines"
+        return CLAUDE_HOME / "guidelines"
 
     @property
     def user_skills(self) -> Path:
-        return self.home_path / "skills"
+        return CLAUDE_HOME / "skills"
 
     @property
     def user_mcp(self) -> Path:
-        return self.home_path / "mcp.json"
+        return CLAUDE_HOME / "mcp.json"
+
+    # --- Team (project-specific, git-committed) ---
+
+    @property
+    def team_guidelines(self) -> Path:
+        return self.repo_path / ".claude" / "guidelines"
+
+    @property
+    def team_skills(self) -> Path:
+        return self.repo_path / ".claude" / "skills"
 
     # --- Subagents ---
 
@@ -68,7 +101,7 @@ class CompileContext:
 
     @property
     def user_subagents(self) -> Path:
-        return self.home_path / "subagents"
+        return CLAUDE_HOME / "subagents"
 
     # --- Hooks ---
 
@@ -78,14 +111,14 @@ class CompileContext:
 
     @property
     def user_hooks(self) -> Path:
-        return self.home_path / "hooks"
+        return CLAUDE_HOME / "hooks"
 
     # --- Plugins ---
 
     @property
     def plugin_dirs(self) -> list[Path]:
-        """All installed plugin directories."""
-        plugins_dir = self.home_path / "plugins"
+        """All installed marketplace plugin directories."""
+        plugins_dir = self.shipkit_home / "plugins"
         if not plugins_dir.exists():
             return []
         return sorted(d for d in plugins_dir.iterdir() if d.is_dir() and (d / "plugin.yaml").exists())
@@ -94,48 +127,84 @@ class CompileContext:
 
     @property
     def guidelines_layers(self) -> list[Path]:
-        """Guidelines dirs in precedence order (lowest first)."""
-        layers = [self.package_guidelines, self.user_guidelines]
+        """Guidelines dirs in precedence order (lowest first).
+
+        Respects config to include/exclude experimental and advanced layers.
+        """
+        cfg = self.config
+        layers = [self.package_core_guidelines]
+
+        if cfg.layers_experimental:
+            layers.append(self.package_experimental_guidelines)
+
+        if cfg.layers_advanced:
+            layers.append(self.package_advanced_guidelines)
+
+        # Marketplace plugins
         for pd in self.plugin_dirs:
             layers.append(pd / "guidelines")
+
+        # User personal (Claude Code native)
+        layers.append(self.user_guidelines)
+
+        # Team (highest precedence)
+        layers.append(self.team_guidelines)
+
         return layers
 
     @property
     def skills_layers(self) -> list[Path]:
-        """Skills dirs in precedence order (lowest first)."""
-        layers = [self.package_skills, self.user_skills]
+        """Skills dirs in precedence order (lowest first).
+
+        Respects config to include/exclude experimental and advanced layers.
+        """
+        cfg = self.config
+        layers = [self.package_core_skills]
+
+        if cfg.layers_experimental:
+            layers.append(self.package_experimental_skills)
+
+        if cfg.layers_advanced:
+            layers.append(self.package_advanced_skills)
+
+        # Marketplace plugins
         for pd in self.plugin_dirs:
             layers.append(pd / "skills")
+
+        # User personal (Claude Code native)
+        layers.append(self.user_skills)
+
+        # Team (highest precedence)
+        layers.append(self.team_skills)
+
         return layers
 
     @property
     def mcp_layers(self) -> list[Path]:
         """MCP config files in precedence order (lowest first)."""
-        layers: list[Path] = [self.package_mcp, self.user_mcp]
+        layers: list[Path] = [self.package_mcp]
+
         for pd in self.plugin_dirs:
             layers.append(pd / "mcp.json")
+
+        layers.append(self.user_mcp)
         return layers
 
     @property
     def hooks_layers(self) -> list[Path]:
-        """Hook dirs in precedence order (lowest first)."""
-        layers = [self.package_hooks, self.user_hooks]
+        """Hook directories in precedence order (lowest first)."""
+        layers = [self.package_hooks]
+
         for pd in self.plugin_dirs:
             layers.append(pd / "hooks")
-        return layers
 
-    @property
-    def subagents_layers(self) -> list[Path]:
-        """Subagent dirs in precedence order (lowest first)."""
-        layers = [self.package_subagents, self.user_subagents]
-        for pd in self.plugin_dirs:
-            layers.append(pd / "subagents")
+        layers.append(self.user_hooks)
         return layers
 
 
 @dataclass
 class CompileResult:
-    """Summary of what the compiler did."""
+    """Result of a compilation pass."""
 
     files_written: list[str]
     files_skipped: list[str]
@@ -143,30 +212,25 @@ class CompileResult:
 
 
 class Compiler(ABC):
-    """Base class for tool-specific compilers."""
+    """Base compiler interface for generating tool-native configs."""
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Human-readable name of the target tool."""
-        ...
+    name: str = "BaseCompiler"
 
     @abstractmethod
     def compile(self, ctx: CompileContext, dry_run: bool = False) -> CompileResult:
-        """Compile shipkit content into tool-native configuration.
+        """Compile shipkit content to tool-native configuration."""
+        pass
 
-        If dry_run is True, report what would change without writing files.
-        """
-        ...
 
+# --- Compiler registry ---
 
 COMPILERS: dict[str, type[Compiler]] = {}
 
 
-def register_compiler(tool_name: str):
-    """Decorator to register a compiler for a tool name."""
-    def decorator(cls: type[Compiler]):
-        COMPILERS[tool_name] = cls
+def register_compiler(name: str):
+    """Decorator to register a compiler class."""
+    def decorator(cls: type[Compiler]) -> type[Compiler]:
+        COMPILERS[name] = cls
         return cls
     return decorator
 

@@ -20,17 +20,62 @@ def main():
 @main.command()
 @click.option("--name", "-n", default=None, help="Project name (defaults to directory name)")
 @click.option("--template", "-t", default="default", help="Project template to use")
-def init(name: str | None, template: str):
+@click.option("--skip-alias", is_flag=True, help="Skip alias installation prompt")
+def init(name: str | None, template: str, skip_alias: bool):
     """Register the current directory as a shipkit project."""
     from shipkit.project import init_project, ProjectError
+    from shipkit.datadir import resolve_home
+    import sys
 
     try:
         project_name = init_project(Path.cwd(), name=name, template=template)
         click.echo(f"Project '{project_name}' registered.")
         click.echo(f"  Marker: .shipkit")
         click.echo(f"  Run 'shipkit sync' to generate tool-native config.")
+
+        # Check if this is the first project (offer alias installation)
+        if not skip_alias:
+            try:
+                home_path = resolve_home()
+                projects_dir = home_path / "projects"
+                project_count = len([d for d in projects_dir.iterdir() if d.is_dir()]) if projects_dir.exists() else 0
+
+                # If this is the first project, offer alias installation
+                if project_count == 1:
+                    _offer_alias_installation()
+            except Exception:
+                # Don't fail init if alias offer fails
+                pass
+
     except ProjectError as e:
         raise click.ClickException(str(e))
+
+
+def _offer_alias_installation():
+    """Offer to install a shell alias for shipkit run."""
+    import sys
+
+    click.echo()
+    click.echo("🚀 Quick access: Install a shell alias?")
+    click.echo()
+    click.echo("  Creates: alias sk='noglob shipkit run'")
+    click.echo("  Usage:   sk \"add tests for auth module\"")
+    click.echo()
+
+    if not sys.stdin.isatty():
+        # Non-interactive, skip
+        click.echo("  Run 'shipkit alias sk --install' to add it later.")
+        return
+
+    if click.confirm("  Install 'sk' alias?", default=True):
+        shell = _detect_shell()
+        snippet = _generate_shipkit_alias("sk", shell)
+        _install_alias("sk", snippet, shell)
+        click.echo()
+        click.echo(f"✓ Alias installed! Restart your shell or run: source {_rc_file(shell)}")
+    else:
+        click.echo()
+        click.echo("  Skipped. Install later with: shipkit alias sk --install")
 
 
 # --- sync command ---

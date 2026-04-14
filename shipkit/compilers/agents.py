@@ -159,7 +159,7 @@ def write_claude_agent_with_hooks(
         "memory": "user",
         "initialPrompt": f"Shipkit v{__version__} ready! Use /skill-name to invoke skills, or ask me anything.",
         "maxTurns": 50,
-        "color": "pink",
+        "color": "orange",
     }
 
     # Add hooks if any

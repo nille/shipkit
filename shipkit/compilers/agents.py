@@ -19,36 +19,23 @@ def generate_claude_agent(ctx: CompileContext) -> str:
     # Skills to auto-load (just reference the discovery mechanism)
     # Claude Code will discover skills from .claude/skills/ and ~/.claude/skills/
 
-    frontmatter = """---
+    from shipkit import __version__
+
+    # Build frontmatter with simple initialPrompt
+    # ASCII art breaks YAML parsing, so keep prompt simple
+    frontmatter = f"""---
 name: shipkit
 description: Production-grade Claude Code assistant with battle-tested skills and self-learning capabilities
 model: sonnet
 tools: "*"
 permissionMode: acceptEdits
 memory: user
+initialPrompt: "Shipkit v{__version__} ready! Use /skill-name to invoke skills, or ask me anything."
 maxTurns: 50
 color: pink
 ---"""
 
-    # Build initialPrompt with ASCII art (after frontmatter to avoid YAML issues)
-    from shipkit import __version__
-
-    ascii_art = f"""
-
-       █▄                       █▄
-       ██    ▀▀       ▄▄     ▀▀▄██▄
- ▄██▀█ ████▄ ██ ████▄ ██ ▄█▀ ██ ██
- ▀███▄ ██ ██ ██ ██ ██ ████   ██ ██
-█▄▄██▀▄██ ██▄██▄████▀▄██ ▀█▄▄██▄██
-                ██
-                ▀
-
-Version: {__version__}
-
-I'm ready to help! Use /skill-name to invoke skills.
-"""
-
-    body = ascii_art + "\n\n" + _generate_system_prompt()
+    body = _generate_system_prompt()
 
     return f"{frontmatter}\n\n{body}"
 

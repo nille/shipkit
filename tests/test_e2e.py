@@ -40,11 +40,12 @@ class TestEndToEndClaude:
         settings_data = json.loads(settings.read_text())
         assert "hooks" in settings_data
 
-        # Verify .mcp.json
+        # Verify .mcp.json (only written if MCPs are configured)
+        # With empty default, .mcp.json is not generated
         mcp = tmp_repo / ".mcp.json"
-        assert mcp.exists()
-        mcp_data = json.loads(mcp.read_text())
-        assert "mcpServers" in mcp_data
+        if mcp.exists():
+            mcp_data = json.loads(mcp.read_text())
+            assert "mcpServers" in mcp_data
 
         # Verify no warnings or errors
         assert not result.warnings

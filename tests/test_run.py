@@ -19,10 +19,6 @@ class TestRunCommand:
         # Change to temp repo directory
         monkeypatch.chdir(tmp_repo)
 
-        # Initialize a project first
-        result = runner.invoke(main, ["init", "--skip-alias"])
-        assert result.exit_code == 0
-
         # Mock Claude not being installed
         with patch("shutil.which", return_value=None):
             result = runner.invoke(main, ["run"])
@@ -35,10 +31,6 @@ class TestRunCommand:
         runner = CliRunner()
 
         monkeypatch.chdir(tmp_repo)
-
-        # Initialize a project
-        result = runner.invoke(main, ["init", "--skip-alias"])
-        assert result.exit_code == 0
 
         # Mock subprocess.run and shutil.which
         with patch("subprocess.run") as mock_run, \
@@ -59,9 +51,6 @@ class TestRunCommand:
 
         monkeypatch.chdir(tmp_repo)
 
-        result = runner.invoke(main, ["init", "--skip-alias"])
-        assert result.exit_code == 0
-
         with patch("subprocess.run") as mock_run, \
              patch("shutil.which", return_value="/usr/bin/claude"):
 
@@ -78,9 +67,6 @@ class TestRunCommand:
         runner = CliRunner()
 
         monkeypatch.chdir(tmp_repo)
-
-        result = runner.invoke(main, ["init", "--skip-alias"])
-        assert result.exit_code == 0
 
         with patch("subprocess.run") as mock_run, \
              patch("shutil.which", return_value="/usr/bin/claude"):

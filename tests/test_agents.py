@@ -15,15 +15,15 @@ from shipkit.compilers.base import CompileContext
 @pytest.fixture
 def temp_ctx(tmp_path):
     """Create a temporary compile context."""
-    home = tmp_path / "home"
+    shipkit_home = tmp_path / "shipkit-home"
     repo = tmp_path / "repo"
-    home.mkdir()
+    shipkit_home.mkdir()
     repo.mkdir()
+    (repo / ".git").mkdir()  # Make it a git repo
 
     return CompileContext(
-        home_path=home,
+        shipkit_home=shipkit_home,
         repo_path=repo,
-        project_name="test-project"
     )
 
 

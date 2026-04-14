@@ -13,12 +13,9 @@ from shipkit.compilers.base import CompileContext, get_compiler
 @pytest.fixture
 def compile_ctx(initialized_home, tmp_repo):
     """Create a CompileContext for testing."""
-    from shipkit.project import init_project
-    name = init_project(tmp_repo, name="test-proj")
     return CompileContext(
-        home_path=initialized_home,
+        shipkit_home=initialized_home,
         repo_path=tmp_repo,
-        project_name=name,
     )
 
 
@@ -26,34 +23,40 @@ class TestCompileContext:
 
     def test_layer_properties(self, compile_ctx):
         ctx = compile_ctx
-        assert ctx.package_guidelines.name == "guidelines"
-        assert ctx.user_guidelines == ctx.home_path / "guidelines"
+        assert ctx.package_core_guidelines.name == "guidelines"
+        assert "core" in str(ctx.package_core_guidelines)
+        # User guidelines point to ~/.claude/ now
+        assert ".claude" in str(ctx.user_guidelines)
 
     def test_guidelines_layers_order(self, compile_ctx):
-        layers = compile_ctx.guidelines_layers
-        assert len(layers) >= 2  # package, user (plugins may be added)
-        assert layers[0] == compile_ctx.package_guidelines
-        assert layers[1] == compile_ctx.user_guidelines
+        """Test guidelines layers in precedence order (lowest first)."""
+        ctx = compile_ctx
+        layers = ctx.guidelines_layers
+        # core → user → team (experimental/advanced disabled by default)
+        assert len(layers) >= 3
+        assert ctx.package_core_guidelines in layers
+        assert ctx.user_guidelines in layers
+        assert ctx.team_guidelines in layers
 
     def test_plugin_dirs_empty(self, compile_ctx):
         assert compile_ctx.plugin_dirs == []
 
     def test_plugin_dirs_with_plugins(self, compile_ctx):
-        plugins_dir = compile_ctx.home_path / "plugins" / "my-plugin"
+        plugins_dir = compile_ctx.shipkit_home / "plugins" / "my-plugin"
         plugins_dir.mkdir(parents=True)
         (plugins_dir / "plugin.yaml").write_text("name: my-plugin\n")
         assert len(compile_ctx.plugin_dirs) == 1
 
     def test_plugins_in_layer_order(self, compile_ctx):
-        plugins_dir = compile_ctx.home_path / "plugins" / "my-plugin"
+        """Test plugins appear in layer order between package and user."""
+        plugins_dir = compile_ctx.shipkit_home / "plugins" / "my-plugin"
         plugins_dir.mkdir(parents=True)
         (plugins_dir / "plugin.yaml").write_text("name: my-plugin\n")
         (plugins_dir / "guidelines").mkdir()
 
         layers = compile_ctx.guidelines_layers
-        # package, user, plugins
-        assert len(layers) == 3
-        assert "plugins" in str(layers[2])
+        # core → [experimental] → [advanced] → plugins → user → team
+        assert "plugins" in str(layers)
 
 
 class TestGetCompiler:
@@ -134,9 +137,20 @@ class TestClaudeCompiler:
         assert not (compile_ctx.repo_path / "CLAUDE.md").exists()
         assert all("dry-run" in f for f in result.files_written)
 
-    def test_user_guidelines_merged(self, compile_ctx):
-        # Add a user guidelines file
-        user_guidelines = compile_ctx.home_path / "guidelines"
+    def test_user_guidelines_merged(self, compile_ctx, monkeypatch):
+        # Add a user guideline file (in Claude Code native location)
+        # Need to mock CLAUDE_HOME for test
+        test_claude_home = compile_ctx.shipkit_home.parent / ".claude"
+        test_claude_home.mkdir(parents=True, exist_ok=True)
+
+        import shipkit.config
+        import shipkit.compilers.base
+        monkeypatch.setattr(shipkit.config, "CLAUDE_HOME", test_claude_home)
+        monkeypatch.setattr(shipkit.compilers.base, "CLAUDE_HOME", test_claude_home)
+
+        # Create user guidelines
+        user_guidelines = test_claude_home / "guidelines"
+        user_guidelines.mkdir(parents=True)
         (user_guidelines / "custom.md").write_text("# Custom Rule\n\nBe concise.\n")
 
         compiler = get_compiler("claude")

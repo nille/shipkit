@@ -24,9 +24,9 @@ class TestEnsureHome:
     def test_idempotent(self, tmp_home):
         ensure_home()
         # Add a file to verify it's not wiped
-        (tmp_home / "guidelines" / "custom.md").write_text("# Custom\n")
+        (tmp_home / "plugins" / "test.txt").write_text("test\n")
         ensure_home()
-        assert (tmp_home / "guidelines" / "custom.md").exists()
+        assert (tmp_home / "plugins" / "test.txt").exists()
 
     def test_returns_path(self, tmp_home):
         result = ensure_home()
@@ -59,7 +59,7 @@ class TestValidateHome:
         tmp_home.mkdir(exist_ok=True)
         warnings = validate_home(tmp_home)
         assert len(warnings) > 0
-        assert any("skills" in w for w in warnings)
+        assert any("plugins" in w for w in warnings)
 
     def test_partial_structure(self, initialized_home):
         import shutil

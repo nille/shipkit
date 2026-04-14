@@ -12,19 +12,18 @@ import pytest
 
 
 class TestEndToEndClaude:
-    """Full workflow: init a project, sync for Claude Code, verify output."""
+    """Full workflow: sync for Claude Code, verify output."""
 
-    def test_init_sync_generates_all_artifacts(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
+    def test_init_sync_generates_all_artifacts(self, tmp_home, tmp_repo, monkeypatch):
         from shipkit.sync import sync_project
 
-        # 1. Init the project
-        name = init_project(tmp_repo, name="e2e-test")
+        # Set SHIPKIT_HOME to tmp_home
+        monkeypatch.setenv("SHIPKIT_HOME", str(tmp_home))
 
-        # 2. Sync for Claude Code (default)
+        # Sync for Claude Code (default)
         result = sync_project(repo_path=tmp_repo)
 
-        # 3. Verify CLAUDE.md with discovery instructions
+        # Verify CLAUDE.md with discovery instructions
         claude_md = tmp_repo / "CLAUDE.md"
         assert claude_md.exists()
         content = claude_md.read_text()
@@ -32,35 +31,29 @@ class TestEndToEndClaude:
         assert "SHIPKIT:END" in content
         assert "Skill Discovery" in content
 
-        # 4. Skills NOT compiled (discovery mode)
+        # Skills NOT compiled (discovery mode)
         # No .claude/commands/ expected
 
-        # 5. Verify .claude/settings.json (hooks)
+        # Verify .claude/settings.json (hooks)
         settings = tmp_repo / ".claude" / "settings.json"
         assert settings.exists()
         settings_data = json.loads(settings.read_text())
         assert "hooks" in settings_data
 
-        # 6. Verify .mcp.json
+        # Verify .mcp.json
         mcp = tmp_repo / ".mcp.json"
         assert mcp.exists()
         mcp_data = json.loads(mcp.read_text())
         assert "mcpServers" in mcp_data
 
-        # 7. Verify no warnings or errors
+        # Verify no warnings or errors
         assert not result.warnings
 
-        # 8. Verify project marker
-        marker = tmp_repo / ".shipkit"
-        assert marker.exists()
-        marker_data = json.loads(marker.read_text())
-        assert marker_data["name"] == "e2e-test"
-
-    def test_resync_preserves_user_content(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
+    def test_resync_preserves_user_content(self, tmp_home, tmp_repo, monkeypatch):
         from shipkit.sync import sync_project
 
-        init_project(tmp_repo, name="e2e-preserve")
+        # Set SHIPKIT_HOME to tmp_home
+        monkeypatch.setenv("SHIPKIT_HOME", str(tmp_home))
 
         # First sync
         sync_project(repo_path=tmp_repo)
@@ -79,11 +72,11 @@ class TestEndToEndClaude:
         assert "Do not lose this" in new_content
         assert "SHIPKIT:BEGIN" in new_content
 
-    def test_user_guidelines_included(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
+    def test_user_guidelines_included(self, tmp_home, tmp_repo, monkeypatch):
         from shipkit.sync import sync_project
 
-        init_project(tmp_repo, name="e2e-guidelines")
+        # Set SHIPKIT_HOME to tmp_home
+        monkeypatch.setenv("SHIPKIT_HOME", str(tmp_home))
 
         # Add a user guidelines rule
         guidelines_dir = tmp_home / "guidelines"
@@ -95,12 +88,13 @@ class TestEndToEndClaude:
         content = (tmp_repo / "CLAUDE.md").read_text()
         assert "Guideline Discovery" in content
 
-    def test_generates_claude_agent_config(self, tmp_home, tmp_repo):
+    def test_generates_claude_agent_config(self, tmp_home, tmp_repo, monkeypatch):
         """Test sync generates .claude/agents/shipkit.md."""
-        from shipkit.project import init_project
         from shipkit.sync import sync_project
 
-        init_project(tmp_repo, name="e2e-agent")
+        # Set SHIPKIT_HOME to tmp_home
+        monkeypatch.setenv("SHIPKIT_HOME", str(tmp_home))
+
         sync_project(repo_path=tmp_repo)
 
         # Verify agent file exists
@@ -117,11 +111,11 @@ class TestEndToEndClaude:
 class TestEndToEndPlugins:
     """Verify plugins are included in the compile pipeline."""
 
-    def test_plugin_content_compiled(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
+    def test_plugin_content_compiled(self, tmp_home, tmp_repo, monkeypatch):
         from shipkit.sync import sync_project
 
-        init_project(tmp_repo, name="e2e-plugin")
+        # Set SHIPKIT_HOME to tmp_home
+        monkeypatch.setenv("SHIPKIT_HOME", str(tmp_home))
 
         # Install a fake plugin
         plugin_dir = tmp_home / "plugins" / "test-plugin"

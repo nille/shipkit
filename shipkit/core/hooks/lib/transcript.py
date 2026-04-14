@@ -108,3 +108,75 @@ def session_fingerprint(turns: list[dict]) -> str:
 def count_user_turns(turns: list[dict]) -> int:
     """Count the number of user turns in a conversation."""
     return sum(1 for t in turns if t["role"] in ("user", "human"))
+
+
+def parse_transcript(transcript_path: Path) -> dict:
+    """Parse a Claude Code transcript into structured format with tool uses.
+
+    Returns: Dict with structure:
+        {
+            "sessionId": "...",
+            "turns": [
+                {
+                    "role": "user|assistant",
+                    "assistant_content": [
+                        {"type": "tool_use", "tool": "Bash", "parameters": {...}},
+                        {"type": "text", "text": "..."},
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+    """
+    if not transcript_path.exists():
+        return {"sessionId": "unknown", "turns": []}
+
+    turns = []
+
+    try:
+        for line in transcript_path.read_text().splitlines():
+            if not line.strip():
+                continue
+
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            # Claude Code format: {"type": "message", "message": {...}}
+            if entry.get("type") == "message":
+                msg = entry.get("message", {})
+                role = msg.get("role", "")
+                content = msg.get("content", [])
+
+                turn = {"role": role, "assistant_content": []}
+
+                # Parse content blocks
+                if isinstance(content, list):
+                    for block in content:
+                        if isinstance(block, dict):
+                            block_type = block.get("type")
+
+                            if block_type == "tool_use":
+                                turn["assistant_content"].append({
+                                    "type": "tool_use",
+                                    "tool": block.get("name", ""),
+                                    "parameters": block.get("input", {}),
+                                })
+                            elif block_type == "text":
+                                turn["assistant_content"].append({
+                                    "type": "text",
+                                    "text": block.get("text", ""),
+                                })
+
+                if turn["assistant_content"]:
+                    turns.append(turn)
+
+    except Exception:
+        pass
+
+    return {
+        "sessionId": str(transcript_path.stem),
+        "turns": turns,
+    }

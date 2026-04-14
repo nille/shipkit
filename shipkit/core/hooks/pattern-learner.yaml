@@ -1,0 +1,15 @@
+# Pattern learner — detects repeated workflows and suggests skill automation.
+#
+# Runs at session end. Analyzes the session transcript to find:
+# - Repeated command sequences (bash, grep, edit patterns)
+# - Common error → fix patterns
+# - Workflows that appear across multiple sessions
+#
+# Uses LLM to determine if patterns are worth automating.
+# Suggests creating skills when threshold met (3+ occurrences).
+
+name: pattern-learner
+event: session_end
+description: Detect repeated workflows and suggest skill automation
+command: python3 {shipkit_hooks_dir}/pattern_learner.py
+timeout: 30

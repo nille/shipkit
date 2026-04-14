@@ -165,9 +165,22 @@ class ClaudeCodeCompiler(Compiler):
                 warnings.append(f"Unknown hook event '{event}' in {hook_def['name']}, skipped")
                 continue
 
-            # Resolve the command path — replace {shipkit_hooks_dir} with actual path
+            # Resolve the command — use python module import instead of absolute paths
+            # This makes hooks work across Python version changes
             command = hook_def.get("command", "")
-            command = command.replace("{shipkit_hooks_dir}", str(PACKAGE_HOOKS_DIR))
+
+            # Transform: "python3 {shipkit_hooks_dir}/hook_name.py"
+            # Into: "python3 -m shipkit.core.hooks.hook_name"
+            if "{shipkit_hooks_dir}" in command:
+                # Extract hook filename from command
+                import re
+                match = re.search(r'\{shipkit_hooks_dir\}/(\w+)\.py', command)
+                if match:
+                    hook_module = match.group(1)
+                    command = f"python3 -m shipkit.core.hooks.{hook_module}"
+                else:
+                    # Fallback to absolute path if pattern doesn't match
+                    command = command.replace("{shipkit_hooks_dir}", str(PACKAGE_HOOKS_DIR))
 
             hook_entry = {
                 "hooks": [{

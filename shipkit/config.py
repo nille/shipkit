@@ -52,6 +52,7 @@ class ShipkitConfig:
             },
         }
 
+        # Only include plugin_registries if non-default
         if self.plugin_registries != ["github.com/nille/shipkit-marketplace"]:
             data["plugin_registries"] = self.plugin_registries
 

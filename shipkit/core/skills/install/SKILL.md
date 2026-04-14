@@ -24,6 +24,10 @@ Run these checks and collect results:
 9. **Existing guidelines** - Count `ls ~/.claude/guidelines/*.md`
 10. **Shipkit already installed** - Check if `~/.config/shipkit/` exists
 11. **Python version** - `python3 --version` (must be >= 3.10)
+12. **Model configuration (Bedrock users)** - If using Bedrock (`CLAUDE_CODE_USE_BEDROCK=1`), validate model IDs:
+    - Check `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL`
+    - Valid formats: `us.anthropic.claude-opus-4-6-v1` OR `global.anthropic.claude-opus-4-20250514-v1:0[1m]`
+    - Invalid: `global.anthropic.claude-opus-4-6-v1:0[1m]` (missing date for global endpoint)
 
 ### Phase 2: Report Status
 
@@ -46,6 +50,15 @@ Display a status dashboard:
 ✅ 5 personal skills found (will preserve)
 ✅ 2 personal guidelines found (will preserve)
 
+### Bedrock Model Configuration (if applicable)
+✅ Using Bedrock (CLAUDE_CODE_USE_BEDROCK=1)
+⚠️ Invalid Opus model ID detected
+    Current: global.anthropic.claude-opus-4-6-v1:0[1m]
+    Valid options:
+      - us.anthropic.claude-opus-4-6-v1 (US regional)
+      - global.anthropic.claude-opus-4-20250514-v1:0[1m] (global with date)
+    Will offer to fix during install
+
 ### Shipkit Status
 ❌ Not yet installed
 
@@ -53,9 +66,10 @@ Display a status dashboard:
 
 Ready to install? I'll:
 1. Backup your current settings.json
-2. Merge Shipkit hooks (preserve your existing hooks)
-3. Install shipkit agent to ~/.claude/agents/shipkit.md
-4. Create ~/.config/shipkit/config.yaml
+2. Fix invalid Bedrock model IDs (if needed)
+3. Merge Shipkit hooks (preserve your existing hooks)
+4. Install shipkit agent to ~/.claude/agents/shipkit.md
+5. Create ~/.config/shipkit/config.yaml
 
 Your existing skills, guidelines, and hooks will be preserved.
 ```
@@ -234,7 +248,15 @@ plugin_registries:
   - github.com/nille/shipkit-marketplace
 ```
 
+**IMPORTANT:** Do NOT include `cli_tool` field (obsolete, removed in recent refactor).
+
+**If Bedrock user with invalid model IDs detected:**
+Also fix model IDs in settings.json env section:
+- `global.anthropic.claude-opus-4-6-v1:0[1m]` → `global.anthropic.claude-opus-4-20250514-v1:0[1m]` (add date)
+- Or suggest using `us.` regional endpoint instead
+
 Explain: "✓ Created ~/.config/shipkit/config.yaml"
+If fixed models: "✓ Fixed invalid Bedrock model IDs"
 
 #### 4.3 Merge Hooks
 

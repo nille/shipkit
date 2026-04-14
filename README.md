@@ -64,7 +64,7 @@ Updates to core skills don't overwrite your customizations. Content flows throug
 ### Extend without limits:
 
 - **21 built-in skills** for commits, PRs, reviews, testing, debugging, research, releases, marketplace contributions, config backup
-- **Add your own** in `~/.config/shipkit/skills/` — the `/skill-builder` helps you create them
+- **Add your own** in `~/.claude/skills/` — the `/skill-builder` helps you create them
 - **Share with the community** — use `/contribute-skill` to submit your skills to the marketplace
 - **Install community plugins** with `shipkit plugin install <plugin-name>`
 - **Team-shared content** — commit skills/guidelines to your repo and share via git
@@ -179,20 +179,12 @@ sk "create a PR"
 
 After sync, your AI coding CLI has access to all skills as slash commands, guidelines in its system context, and MCP servers configured.
 
-```bash
-# Use language-specific templates
-shipkit init --template python
-shipkit init --template typescript
-
-# Target a different CLI tool
-shipkit sync --tool opencode
-```
 
 ## Skills
 
 21 skills ship with the package, available as slash commands.
 
-**Shipkit follows the [Agent Skills open standard](https://agentskills.io/)** — skills use the same `SKILL.md` format as Claude Code, Cursor, Gemini CLI, OpenCode, and [20+ other tools](https://agentskills.io/home). This means skills from the broader Agent Skills ecosystem work in shipkit, and shipkit skills work in other compatible tools.
+**Shipkit follows the [Agent Skills open standard](https://agentskills.io/)** — skills use the same `SKILL.md` format as Claude Code, Cursor, and other compatible tools. This means skills from the broader Agent Skills ecosystem work in shipkit.
 
 ### Core
 
@@ -270,7 +262,7 @@ Project: dev-principles.md → "For this API, follow REST conventions"
 
 **Global rule (all projects):**
 ```bash
-cat > ~/.config/shipkit/guidelines/my-conventions.md << 'EOF'
+cat > ~/.claude/guidelines/my-conventions.md << 'EOF'
 # My Conventions
 
 - Always use TypeScript strict mode
@@ -281,7 +273,7 @@ EOF
 
 **Extend existing rule:**
 ```bash
-cat > ~/.config/shipkit/guidelines/dev-principles.md << 'EOF'
+cat > ~/.claude/guidelines/dev-principles.md << 'EOF'
 ---
 extends: true  # Default - adds to core dev-principles
 ---
@@ -295,7 +287,7 @@ EOF
 
 **Replace existing rule:**
 ```bash
-cat > ~/.config/shipkit/guidelines/dev-principles.md << 'EOF'
+cat > ~/.claude/guidelines/dev-principles.md << 'EOF'
 ---
 extends: false  # Ignore core, use only this
 ---
@@ -351,14 +343,30 @@ When the same filename exists in multiple layers:
 
 ## Hooks
 
-Background automation that runs at session boundaries:
+Intelligent automation that runs at session boundaries. Shipkit ships with 8 production hooks:
+
+### 🔒 Safety & Quality
 
 | Hook | Event | Purpose |
 |------|-------|---------|
-| `context-inject` | Session start | Notifies about pending sessions, injects learned preferences |
-| `update-check` | Session start | Checks PyPI for newer shipkit version (daily cache) |
-| `session-save` | Session end | Saves session metadata for cross-session context |
-| `retro-analyze` | Session end | Saves session metadata for interactive review |
+| **`pre-commit-safety`** | Pre-tool-use | **Hybrid regex + LLM scanner** - Prevents secrets, debug code, merge conflicts from being committed. Context-aware: distinguishes test fixtures from real secrets. |
+
+### 🧠 Learning & Automation
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| **`pattern-learner`** | Session end | **AI learns your workflows** - Detects repeated command sequences and file edit patterns. After 3 occurrences, suggests creating automation skills. Your toolkit grows from YOUR work. |
+| **`session-goals`** | Session start/end | **Focus tracker** - Prompts for goals at start, tracks accomplishments vs plans at end. Helps identify time sinks and maintain accountability. |
+| `retro-analyze` | Session end | Saves session metadata for interactive retrospectives |
+| `retro-auto` | Session start | Auto-promotes learnable rules from retro suggestions |
+
+### 📊 Context & Coordination
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `context-inject` | Session start | Injects cross-session context and learned preferences |
+| `session-save` | Session end | Saves session metadata for cross-session memory |
+| `update-check` | Session start | Daily check for shipkit updates (non-blocking) |
 
 ### Self-Learning Loop
 
@@ -384,7 +392,7 @@ Background automation that runs at session boundaries:
 
 ## MCP Servers
 
-Shipkit ships with Playwright and Context7 MCP server defaults. Customize in `~/.config/shipkit/mcp.json`:
+Shipkit ships with Playwright and Context7 MCP server defaults. Customize in `~/.claude/mcp.json` or project-level in `.mcp.json`:
 
 ```json
 {
@@ -423,7 +431,7 @@ Plugins can provide skills, guidelines, hooks, and subagents. They slot into the
 
 ### Plugin Registries
 
-By default, shipkit searches `github.com/nille/shipkit-marketplace` for plugins. Add custom registries in `~/.config/shipkit/config.yaml`:
+By default, shipkit searches `github.com/nille/shipkit-marketplace` for plugins. Add custom registries in shipkit config:
 
 ```yaml
 cli_tool: claude
@@ -455,7 +463,7 @@ By default, **skills cascade** - higher layers extend lower layers rather than r
 Layer 1 (Package Core):    shipkit/core/skills/commit/SKILL.md
                           "Create conventional commits with semantic format"
 
-Layer 2 (User Global):    ~/.config/shipkit/skills/commit/SKILL.md
+Layer 2 (User Global):    ~/.claude/skills/commit/SKILL.md
                           "Additionally, always include ticket references"
                           
 Layer 3 (Repo):           .shipkit/skills/commit/SKILL.md
@@ -534,7 +542,7 @@ Shipkit's `extends` field is a **custom extension** - tools that don't understan
 
 ```bash
 # Global rule (applies to all projects)
-cat > ~/.config/shipkit/guidelines/my-conventions.md << 'EOF'
+cat > ~/.claude/guidelines/my-conventions.md << 'EOF'
 # My Conventions
 
 - Always use TypeScript strict mode
@@ -561,66 +569,34 @@ shipkit sync
 
 ### Skills
 
-Create a directory in `~/.config/shipkit/skills/<name>/` with a `SKILL.md`:
+Create a directory in `~/.claude/skills/<name>/` with a `SKILL.md`:
 
 ```
-~/.config/shipkit/skills/deploy/
+~/.claude/skills/deploy/
 ├── SKILL.md          # Skill definition (required)
 └── references/       # Supporting docs (optional)
     └── runbook.md
 ```
 
-### Project templates
-
-```bash
-# Create from current project's guidelines + skills
-shipkit template create my-stack
-
-# Use when registering new projects
-shipkit init --template my-stack
-
-# List available
-shipkit template list
-```
-
 ## Versioning Your Personal Content
 
-Your personal shipkit content (`~/.config/shipkit/`) represents significant investment: custom skills, guidelines, learned preferences, templates. You should version it.
+Your personal skills and guidelines in `~/.claude/` represent valuable accumulated knowledge. You should version them.
 
 ### What to version:
 
 ```bash
-cd ~/.config/shipkit
+cd ~/.claude
 git init
 
-# Version these directories
-git add skills/          # Your custom skills
-git add guidelines/        # Your behavioral rules (including auto-learned.md)
-git add mcp.json         # MCP server configs
-git add config.yaml      # Global settings
-git add templates/       # Custom project templates
-```
+# Version your custom content
+git add skills/           # Your custom skills
+git add guidelines/       # Your preferences (including auto-learned.md)
+git add mcp.json          # MCP server configs (if customized)
 
-### What NOT to version:
-
-```bash
-# Add to .gitignore
-echo ".state/" >> .gitignore       # Machine state (sessions, retro pending)
-echo "plugins/" >> .gitignore      # Installed from git, not yours
-echo "projects/" >> .gitignore     # Project paths are machine-specific
-```
-
-### Sync across machines:
-
-```bash
-# Initial setup - push to private repo
+# Shipkit metadata (optional)
 cd ~/.config/shipkit
-git remote add origin git@github.com:yourname/my-shipkit-config.git
-git push -u origin main
-
-# On another machine - clone instead of init
-rm -rf ~/.config/shipkit  # if exists
-git clone git@github.com:yourname/my-shipkit-config.git ~/.config/shipkit
+git init
+git add config.yaml       # Layer preferences
 ```
 
 ### Using dotfiles managers:
@@ -628,27 +604,28 @@ git clone git@github.com:yourname/my-shipkit-config.git ~/.config/shipkit
 If you use [chezmoi](https://www.chezmoi.io/), [yadm](https://yadm.io/), or similar:
 
 ```bash
-# Add shipkit config to your dotfiles
-chezmoi add ~/.config/shipkit/skills/
-chezmoi add ~/.config/shipkit/guidelines/
+# Add Claude Code content to your dotfiles
+chezmoi add ~/.claude/skills/
+chezmoi add ~/.claude/guidelines/
 chezmoi add ~/.config/shipkit/config.yaml
 ```
 
-### Share within your team:
-
-Fork your personal config as a team starter:
+### Sync across machines:
 
 ```bash
-# Team member clones your setup as a base
-git clone git@github.com:yourname/my-shipkit-config.git ~/.config/shipkit
-cd ~/.config/shipkit
+# Push your ~/.claude/ content
+cd ~/.claude
+git remote add origin git@github.com:yourname/my-claude-config.git
+git push -u origin main
 
-# Add their own customizations
-# Push to their own fork
-git remote set-url origin git@github.com:teammate/their-shipkit-config.git
+# On another machine
+cd ~/.claude
+git init
+git remote add origin git@github.com:yourname/my-claude-config.git
+git pull origin main
 ```
 
-Your learned preferences (guidelines/auto-learned.md) are especially valuable to version - they represent the accumulated wisdom from all your sessions.
+Your learned preferences from pattern-learner and retro hooks are especially valuable - they represent accumulated wisdom from hundreds of sessions.
 
 **Quick backup:** Use the `/sync-config` skill to commit and push your config in one command:
 
@@ -659,148 +636,99 @@ Your learned preferences (guidelines/auto-learned.md) are especially valuable to
 
 ## CLI Reference
 
-```
-shipkit init [--template TYPE] [--name NAME]     Register current repo as a project
-shipkit sync [--tool NAME] [--dry-run] [--all]   Compile to tool-native config (generates agents)
-shipkit status                                   Show project info and sync status
-shipkit run [PROMPT] [--tool TOOL] [--no-agent]  Sync + launch with custom shipkit agent
-shipkit alias [NAME] [--install] [--project P]   Generate shell alias (global or project-specific)
-shipkit migrate --to TOOL [--dry-run]            Migrate personal content between tools
-
-shipkit projects list                          List all registered projects
-shipkit doctor [--lint] [--check NAME]         Health check + content validation
-shipkit template list                          List available templates
-shipkit template create <name>                 Save current project as template
-
-shipkit plugin install <source> [--name NAME]  Install plugin from git URL or path
-shipkit plugin uninstall <name>                Remove a plugin
-shipkit plugin list                            List installed plugins
-shipkit plugin update <name>                   Update plugin from git
-```
-
-## Multi-Tool Support
-
-Shipkit compiles to:
-
-| Tool | Generated Files |
-|------|----------------|
-| **Claude Code** | `CLAUDE.md`, `.mcp.json`, `.claude/settings.json`, **`.claude/agents/shipkit.md`** |
-| **Kiro** | `.kiro/steering/`, `.kiro/agents/` (subagents + **shipkit.json**), `.kiro/config/mcp.json`, `.kiro/hooks/` |
-| **Gemini CLI** | `GEMINI.md` (with shipkit branding), `.gemini/settings.json` |
-| **OpenCode** | `AGENTS.md`, `opencode.json`, **`.opencode/agents/shipkit.md`**, `.opencode/plugins/shipkit-hooks.ts` |
-
-Set your preferred tool globally, per-project (metadata only), or at sync time:
-
-```yaml
-# ~/.config/shipkit/config.yaml
-cli_tool: claude  # or kiro, gemini, opencode
-
-# ~/.config/shipkit/projects/<name>/project.yaml (tool preference only)
-cli_tool: opencode
-```
-
 ```bash
-# Or override at sync time
-shipkit sync --tool opencode
+# Installation
+shipkit install                                    # Interactive LLM-powered installer
+                                                   # (scans existing setup, safely merges)
+
+# Daily usage
+shipkit sync [--dry-run]                           # Compile layers to Claude Code config
+shipkit run [PROMPT] [--no-agent]                  # Sync + launch claude --agent shipkit
+shipkit status                                     # Show layers, paths, current directory
+shipkit alias [NAME] [--install]                   # Generate shell alias (default: sk)
+
+# Plugins
+shipkit plugin install <name|url>                  # Install from marketplace or git URL
+shipkit plugin list                                # Show installed plugins
+shipkit plugin uninstall <name>                    # Remove a plugin
+
+# Maintenance
+shipkit doctor [--lint] [--check NAME]             # Health check + content validation
 ```
 
-### Switching Tools
-
-Want to switch from one AI coding tool to another? Shipkit makes it seamless.
-
-**Auto-detection:** Shipkit notices when you're using a different tool and offers to migrate:
-
-```
-I notice you're using kiro but shipkit is configured for claude.
-Want to migrate? Say 'migrate tool' or run /migrate-tool
-```
-
-**Interactive migration:**
-```bash
-/migrate-tool    # Guides you through switching tools interactively
-```
-
-**Direct migration:**
-```bash
-# Preview what will be migrated
-shipkit migrate --to kiro --dry-run
-
-# Migrate personal skills and guidelines
-shipkit migrate --to kiro
-```
-
-**What gets migrated:**
-- Personal skills: `~/.claude/skills/` → `~/.kiro/skills/`
-- Personal guidelines: `~/.claude/guidelines/` → `~/.kiro/steering/`
-- Config preference: `config.yaml` updated to new tool
-
-**What stays the same:**
-- Core content in `~/.config/shipkit/core/` (shared across all tools)
-- Plugins in `~/.config/shipkit/plugins/` (shared across all tools)
-- Project content in repos (team-shared via git)
-
-**Note:** Kiro uses "steering" instead of "guidelines" - shipkit handles this automatically.
-
-After migration, run `shipkit sync` to generate tool-native config files for the new tool.
+**Key differences:**
+- `install` not `init` - LLM handles complex merging
+- No `--tool` flag - Claude Code only
+- No project registry - works in any git repo
+- `run` launches branded shipkit agent
 
 ## Architecture
 
-```
-~/.config/shipkit/                     SHIPKIT_HOME (configurable via env var)
-├── config.yaml                        Global settings (cli_tool)
-├── guidelines/                          Personal guidelines
-│   └── auto-learned.md                Cross-cutting auto-learned preferences
-├── skills/                            Personal skills
-│   └── <name>/
-│       ├── SKILL.md                   Skill definition
-│       └── learned.md                 Auto-learned skill-specific rules
-├── mcp.json                           Global MCP server additions
-├── templates/                         Project templates
-├── plugins/                           Installed plugins
-│   └── <name>/
-│       ├── plugin.yaml                Plugin manifest
-│       ├── skills/                    Plugin skills
-│       ├── guidelines/                  Plugin guidelines
-│       └── hooks/                     Plugin hooks
-├── projects/
-│   └── <name>/
-│       └── project.yaml               Project metadata (repo path, template, cli_tool)
-└── .state/                            Machine-managed (not user-facing)
-    ├── sessions/                      Session records for cross-session context
-    ├── retro/
-    │   ├── observations.jsonl         Low-severity pattern tracking
-    │   ├── pending/                   Suggestions awaiting review
-    │   └── processed/                 Applied/discarded suggestions
-    └── debounce/                      Hook execution state
-```
+### Directory Structure
 
 ```
-shipkit (Python package)
-├── shipkit/
-│   ├── cli.py                         Click-based CLI
-│   ├── config.py                      Config loading (ShipkitConfig, ProjectConfig, ResolvedConfig)
-│   ├── datadir.py                     Home directory management (ensure_home, resolve_home)
-│   ├── project.py                     Project registration and resolution
-│   ├── sync.py                        Sync orchestration
-│   ├── plugin.py                      Plugin install/uninstall/list
-│   ├── lint.py                        Content validation (8 checks)
-│   ├── compilers/
-│   │   ├── base.py                    CompileContext, Compiler ABC, content layering
-│   │   ├── claude.py                  Claude Code compiler
-│   │   ├── kiro.py                    Kiro compiler
-│   │   ├── gemini.py                  Gemini CLI compiler
-│   │   └── opencode.py                OpenCode compiler
-│   └── content/                       Core content (ships with package)
-│       ├── guidelines/                  8 guidelines
-│       ├── skills/                    21 skills
-│       ├── hooks/                     5 hooks + shared lib
-│       ├── subagents/                 3 subagent definitions
-│       └── mcp.json                   Default MCP servers
-├── seed/                              Copied to ~/.config/shipkit/ on first init
-│   ├── mcp.sample.json
-│   └── templates/                     default, python, typescript
-└── tests/                             140 tests
+~/.claude/                             Claude Code native (user content)
+├── skills/                            Your custom skills
+│   └── <name>/SKILL.md
+├── guidelines/                        Your preferences
+│   └── auto-learned.md                From pattern-learner and retro hooks
+├── agents/shipkit.md                  Generated by shipkit sync
+├── settings.json                      Hooks installed here
+└── mcp.json                           MCP server configs (optional)
+
+~/.config/shipkit/                     Shipkit metadata only
+├── config.yaml                        Layer preferences (core, experimental, advanced)
+├── plugins/                           Installed marketplace plugins
+│   └── <name>/
+│       ├── plugin.yaml
+│       ├── skills/
+│       ├── guidelines/
+│       └── hooks/
+└── .state/                            Machine state (not user-facing)
+    ├── patterns/                      Pattern learner storage
+    ├── sessions/                      Session goals tracking
+    ├── retro/pending/                 Suggestions awaiting review
+    └── marketplace-cache/             Cached plugin index
+
+.claude/                               Team content (git-committed)
+├── skills/                            Team workflows
+├── guidelines/                        Team conventions
+└── agents/shipkit.md                  Generated by shipkit sync
 ```
+
+### Package Structure
+
+```
+shipkit (pip-installed)
+├── cli.py                             Commands: install, sync, run, status, plugin, alias
+├── config.py                          ShipkitConfig (layer preferences)
+├── sync.py                            Orchestrates compilation
+├── compilers/
+│   ├── base.py                        CompileContext (layered discovery)
+│   ├── claude.py                      Claude Code compiler
+│   └── agents.py                      Agent config generation
+├── core/                              Core layer (always included)
+│   ├── skills/                        21 battle-tested skills
+│   ├── guidelines/                    8 core guidelines
+│   └── hooks/                         8 production hooks
+├── experimental/                      Experimental layer (opt-in)
+│   ├── skills/
+│   └── guidelines/
+├── advanced/                          Advanced layer (opt-in)
+│   ├── skills/
+│   └── guidelines/
+└── tests/                             141 tests
+```
+
+### Layer Precedence
+
+When compiling:
+1. Core (always)
+2. Experimental (if enabled in config)
+3. Advanced (if enabled in config)
+4. Marketplace plugins
+5. User personal (~/.claude/)
+6. Team (.claude/ in repo) - **highest priority**
 
 ## Development
 

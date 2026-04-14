@@ -64,11 +64,21 @@ def _fetch_latest_version() -> str:
         return ""
 
 
+def _is_newer_version(latest: str, current: str) -> bool:
+    """Check if latest version is newer than current using semantic versioning."""
+    try:
+        from packaging import version
+        return version.parse(latest) > version.parse(current)
+    except Exception:
+        # Fallback: simple string comparison (not perfect but better than nothing)
+        return latest > current
+
+
 def _output_update_message(latest: str, current: str) -> None:
     """Print the update notification for agent context injection."""
     print(f"INSTRUCTION: shipkit {latest} is available (current: {current}). "
-          f'Mention once at a natural pause: "There\'s a new shipkit version ({latest}). '
-          f"Run `pip install --upgrade shipkit` to update.\" "
+          f'Mention once at a natural pause: "💡 By the way: There\'s a new shipkit version ({latest}) available. '
+          f"Run /update-shipkit or pip install --upgrade shipkit to update.\" "
           f"Then don't mention it again this session.")
 
 
@@ -91,7 +101,7 @@ def main() -> None:
         cache = _read_cache(cache_file)
         latest = cache.get("LATEST", "")
         cached_current = cache.get("CURRENT", "")
-        if latest and cached_current == current and latest != current:
+        if latest and cached_current == current and _is_newer_version(latest, current):
             _output_update_message(latest, current)
         return
 
@@ -104,7 +114,7 @@ def main() -> None:
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     cache_file.write_text(f"CURRENT={current}\nLATEST={latest}\n")
 
-    if latest != current:
+    if _is_newer_version(latest, current):
         _output_update_message(latest, current)
 
 

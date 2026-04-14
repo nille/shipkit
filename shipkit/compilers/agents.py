@@ -39,9 +39,15 @@ initialPrompt: |
                                                   ▀
 
   I'm ready to help! Use /skill-name to invoke skills.
+
+  Version: {version}
 maxTurns: 50
 color: pink
 ---"""
+
+    # Inject version
+    from shipkit import __version__
+    frontmatter = frontmatter.replace("{version}", __version__)
 
     body = _generate_system_prompt()
 

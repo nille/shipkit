@@ -6,11 +6,16 @@ Shipkit has completed a major architectural transformation to **instruction-driv
 
 ### Architecture Status
 
-**All Phases Complete:**
+**Completed Phases:**
 - ✅ **Phase 1:** Foundation - Renamed `content/` → `core/`
 - ✅ **Phase 2:** Skill Discovery - Skills discovered at runtime, not compiled
 - ✅ **Phase 3:** Tool-Native Paths + Guideline Discovery - Guidelines also runtime-discovered
 - ✅ **Phase 4:** Migration Tooling - Seamless tool switching with `shipkit migrate`
+
+**Next Phase:**
+- 🚧 **Phase 5:** Custom Agent Generation & Branded Launch - Generate tool-specific agent configs for branded "shipkit" experience
+
+See [PHASE-5-PLAN.md](PHASE-5-PLAN.md) for detailed implementation plan.
 
 ### How Discovery Works Now
 

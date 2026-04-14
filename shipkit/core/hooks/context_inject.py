@@ -37,6 +37,34 @@ from hooks.lib.logging_util import debug_log
 HOOK_NAME = "context-inject"
 
 
+def _count_pending_sessions(home_path: Path) -> int:
+    """Count sessions waiting for interactive review."""
+    pending_dir = home_path / ".state" / "retro" / "pending"
+    if not pending_dir.exists():
+        return 0
+    return len(list(pending_dir.glob("*.json")))
+
+
+def _format_skill_rules_index(home_path: Path) -> str:
+    """List skills that have learned rules files."""
+    skills_dir = home_path / "skills"
+    if not skills_dir.exists():
+        return ""
+
+    lines = []
+    for skill_dir in sorted(skills_dir.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        learned_file = skill_dir / "learned.md"
+        if learned_file.exists():
+            lines.append(f"  - /{skill_dir.name}: {learned_file}")
+
+    if not lines:
+        return ""
+
+    return "Skills with learned rules (read before using these skills):\n" + "\n".join(lines)
+
+
 def main():
     if is_hook_session():
         sys.exit(0)
@@ -86,33 +114,5 @@ def main():
         debug_log(HOOK_NAME, f"Injected {len(output_parts)} context blocks")
 
 
-def _format_skill_rules_index(home_path: Path) -> str:
-    """List skills that have learned rules files."""
-    skills_dir = home_path / "skills"
-    if not skills_dir.exists():
-        return ""
-
-    lines = []
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
-            continue
-        learned_file = skill_dir / "learned.md"
-        if learned_file.exists():
-            lines.append(f"  - /{skill_dir.name}: {learned_file}")
-
-    if not lines:
-        return ""
-
-    return "Skills with learned rules (read before using these skills):\n" + "\n".join(lines)
-
-
 if __name__ == "__main__":
     main()
-
-
-def _count_pending_sessions(home_path: Path) -> int:
-    """Count sessions waiting for interactive review."""
-    pending_dir = home_path / ".state" / "retro" / "pending"
-    if not pending_dir.exists():
-        return 0
-    return len(list(pending_dir.glob("*.json")))

@@ -18,9 +18,10 @@ def temp_home(monkeypatch, tmp_path):
     home = tmp_path / "shipkit_home"
     home.mkdir()
 
-    # Set SHIPKIT_HOME
+    # Set SHIPKIT_HOME and CONFIG_PATH
     monkeypatch.setenv("SHIPKIT_HOME", str(home))
     monkeypatch.setattr("shipkit.config.SHIPKIT_HOME", home)
+    monkeypatch.setattr("shipkit.config.CONFIG_PATH", home / "config.yaml")
 
     # Create config
     cfg = ShipkitConfig(cli_tool="claude")

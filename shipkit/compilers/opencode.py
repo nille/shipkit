@@ -35,8 +35,8 @@ class OpenCodeCompiler(Compiler):
         warnings = []
 
         # Skills are discovered at runtime via AGENTS.md
-        # Compile: AGENTS.md (with discovery + guidelines), hooks plugin, opencode.json
-        for step in [self._compile_agents_md, self._compile_hooks_plugin, self._compile_opencode_json]:
+        # Compile: AGENTS.md (with discovery + guidelines), hooks plugin, opencode.json, agent config
+        for step in [self._compile_agents_md, self._compile_hooks_plugin, self._compile_opencode_json, self._compile_agent]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -317,6 +317,21 @@ class OpenCodeCompiler(Compiler):
         else:
             opencode_json_path.write_text(json.dumps(config, indent=2) + "\n")
             written.append("opencode.json")
+
+        return written, skipped, warnings
+
+    def _compile_agent(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate custom shipkit agent configuration."""
+        from shipkit.compilers.agents import write_opencode_agent
+
+        written, skipped, warnings = [], [], []
+
+        agent_file = write_opencode_agent(ctx, dry_run=dry_run)
+        if agent_file:
+            if dry_run:
+                written.append(".opencode/agents/shipkit.md (dry-run)")
+            else:
+                written.append(".opencode/agents/shipkit.md")
 
         return written, skipped, warnings
 

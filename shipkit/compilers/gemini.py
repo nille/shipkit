@@ -97,7 +97,12 @@ class GeminiCliCompiler(Compiler):
                     skills_by_name[skill_dir.name] = desc
 
         # Build managed section
-        managed_parts = []
+        # Start with shipkit agent branding header
+        from shipkit.compilers.agents import generate_gemini_context_header
+        agent_header = generate_gemini_context_header(ctx)
+
+        managed_parts = [agent_header]
+
         if sections:
             managed_parts.append("\n\n---\n\n".join(sections))
         if skills_by_name:

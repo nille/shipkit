@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Phase 5A & 5B: Custom Agent Generation & Launch Wrapper** for branded shipkit experience:
+- **Phase 5A, 5B & Alias Setup: Custom Agent Generation, Launch Wrapper, and Installation Flow** for branded shipkit experience:
   - New module: `shipkit/compilers/agents.py` with agent generation functions
   - Claude Code: Generates `.claude/agents/shipkit.md` with markdown + YAML frontmatter
   - Kiro CLI: Generates `.kiro/agents/shipkit.json` with schema-validated JSON
@@ -29,8 +29,15 @@ All notable changes to this project will be documented in this file.
   - Default alias name: 'sk' (customizable)
   - 18 new tests for tool detection and launch command building
   - Total: 188 tests passing
+- **Alias installation during init**:
+  - First `shipkit init` offers to install shell alias (default: 'sk')
+  - Interactive prompt: "Install 'sk' alias? [Y/n]"
+  - Non-interactive mode shows command: `shipkit alias sk --install`
+  - `--skip-alias` flag to skip the offer
+  - 8 new tests for alias installation flow
+  - Total: 196 tests passing
 - README updates:
-  - Quick Start shows branded launch workflow
+  - Quick Start shows alias installation and usage
   - CLI Reference updated with new flags
   - Multi-Tool Support table shows agent files
 

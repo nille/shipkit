@@ -145,20 +145,24 @@ uv tool install shipkit
 cd ~/Code/my-project
 shipkit init
 
-# Compile to tool-native config (generates agent configs)
-shipkit sync
+# On first init, you'll be prompted:
+# 🚀 Quick access: Install a shell alias?
+#   Creates: alias sk='noglob shipkit run'
+#   Install 'sk' alias? [Y/n]
 
-# Launch branded shipkit assistant
+# After install, use the short alias anywhere:
+sk "add tests for the auth module"
+sk "review my changes"
+sk "create a PR"
+
+# Or use the full command:
 shipkit run
 # → Auto-detects tool and launches: claude --agent shipkit
 # → Or: kiro-cli chat --agent shipkit
 # → Or: opencode --agent shipkit
 
-# Create a global alias for quick access
-shipkit alias sk --install
-sk "add tests for the auth module"
-
-# Or create a project-specific alias
+# Compile configs without launching:
+shipkit sync
 shipkit alias sk --install
 # Now just type 'sk' from any directory
 ```

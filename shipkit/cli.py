@@ -12,7 +12,7 @@ from shipkit import __version__
 @click.group()
 @click.version_option(__version__, prog_name="shipkit")
 def main():
-    """Shipkit — CLI-agnostic AI dev productivity kit."""
+    """Shipkit — Production-grade Claude Code setup. Stop configuring, start shipping."""
 
 
 # --- init command ---

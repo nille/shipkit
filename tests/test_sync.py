@@ -22,17 +22,6 @@ class TestSyncProject:
         result = sync_project(repo_path=repo, dry_run=True)
         assert not (repo / "CLAUDE.md").exists()
 
-    def test_sync_kiro(self, registered_project):
-        repo, name = registered_project
-        result = sync_project(repo_path=repo, tool="kiro")
-        assert (repo / ".kiro" / "steering").exists()
-
-    def test_sync_tool_override(self, registered_project):
-        repo, name = registered_project
-        result = sync_project(repo_path=repo, tool="kiro")
-        assert not (repo / "CLAUDE.md").exists()
-        assert (repo / ".kiro").exists()
-
 
 class TestSyncAll:
 

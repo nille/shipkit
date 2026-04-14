@@ -1,4 +1,4 @@
-"""Tests for shipkit compilers (Claude Code and Kiro)."""
+"""Tests for shipkit compilers (Claude Code only)."""
 
 from __future__ import annotations
 
@@ -61,10 +61,6 @@ class TestGetCompiler:
     def test_get_claude_compiler(self):
         compiler = get_compiler("claude")
         assert compiler.name == "Claude Code"
-
-    def test_get_kiro_compiler(self):
-        compiler = get_compiler("kiro")
-        assert compiler.name == "Kiro"
 
     def test_unknown_compiler(self):
         with pytest.raises(ValueError, match="No compiler for 'nonexistent'"):
@@ -150,67 +146,3 @@ class TestClaudeCompiler:
         assert "Guideline Discovery" in content
 
 
-class TestKiroCompiler:
-
-    def test_generates_steering(self, compile_ctx):
-        """Kiro uses 'steering' not 'guidelines'."""
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx)
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        assert steering_dir.exists()
-        assert any("steering/" in f for f in result.files_written)
-
-    def test_managed_marker(self, compile_ctx):
-        compiler = get_compiler("kiro")
-        compiler.compile(compile_ctx)
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        for md_file in steering_dir.glob("*.md"):
-            content = md_file.read_text()
-            assert content.startswith("<!-- shipkit:managed -->")
-
-    def test_preserves_repo_native(self, compile_ctx):
-        steering_dir = compile_ctx.repo_path / ".kiro" / "steering"
-        steering_dir.mkdir(parents=True)
-        (steering_dir / "native.md").write_text("# My native rule\n")
-
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx)
-        content = (steering_dir / "native.md").read_text()
-        assert "My native rule" in content  # Not overwritten
-        # native.md is not in any layer, so compiler ignores it entirely
-        assert "shipkit:managed" not in content
-
-    def test_only_writes_discovery_files(self, compile_ctx):
-        """Kiro only writes discovery files now."""
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx)
-        # Should only write discovery files
-        written_steering = [f for f in result.files_written if "steering/" in f]
-        assert len(written_steering) == 2  # skill-discovery + guideline-discovery
-
-    
-    def test_skills_not_compiled(self, compile_ctx):
-        """Skills are NOT compiled - discovered at runtime."""
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx)
-        # Skills should NOT be written
-        assert not any("/skills/" in f and "SKILL.md" in f for f in result.files_written)
-
-    def test_compiles_subagents(self, compile_ctx):
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx)
-        agents_dir = compile_ctx.repo_path / ".kiro" / "agents"
-        assert agents_dir.exists()
-        assert any("agents/" in f for f in result.files_written)
-        # Check one agent has correct structure
-        analyzer = agents_dir / "retro-analyzer.json"
-        if analyzer.exists():
-            data = json.loads(analyzer.read_text())
-            assert data["name"] == "retro-analyzer"
-            assert "_shipkit_managed" in data
-            assert "fs_read" in data["tools"]
-
-    def test_dry_run_no_writes(self, compile_ctx):
-        compiler = get_compiler("kiro")
-        result = compiler.compile(compile_ctx, dry_run=True)
-        assert not (compile_ctx.repo_path / ".kiro").exists()

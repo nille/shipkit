@@ -15,14 +15,12 @@ from shipkit.datadir import resolve_home
 
 def sync_project(
     repo_path: Path | None = None,
-    tool: str | None = None,
     dry_run: bool = False,
 ) -> CompileResult:
-    """Sync shipkit content to tool-native config for the given project.
+    """Sync shipkit content to Claude Code config for the given project.
 
     Args:
         repo_path: Path to the repo. Defaults to cwd.
-        tool: Override the CLI tool to compile for.
         dry_run: If True, report what would change without writing.
 
     Returns:
@@ -35,12 +33,8 @@ def sync_project(
     home_path = resolve_home()
     project_name, _project_dir = resolve_project(repo_path)
 
-    # Resolve which tool to compile for
-    if tool is None:
-        cfg = ResolvedConfig.resolve(project_name)
-        tool = cfg.cli_tool
-
-    compiler = get_compiler(tool)
+    # Always use Claude Code compiler
+    compiler = get_compiler("claude")
 
     ctx = CompileContext(
         home_path=home_path,
@@ -51,7 +45,7 @@ def sync_project(
     return compiler.compile(ctx, dry_run=dry_run)
 
 
-def sync_all(tool: str | None = None, dry_run: bool = False) -> dict[str, CompileResult]:
+def sync_all(dry_run: bool = False) -> dict[str, CompileResult]:
     """Sync all registered projects."""
     from shipkit.project import list_projects
 
@@ -65,5 +59,5 @@ def sync_all(tool: str | None = None, dry_run: bool = False) -> dict[str, Compil
                 warnings=[f"Repo path does not exist: {repo_path}"],
             )
             continue
-        results[project["name"]] = sync_project(repo_path, tool=tool, dry_run=dry_run)
+        results[project["name"]] = sync_project(repo_path, dry_run=dry_run)
     return results

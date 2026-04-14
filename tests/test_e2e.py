@@ -114,56 +114,6 @@ class TestEndToEndClaude:
         assert "You are **Shipkit**" in content
 
 
-class TestEndToEndKiro:
-    """Full workflow targeting Kiro compiler."""
-
-    def test_init_sync_kiro(self, tmp_home, tmp_repo):
-        from shipkit.project import init_project
-        from shipkit.sync import sync_project
-
-        init_project(tmp_repo, name="e2e-kiro")
-        result = sync_project(repo_path=tmp_repo, tool="kiro")
-
-        # Steering (Kiro uses "steering" not "guidelines")
-        steering_dir = tmp_repo / ".kiro" / "steering"
-        assert steering_dir.exists()
-        md_files = list(steering_dir.glob("*.md"))
-        assert len(md_files) >= 2  # skill-discovery + guideline-discovery
-
-        # All managed files have marker
-        for f in md_files:
-            assert f.read_text().startswith("<!-- shipkit:managed -->")
-
-        # Skills should NOT be compiled (discovery mode)
-        # Discovery guideline should be in steering
-        discovery_file = steering_dir / "skill-discovery.md"
-        assert discovery_file.exists()
-
-        # Agents (subagents still compiled for Kiro)
-        agents_dir = tmp_repo / ".kiro" / "agents"
-        assert agents_dir.exists()
-        json_files = list(agents_dir.glob("*.json"))
-        assert len(json_files) >= 1
-
-    def test_generates_kiro_agent_config(self, tmp_home, tmp_repo):
-        """Test sync generates .kiro/agents/shipkit.json."""
-        from shipkit.project import init_project
-        from shipkit.sync import sync_project
-
-        init_project(tmp_repo, name="e2e-kiro-agent")
-        sync_project(repo_path=tmp_repo, tool="kiro")
-
-        # Verify agent file exists
-        agent_file = tmp_repo / ".kiro" / "agents" / "shipkit.json"
-        assert agent_file.exists()
-
-        # Verify JSON structure
-        content = json.loads(agent_file.read_text())
-        assert content["name"] == "shipkit"
-        assert "$schema" in content
-        assert "resources" in content
-
-
 class TestEndToEndPlugins:
     """Verify plugins are included in the compile pipeline."""
 

@@ -1,0 +1,16 @@
+# Session goals tracker — helps you stay focused and track what you accomplish.
+#
+# session_start: Asks "What are you working on today?"
+# session_end: Summarizes what you accomplished vs planned
+#
+# Helps with:
+# - Focus (clear goal setting)
+# - Accountability (did I do what I said?)
+# - Context resume (pick up where you left off)
+# - Time awareness (unplanned work steals time)
+
+name: session-goals
+event: session_start,session_end
+description: Track session goals and accomplishments
+command: python3 {shipkit_hooks_dir}/session_goals.py
+timeout: 10

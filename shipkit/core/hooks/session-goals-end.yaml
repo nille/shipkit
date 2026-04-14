@@ -1,0 +1,9 @@
+# Session goals tracker (end event) — summarize accomplishments vs goals.
+#
+# Runs at session_end. Shows what you accomplished vs what you planned.
+
+name: session-goals-end
+event: session_end
+description: Summarize session accomplishments
+command: python3 {shipkit_hooks_dir}/session_goals.py
+timeout: 10

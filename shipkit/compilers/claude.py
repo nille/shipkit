@@ -141,9 +141,22 @@ class ClaudeCodeCompiler(Compiler):
     }
 
     def _compile_hooks(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Compile hooks into agent definition (agent-scoped, not global).
+
+        Hooks are added to .claude/agents/shipkit.md, not .claude/settings.json.
+        This means hooks only run when using the shipkit agent, not in all Claude sessions.
+        """
+        # Hooks are now added to agent definition in _compile_agent()
+        # This method is kept for backwards compatibility but does nothing
+        return [], [], []
+
+    def _compile_agent(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate custom shipkit agent configuration with hooks."""
+        from shipkit.compilers.agents import write_claude_agent_with_hooks
+
         written, skipped, warnings = [], [], []
 
-        # Collect hook definitions from all layers, deduplicating by name
+        # Collect hook definitions
         hooks_by_name: dict[str, dict] = {}
         for hooks_dir in ctx.hooks_layers:
             if not hooks_dir.exists():
@@ -153,80 +166,7 @@ class ClaudeCodeCompiler(Compiler):
                 if hook_def:
                     hooks_by_name[hook_def["name"]] = hook_def
 
-        if not hooks_by_name:
-            return written, skipped, warnings
-
-        # Build Claude Code hooks config grouped by event
-        claude_hooks: dict[str, list] = {}
-        for hook_def in hooks_by_name.values():
-            event = hook_def.get("event", "")
-            claude_event = self.HOOK_EVENT_MAP.get(event)
-            if not claude_event:
-                warnings.append(f"Unknown hook event '{event}' in {hook_def['name']}, skipped")
-                continue
-
-            # Resolve the command — use predictable user-space path
-            # Hooks are in ~/.config/shipkit/core/hooks/ (copied during install)
-            # This is version-independent and predictable
-            command = hook_def.get("command", "")
-
-            if "{shipkit_hooks_dir}" in command:
-                # Use ~/.config/shipkit/core/hooks/ (user space, predictable)
-                from shipkit.config import SHIPKIT_HOME
-                user_hooks_dir = SHIPKIT_HOME / "core" / "hooks"
-                command = command.replace("{shipkit_hooks_dir}", str(user_hooks_dir))
-
-            hook_entry = {
-                "hooks": [{
-                    "type": "command",
-                    "command": command,
-                    "timeout": hook_def.get("timeout", 120),
-                }]
-            }
-
-            if claude_event not in claude_hooks:
-                claude_hooks[claude_event] = []
-            claude_hooks[claude_event].append(hook_entry)
-
-        if not claude_hooks:
-            return written, skipped, warnings
-
-        # Read existing settings.json and merge hooks
-        settings_dir = ctx.repo_path / ".claude"
-        settings_path = settings_dir / "settings.json"
-
-        existing_settings = {}
-        if settings_path.exists():
-            try:
-                existing_settings = json.loads(settings_path.read_text())
-            except json.JSONDecodeError:
-                warnings.append("Could not parse existing .claude/settings.json, hooks not written")
-                return written, skipped, warnings
-
-        # Merge: existing hooks take precedence for same event
-        existing_hooks = existing_settings.get("hooks", {})
-        for event_name, hook_list in claude_hooks.items():
-            if event_name not in existing_hooks:
-                existing_hooks[event_name] = hook_list
-
-        existing_settings["hooks"] = existing_hooks
-
-        if dry_run:
-            written.append(".claude/settings.json (dry-run)")
-        else:
-            settings_dir.mkdir(parents=True, exist_ok=True)
-            settings_path.write_text(json.dumps(existing_settings, indent=2) + "\n")
-            written.append(".claude/settings.json")
-
-        return written, skipped, warnings
-
-    def _compile_agent(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate custom shipkit agent configuration."""
-        from shipkit.compilers.agents import write_claude_agent
-
-        written, skipped, warnings = [], [], []
-
-        agent_file = write_claude_agent(ctx, dry_run=dry_run)
+        agent_file = write_claude_agent_with_hooks(ctx, hooks_by_name, self.HOOK_EVENT_MAP, dry_run=dry_run)
         if agent_file:
             if dry_run:
                 written.append(f".claude/agents/shipkit.md (dry-run)")

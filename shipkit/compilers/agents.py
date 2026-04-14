@@ -116,10 +116,61 @@ You're here to make Claude Code exceptional for software development—fast work
 """
 
 
-def write_claude_agent(ctx: CompileContext, dry_run: bool = False) -> Path | None:
-    """Write Claude Code agent configuration to .claude/agents/shipkit.md."""
+def write_claude_agent_with_hooks(
+    ctx: CompileContext,
+    hooks_by_name: dict[str, dict],
+    hook_event_map: dict[str, str],
+    dry_run: bool = False
+) -> Path | None:
+    """Write Claude Code agent configuration with agent-scoped hooks."""
+    from shipkit import __version__
+    from shipkit.config import SHIPKIT_HOME
 
-    agent_config = generate_claude_agent(ctx)
+    # Build frontmatter with hooks
+    hook_config = {}
+    for hook_def in hooks_by_name.values():
+        event = hook_def.get("event", "")
+        claude_event = hook_event_map.get(event)
+        if not claude_event:
+            continue
+
+        command = hook_def.get("command", "")
+        if "{shipkit_hooks_dir}" in command:
+            user_hooks_dir = SHIPKIT_HOME / "core" / "hooks"
+            command = command.replace("{shipkit_hooks_dir}", str(user_hooks_dir))
+
+        if claude_event not in hook_config:
+            hook_config[claude_event] = []
+
+        hook_config[claude_event].append({
+            "type": "command",
+            "command": command,
+            "timeout": hook_def.get("timeout", 120),
+        })
+
+    # Build YAML frontmatter with hooks
+    import yaml
+    frontmatter_data = {
+        "name": "shipkit",
+        "description": "Production-grade Claude Code assistant with battle-tested skills and self-learning capabilities",
+        "model": "sonnet",
+        "tools": "*",
+        "permissionMode": "acceptEdits",
+        "memory": "user",
+        "initialPrompt": f"Shipkit v{__version__} ready! Use /skill-name to invoke skills, or ask me anything.",
+        "maxTurns": 50,
+        "color": "pink",
+    }
+
+    # Add hooks if any
+    if hook_config:
+        frontmatter_data["hooks"] = hook_config
+
+    frontmatter = "---\n" + yaml.dump(frontmatter_data, default_flow_style=False, sort_keys=False) + "---"
+
+    body = _generate_system_prompt()
+    agent_config = f"{frontmatter}\n\n{body}"
+
     agent_file = ctx.repo_path / ".claude" / "agents" / "shipkit.md"
 
     if dry_run:
@@ -129,3 +180,9 @@ def write_claude_agent(ctx: CompileContext, dry_run: bool = False) -> Path | Non
     agent_file.write_text(agent_config)
 
     return agent_file
+
+
+def write_claude_agent(ctx: CompileContext, dry_run: bool = False) -> Path | None:
+    """Write Claude Code agent configuration to .claude/agents/shipkit.md."""
+    # Backwards compatibility wrapper
+    return write_claude_agent_with_hooks(ctx, {}, {}, dry_run)

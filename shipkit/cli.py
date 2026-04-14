@@ -431,33 +431,42 @@ def plugin_update(name: str):
 # --- alias command ---
 
 @main.command("alias")
-@click.argument("name")
-@click.option("--project", "-p", default=None, help="Project name (defaults to current directory's project)")
+@click.argument("name", default="sk")
+@click.option("--project", "-p", default=None, help="Project name (creates project-specific alias)")
 @click.option("--install", is_flag=True, help="Append the alias to your shell config")
 def alias_cmd(name: str, project: str | None, install: bool):
-    """Generate a shell alias to launch a project from anywhere.
+    """Generate a shell alias to launch shipkit.
 
-    NAME is the alias you want to use (e.g. 'sk', 'dev').
+    NAME is the alias you want to use (default: 'sk').
+
+    Without --project: creates global alias (shipkit run anywhere)
+    With --project: creates project-specific alias (cd to project first)
     """
     from shipkit.project import resolve_project, ProjectError
     from shipkit.config import ProjectConfig
     from shipkit.datadir import resolve_home, DataDirError
 
-    try:
-        if project:
-            home_path = resolve_home()
-            project_dir = home_path / "projects" / project
-            cfg = ProjectConfig.load(project_dir / "project.yaml")
-            repo_path = cfg.repo_path
-        else:
-            _, project_dir = resolve_project()
-            cfg = ProjectConfig.load(project_dir / "project.yaml")
-            repo_path = cfg.repo_path
-    except (ProjectError, DataDirError) as e:
-        raise click.ClickException(str(e))
-
     shell = _detect_shell()
-    snippet = _generate_alias(name, repo_path, shell)
+
+    # Project-specific alias (cd to project first)
+    if project or _is_in_project():
+        try:
+            if project:
+                home_path = resolve_home()
+                project_dir = home_path / "projects" / project
+                cfg = ProjectConfig.load(project_dir / "project.yaml")
+                repo_path = cfg.repo_path
+            else:
+                _, project_dir = resolve_project()
+                cfg = ProjectConfig.load(project_dir / "project.yaml")
+                repo_path = cfg.repo_path
+        except (ProjectError, DataDirError) as e:
+            raise click.ClickException(str(e))
+
+        snippet = _generate_alias(name, repo_path, shell)
+    else:
+        # Global alias (shipkit run from anywhere)
+        snippet = _generate_shipkit_alias(name, shell)
 
     if install:
         _install_alias(name, snippet, shell)
@@ -466,6 +475,11 @@ def alias_cmd(name: str, project: str | None, install: bool):
         click.echo(f"Add this to {rc_file}:\n")
         click.echo(snippet)
         click.echo(f"\nOr run: shipkit alias {name} --install")
+
+
+def _is_in_project() -> bool:
+    """Check if current directory is a shipkit project."""
+    return (Path.cwd() / ".shipkit").exists()
 
 
 def _detect_shell() -> str:
@@ -489,7 +503,7 @@ def _rc_file(shell: str) -> Path:
 
 
 def _generate_alias(name: str, repo_path: str, shell: str) -> str:
-    """Generate the shell alias snippet."""
+    """Generate the shell alias snippet for project-specific launches."""
     if shell == "fish":
         return (
             f'function {name}\n'
@@ -501,6 +515,14 @@ def _generate_alias(name: str, repo_path: str, shell: str) -> str:
         f'_{name}_shipkit() {{ cd "{repo_path}" && shipkit run "$@"; }}\n'
         f'alias {name}=\'noglob _{name}_shipkit\''
     )
+
+
+def _generate_shipkit_alias(name: str, shell: str) -> str:
+    """Generate the shell alias snippet for global shipkit run."""
+    if shell == "fish":
+        return f'alias {name}="shipkit run"'
+    # bash/zsh — noglob wrapper prevents glob expansion
+    return f'alias {name}=\'noglob shipkit run\''
 
 
 def _install_alias(name: str, snippet: str, shell: str):
@@ -532,13 +554,14 @@ def _install_alias(name: str, snippet: str, shell: str):
 @main.command()
 @click.argument("prompt", nargs=-1)
 @click.option("--tool", "-t", default=None, help="Override CLI tool")
-def run(prompt: tuple[str, ...], tool: str | None):
-    """Sync config then launch the AI coding CLI.
+@click.option("--no-agent", is_flag=True, help="Launch without custom shipkit agent")
+def run(prompt: tuple[str, ...], tool: str | None, no_agent: bool):
+    """Sync config then launch the AI coding CLI with custom shipkit agent.
 
     Optionally pass a PROMPT to start with.
     """
     import subprocess
-    import sys
+    import shutil
     from shipkit.sync import sync_project
     from shipkit.config import ResolvedConfig, ConfigError
     from shipkit.project import resolve_project, ProjectError
@@ -560,25 +583,76 @@ def run(prompt: tuple[str, ...], tool: str | None):
         cfg = ResolvedConfig.resolve(project_name)
         cli_tool = tool or cfg.cli_tool
     except (ConfigError, ProjectError) as e:
-        raise click.ClickException(str(e))
+        # Not in a project - try to auto-detect installed tool
+        cli_tool = tool or _detect_installed_tool()
+        if not cli_tool:
+            raise click.ClickException(
+                "No supported AI coding tool found. Install one:\n"
+                "  - Claude Code: curl -fsSL https://claude.ai/install.sh | bash\n"
+                "  - Kiro CLI: pip install kiro-cli\n"
+                "  - OpenCode: See https://opencode.ai\n"
+                "  - Gemini CLI: See https://github.com/google-gemini/gemini-cli"
+            )
 
-    # Map tool name to CLI command
-    tool_commands = {
-        "claude": ["claude"],
-        "kiro": ["kiro-cli", "chat"],
-        "gemini": ["gemini"],
-        "opencode": ["opencode"],
-    }
+    # Build launch command with shipkit agent (unless --no-agent)
+    cmd = _build_launch_command(cli_tool, prompt, use_agent=not no_agent)
 
-    cmd = tool_commands.get(cli_tool)
-    if cmd is None:
-        raise click.ClickException(f"Unknown CLI tool: {cli_tool}. Configure in config.yaml.")
-
-    if prompt:
-        cmd.append(" ".join(prompt))
-
-    click.echo(f"Launching {cli_tool}...")
+    click.echo(f"Launching shipkit on {cli_tool}...")
     try:
         subprocess.run(cmd, check=False)
     except FileNotFoundError:
         raise click.ClickException(f"'{cmd[0]}' not found. Is {cli_tool} installed?")
+
+
+def _detect_installed_tool() -> str | None:
+    """Auto-detect which AI coding tool is installed."""
+    import shutil
+
+    # Check in priority order (prefer Claude Code if multiple installed)
+    if shutil.which("claude"):
+        return "claude"
+    if shutil.which("kiro-cli"):
+        return "kiro"
+    if shutil.which("opencode"):
+        return "opencode"
+    if shutil.which("gemini"):
+        return "gemini"
+    return None
+
+
+def _build_launch_command(cli_tool: str, prompt: tuple[str, ...], use_agent: bool = True) -> list[str]:
+    """Build the launch command for the specified tool."""
+    prompt_str = " ".join(prompt) if prompt else None
+
+    if cli_tool == "claude":
+        cmd = ["claude"]
+        if use_agent:
+            cmd.extend(["--agent", "shipkit"])
+        if prompt_str:
+            cmd.append(prompt_str)
+        return cmd
+
+    if cli_tool == "kiro":
+        cmd = ["kiro-cli", "chat"]
+        if use_agent:
+            cmd.extend(["--agent", "shipkit"])
+        if prompt_str:
+            cmd.append(prompt_str)
+        return cmd
+
+    if cli_tool == "opencode":
+        cmd = ["opencode"]
+        if use_agent:
+            cmd.extend(["--agent", "shipkit"])
+        if prompt_str:
+            cmd.extend(["--prompt", prompt_str])
+        return cmd
+
+    if cli_tool == "gemini":
+        # Gemini has no agent flag, just launch (reads GEMINI.md)
+        cmd = ["gemini"]
+        if prompt_str:
+            cmd.extend(["-p", prompt_str])
+        return cmd
+
+    raise ValueError(f"Unknown tool: {cli_tool}")

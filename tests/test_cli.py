@@ -273,8 +273,11 @@ class TestAlias:
         assert "$argv" in result.output
 
     def test_not_in_project(self, runner, initialized_home, tmp_path, monkeypatch):
+        """Test alias command outside project creates global alias."""
         unregistered = tmp_path / "nope"
         unregistered.mkdir()
         monkeypatch.chdir(unregistered)
         result = runner.invoke(main, ["alias", "sk"])
-        assert result.exit_code != 0
+        # Should succeed and create global alias (not project-specific)
+        assert result.exit_code == 0
+        assert "alias sk" in result.output

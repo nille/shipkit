@@ -95,6 +95,23 @@ class TestEndToEndClaude:
         content = (tmp_repo / "CLAUDE.md").read_text()
         assert "Guideline Discovery" in content
 
+    def test_generates_claude_agent_config(self, tmp_home, tmp_repo):
+        """Test sync generates .claude/agents/shipkit.md."""
+        from shipkit.project import init_project
+        from shipkit.sync import sync_project
+
+        init_project(tmp_repo, name="e2e-agent")
+        sync_project(repo_path=tmp_repo)
+
+        # Verify agent file exists
+        agent_file = tmp_repo / ".claude" / "agents" / "shipkit.md"
+        assert agent_file.exists()
+
+        # Verify content structure
+        content = agent_file.read_text()
+        assert content.startswith("---\n")
+        assert "name: shipkit" in content
+        assert "You are **Shipkit**" in content
 
 
 class TestEndToEndKiro:
@@ -127,6 +144,24 @@ class TestEndToEndKiro:
         assert agents_dir.exists()
         json_files = list(agents_dir.glob("*.json"))
         assert len(json_files) >= 1
+
+    def test_generates_kiro_agent_config(self, tmp_home, tmp_repo):
+        """Test sync generates .kiro/agents/shipkit.json."""
+        from shipkit.project import init_project
+        from shipkit.sync import sync_project
+
+        init_project(tmp_repo, name="e2e-kiro-agent")
+        sync_project(repo_path=tmp_repo, tool="kiro")
+
+        # Verify agent file exists
+        agent_file = tmp_repo / ".kiro" / "agents" / "shipkit.json"
+        assert agent_file.exists()
+
+        # Verify JSON structure
+        content = json.loads(agent_file.read_text())
+        assert content["name"] == "shipkit"
+        assert "$schema" in content
+        assert "resources" in content
 
 
 class TestEndToEndPlugins:

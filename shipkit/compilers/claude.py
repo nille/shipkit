@@ -36,8 +36,8 @@ class ClaudeCodeCompiler(Compiler):
         warnings = []
 
         # Skills are discovered at runtime via skill-discovery.md guideline
-        # Only compile: guidelines (with discovery instructions), MCP, hooks
-        for step in [self._compile_claude_md, self._compile_mcp_json, self._compile_hooks]:
+        # Compile: guidelines (with discovery instructions), MCP, hooks, agent config
+        for step in [self._compile_claude_md, self._compile_mcp_json, self._compile_hooks, self._compile_agent]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -210,6 +210,21 @@ class ClaudeCodeCompiler(Compiler):
             settings_dir.mkdir(parents=True, exist_ok=True)
             settings_path.write_text(json.dumps(existing_settings, indent=2) + "\n")
             written.append(".claude/settings.json")
+
+        return written, skipped, warnings
+
+    def _compile_agent(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
+        """Generate custom shipkit agent configuration."""
+        from shipkit.compilers.agents import write_claude_agent
+
+        written, skipped, warnings = [], [], []
+
+        agent_file = write_claude_agent(ctx, dry_run=dry_run)
+        if agent_file:
+            if dry_run:
+                written.append(f".claude/agents/shipkit.md (dry-run)")
+            else:
+                written.append(f".claude/agents/shipkit.md")
 
         return written, skipped, warnings
 

@@ -76,6 +76,33 @@ def install():
         click.echo()
         click.echo("  ✓ Installed shipkit-installer agent (broader permissions for smooth setup)")
 
+    # Step 3c: Generate and install global shipkit agent (so it's always current)
+    from shipkit.compilers.base import CompileContext
+    from shipkit.compilers.agents import generate_claude_agent_with_hooks
+    from shipkit.compilers.claude import ClaudeCodeCompiler
+
+    # Generate agent with hooks
+    tmp_ctx = CompileContext(shipkit_home=shipkit_home, repo_path=Path.cwd())
+    compiler = ClaudeCodeCompiler()
+
+    # Collect hooks
+    hooks_by_name = {}
+    for hooks_dir in tmp_ctx.hooks_layers:
+        if hooks_dir.exists():
+            for hook_file in sorted(hooks_dir.glob("*.yaml")):
+                hook_def = compiler._parse_hook_yaml(hook_file)
+                if hook_def:
+                    hooks_by_name[hook_def["name"]] = hook_def
+
+    # Generate agent config
+    agent_config = generate_claude_agent_with_hooks(tmp_ctx, hooks_by_name, compiler.HOOK_EVENT_MAP)
+
+    # Write to global location
+    global_agent = CLAUDE_HOME / "agents" / "shipkit.md"
+    global_agent.parent.mkdir(parents=True, exist_ok=True)
+    global_agent.write_text(agent_config)
+    click.echo(f"  ✓ Installed global shipkit agent to ~/.claude/agents/shipkit.md")
+
     # Step 4: Launch LLM installer for configuration
     click.echo()
     click.echo("🚀 Launching interactive installer...")
@@ -297,6 +324,29 @@ def upgrade():
         click.echo("🧹 Cleaned up broken symlinks:")
         for item in removed:
             click.echo(f"  - {item}")
+
+    # Update global agent (so version stays current)
+    click.echo()
+    click.echo("🔄 Updating global agent...")
+    from shipkit.compilers.base import CompileContext
+    from shipkit.compilers.agents import generate_claude_agent_with_hooks
+    from shipkit.compilers.claude import ClaudeCodeCompiler
+
+    tmp_ctx = CompileContext(shipkit_home=shipkit_home, repo_path=Path.cwd())
+    compiler = ClaudeCodeCompiler()
+
+    hooks_by_name = {}
+    for hooks_dir in tmp_ctx.hooks_layers:
+        if hooks_dir.exists():
+            for hook_file in sorted(hooks_dir.glob("*.yaml")):
+                hook_def = compiler._parse_hook_yaml(hook_file)
+                if hook_def:
+                    hooks_by_name[hook_def["name"]] = hook_def
+
+    agent_config = generate_claude_agent_with_hooks(tmp_ctx, hooks_by_name, compiler.HOOK_EVENT_MAP)
+    global_agent = CLAUDE_HOME / "agents" / "shipkit.md"
+    global_agent.write_text(agent_config)
+    click.echo(f"  ✓ Updated ~/.claude/agents/shipkit.md")
 
     click.echo()
     click.echo("✅ Upgrade complete!")

@@ -116,13 +116,12 @@ You're here to make Claude Code exceptional for software development—fast work
 """
 
 
-def write_claude_agent_with_hooks(
+def generate_claude_agent_with_hooks(
     ctx: CompileContext,
     hooks_by_name: dict[str, dict],
     hook_event_map: dict[str, str],
-    dry_run: bool = False
-) -> Path | None:
-    """Write Claude Code agent configuration with agent-scoped hooks."""
+) -> str:
+    """Generate Claude Code agent configuration with agent-scoped hooks."""
     from shipkit import __version__
     from shipkit.config import SHIPKIT_HOME
 
@@ -171,6 +170,17 @@ def write_claude_agent_with_hooks(
     body = _generate_system_prompt()
     agent_config = f"{frontmatter}\n\n{body}"
 
+    return agent_config
+
+
+def write_claude_agent_with_hooks(
+    ctx: CompileContext,
+    hooks_by_name: dict[str, dict],
+    hook_event_map: dict[str, str],
+    dry_run: bool = False
+) -> Path | None:
+    """Write Claude Code agent configuration with agent-scoped hooks."""
+    agent_config = generate_claude_agent_with_hooks(ctx, hooks_by_name, hook_event_map)
     agent_file = ctx.repo_path / ".claude" / "agents" / "shipkit.md"
 
     if dry_run:

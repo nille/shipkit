@@ -1,0 +1,14 @@
+# Pre-commit safety check — scans staged files for secrets, debug code, and
+# common mistakes before allowing commits.
+#
+# Runs before tool use (Skill or Bash) when git commit is invoked.
+# Blocks commits containing:
+# - Secrets/API keys/credentials
+# - Debug statements (console.log, debugger, print)
+# - Common mistakes (merge conflicts, large files, .env files)
+
+name: pre-commit-safety
+event: pre_tool_use
+description: Scan for secrets and debug code before committing
+command: python3 {shipkit_hooks_dir}/pre_commit_safety.py
+timeout: 10

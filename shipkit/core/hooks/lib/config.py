@@ -55,3 +55,28 @@ def is_hook_session() -> bool:
 def get_shipkit_dir() -> Path:
     """Get the shipkit package directory (where content/ lives)."""
     return Path(__file__).parent.parent.parent
+
+
+def load_config(home_path: Path) -> dict | None:
+    """Load config.yaml from shipkit home.
+
+    Returns: dict with config keys, or None if file doesn't exist
+    """
+    config_file = home_path / "config.yaml"
+    if not config_file.exists():
+        return None
+
+    try:
+        # Simple YAML parsing without external dependencies
+        # Only handles basic key: value format
+        config = {}
+        for line in config_file.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if ":" in line:
+                key, _, value = line.partition(":")
+                config[key.strip()] = value.strip()
+        return config
+    except Exception:
+        return None

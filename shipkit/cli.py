@@ -113,6 +113,108 @@ def status():
         click.echo("Project: not registered (run 'shipkit init')")
 
 
+# --- migrate command ---
+
+@main.command()
+@click.option("--to", "target_tool", required=True, type=click.Choice(["claude", "kiro", "gemini", "opencode"]), help="Target CLI tool")
+@click.option("--dry-run", is_flag=True, help="Show what would be migrated without moving files")
+def migrate(target_tool: str, dry_run: bool):
+    """Migrate user skills and guidelines to tool-native locations.
+
+    Moves content from one tool's directory to another:
+      ~/.claude/skills/ → ~/.kiro/skills/ (example)
+
+    Updates config.yaml to reflect the new tool preference.
+    """
+    import shutil
+    from shipkit.config import ShipkitConfig
+
+    # Load current config
+    cfg = ShipkitConfig.load()
+    current_tool = cfg.cli_tool
+
+    if current_tool == target_tool:
+        click.echo(f"Already configured for {target_tool}. Nothing to migrate.")
+        return
+
+    # Define tool-specific paths
+    tool_paths = {
+        "claude": {"base": Path.home() / ".claude", "guidelines_dir": "guidelines"},
+        "kiro": {"base": Path.home() / ".kiro", "guidelines_dir": "steering"},
+        "gemini": {"base": Path.home() / ".gemini", "guidelines_dir": "guidelines"},
+        "opencode": {"base": Path.home() / ".opencode", "guidelines_dir": "guidelines"},
+    }
+
+    source_base = tool_paths[current_tool]["base"]
+    target_base = tool_paths[target_tool]["base"]
+    source_guidelines_dir = tool_paths[current_tool]["guidelines_dir"]
+    target_guidelines_dir = tool_paths[target_tool]["guidelines_dir"]
+
+    # Collect migration tasks
+    migrations = []
+
+    # Skills migration
+    source_skills = source_base / "skills"
+    target_skills = target_base / "skills"
+    if source_skills.exists() and any(source_skills.iterdir()):
+        migrations.append(("skills", source_skills, target_skills))
+
+    # Guidelines/steering migration
+    source_guidelines = source_base / source_guidelines_dir
+    target_guidelines = target_base / target_guidelines_dir
+    if source_guidelines.exists() and any(source_guidelines.iterdir()):
+        migrations.append((target_guidelines_dir, source_guidelines, target_guidelines))
+
+    if not migrations:
+        click.echo(f"No content to migrate from {current_tool} to {target_tool}.")
+        click.echo(f"  Checked: {source_base}/skills/, {source_base}/{source_guidelines_dir}/")
+        if not dry_run:
+            # Update config anyway
+            cfg.cli_tool = target_tool
+            cfg.save()
+            click.echo(f"\nUpdated config.yaml: cli_tool → {target_tool}")
+        return
+
+    # Show migration plan
+    click.echo(f"Migration plan: {current_tool} → {target_tool}\n")
+    for label, src, dst in migrations:
+        count = len(list(src.iterdir())) if src.is_dir() else 0
+        click.echo(f"  {label}: {src} → {dst} ({count} items)")
+
+    if dry_run:
+        click.echo("\n(dry-run: no files moved)")
+        return
+
+    # Confirm before proceeding
+    click.echo()
+    if not click.confirm(f"Proceed with migration?"):
+        click.echo("Migration cancelled.")
+        return
+
+    # Perform migrations
+    click.echo()
+    for label, src, dst in migrations:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if dst.exists():
+            click.echo(f"! {dst} already exists, merging content...")
+            for item in src.iterdir():
+                target_item = dst / item.name
+                if target_item.exists():
+                    click.echo(f"  ! Skipping {item.name} (already exists)")
+                else:
+                    shutil.move(str(item), str(dst))
+                    click.echo(f"  ✓ Moved {item.name}")
+        else:
+            shutil.move(str(src), str(dst))
+            click.echo(f"✓ Moved {label}: {src} → {dst}")
+
+    # Update config
+    cfg.cli_tool = target_tool
+    cfg.save()
+    click.echo(f"\n✓ Updated config.yaml: cli_tool → {target_tool}")
+    click.echo(f"\nMigration complete! Run 'shipkit sync' to compile for {target_tool}.")
+
+
 # --- projects command ---
 
 @main.group()

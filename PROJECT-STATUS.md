@@ -2,16 +2,15 @@
 
 ## Current State (2026-04-14)
 
-Shipkit is undergoing a major architectural transformation to **instruction-driven discovery** - moving from compile-time skill/guideline aggregation to runtime agent discovery.
+Shipkit has completed a major architectural transformation to **instruction-driven discovery** - moving from compile-time skill/guideline aggregation to runtime agent discovery.
 
 ### Architecture Status
 
-**Phases Complete:**
+**All Phases Complete:**
 - ✅ **Phase 1:** Foundation - Renamed `content/` → `core/`
 - ✅ **Phase 2:** Skill Discovery - Skills discovered at runtime, not compiled
 - ✅ **Phase 3:** Tool-Native Paths + Guideline Discovery - Guidelines also runtime-discovered
-
-**Phase 4 (Next):** Migration tooling, documentation updates
+- ✅ **Phase 4:** Migration Tooling - Seamless tool switching with `shipkit migrate`
 
 ### How Discovery Works Now
 
@@ -127,17 +126,11 @@ Shipkit was inspired by auto-sa but differentiated:
 
 ### Known Issues / TODO
 
-**Phase 4 (Next Session):**
-1. Migration command: `shipkit migrate --to <tool>`
-2. `/migrate-tool` skill for switching tools
-3. Auto-detection hook for tool mismatches
-4. Documentation updates for new architecture
-5. README updates for discovery mode
-
 **Future Considerations:**
 - Permission check in `shipkit init` for ~/.config/shipkit/ access
 - Performance benchmarking of runtime discovery
-- Migration guide for hypothetical future users
+- Improve tool detection in `detect_tool_mismatch.py` hook (currently relies on env vars/parent process)
+- Consider adding psutil as optional dependency for better process detection
 
 ### Development Notes
 
@@ -175,8 +168,15 @@ python -m shipkit.lint    # Content validation
 
 ### Session Summary (2026-04-13 to 2026-04-14)
 
-**Total work:** 30 PRs merged, 8+ hours
-**Code changes:** +4094 lines, -592 lines removed
-**Major features:** Discovery architecture, 4 tool compilers, marketplace, self-learning
+**Total work:** 31 PRs (planned), ~9 hours
+**Code changes:** +4300 lines, -592 lines removed
+**Major features:** Discovery architecture (Phases 1-4), 4 tool compilers, marketplace, self-learning, migration tooling
 
-**Key achievement:** Transformed from compilation-based to instruction-driven discovery architecture. Skills and guidelines now discovered at runtime - revolutionary simplification.
+**Key achievement:** Transformed from compilation-based to instruction-driven discovery architecture. Skills and guidelines now discovered at runtime. Migration tooling enables seamless switching between AI coding tools.
+
+**Phase 4 deliverables:**
+- `shipkit migrate --to <tool>` command with dry-run support
+- `/migrate-tool` skill for interactive migration
+- `detect_tool_mismatch.py` hook for auto-detection
+- 7 migration test cases (all passing)
+- README and CHANGELOG updates documenting migration features

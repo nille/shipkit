@@ -2,8 +2,7 @@
 
 Generates:
 - CLAUDE.md (merged guidelines rules + skill catalog)
-- .mcp.json (merged MCP server config)
-- .claude/commands/<skill>.md (skills as custom slash commands)
+- .claude/agents/shipkit.md (agent config with hooks + agent-scoped MCP servers)
 
 Content layering (lowest → highest precedence):
   package core → user global → project → repo-native
@@ -36,8 +35,8 @@ class ClaudeCodeCompiler(Compiler):
         warnings = []
 
         # Skills are discovered at runtime via skill-discovery.md guideline
-        # Compile: guidelines (with discovery instructions), MCP, hooks, agent config
-        for step in [self._compile_claude_md, self._compile_mcp_json, self._compile_hooks, self._compile_agent]:
+        # Compile: guidelines (with discovery instructions), hooks, agent config (with MCP)
+        for step in [self._compile_claude_md, self._compile_hooks, self._compile_agent]:
             w, s, warn = step(ctx, dry_run)
             written.extend(w)
             skipped.extend(s)
@@ -92,10 +91,11 @@ class ClaudeCodeCompiler(Compiler):
 
         return written, skipped, warnings
 
-    def _compile_mcp_json(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        written, skipped, warnings = [], [], []
+    def _collect_mcp_servers(self, ctx: CompileContext) -> dict:
+        """Collect MCP servers from all layers for embedding in agent frontmatter.
 
-        # Merge MCP configs from all layers (package → user → project)
+        Returns a dict of {server_name: server_config} merged from all layers.
+        """
         merged_servers = {}
         for mcp_path in ctx.mcp_layers:
             if not mcp_path.exists():
@@ -105,30 +105,7 @@ class ClaudeCodeCompiler(Compiler):
             if isinstance(servers, dict):
                 merged_servers.update(servers)
 
-        if not merged_servers:
-            skipped.append(".mcp.json (no MCP servers configured)")
-            return written, skipped, warnings
-
-        # Repo-native entries take precedence (never overwritten)
-        repo_mcp_path = ctx.repo_path / ".mcp.json"
-        existing_servers = {}
-        if repo_mcp_path.exists():
-            existing = json.loads(repo_mcp_path.read_text())
-            existing_servers = existing.get("mcpServers", {})
-
-        for name, config in merged_servers.items():
-            if name not in existing_servers:
-                existing_servers[name] = config
-
-        output = {"mcpServers": existing_servers}
-
-        if dry_run:
-            written.append(".mcp.json (dry-run)")
-        else:
-            repo_mcp_path.write_text(json.dumps(output, indent=2) + "\n")
-            written.append(".mcp.json")
-
-        return written, skipped, warnings
+        return merged_servers
 
     # Map shipkit hook events to Claude Code hook events
     HOOK_EVENT_MAP = {
@@ -151,7 +128,7 @@ class ClaudeCodeCompiler(Compiler):
         return [], [], []
 
     def _compile_agent(self, ctx: CompileContext, dry_run: bool) -> tuple[list, list, list]:
-        """Generate custom shipkit agent configuration with hooks."""
+        """Generate custom shipkit agent configuration with hooks and MCP servers."""
         from shipkit.compilers.agents import write_claude_agent_with_hooks
 
         written, skipped, warnings = [], [], []
@@ -166,12 +143,17 @@ class ClaudeCodeCompiler(Compiler):
                 if hook_def:
                     hooks_by_name[hook_def["name"]] = hook_def
 
-        agent_file = write_claude_agent_with_hooks(ctx, hooks_by_name, self.HOOK_EVENT_MAP, dry_run=dry_run)
+        # Collect MCP servers for agent-scoped embedding
+        mcp_servers = self._collect_mcp_servers(ctx)
+
+        agent_file = write_claude_agent_with_hooks(
+            ctx, hooks_by_name, self.HOOK_EVENT_MAP, mcp_servers=mcp_servers, dry_run=dry_run,
+        )
         if agent_file:
             if dry_run:
-                written.append(f".claude/agents/shipkit.md (dry-run)")
+                written.append(".claude/agents/shipkit.md (dry-run)")
             else:
-                written.append(f".claude/agents/shipkit.md")
+                written.append(".claude/agents/shipkit.md")
 
         return written, skipped, warnings
 

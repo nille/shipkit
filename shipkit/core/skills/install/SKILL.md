@@ -185,8 +185,8 @@ For each selected MCP:
    If successful: "✓ GitHub MCP configured and responding"
    If fails: "⚠️ GitHub MCP installed but not responding. Check API key."
 
-4. **Add to mcp.json:**
-   Write selected MCPs to `~/.claude/mcp.json`:
+4. **Save MCP preferences to shipkit config:**
+   Write selected MCPs to `~/.config/shipkit/mcp.json` (NOT `~/.claude/mcp.json`):
    ```json
    {
      "mcpServers": {
@@ -207,6 +207,11 @@ For each selected MCP:
      }
    }
    ```
+   
+   **IMPORTANT:** MCP servers are agent-scoped, not global. They are compiled into
+   `.claude/agents/shipkit.md` during `shipkit sync`, so they only activate when using
+   the shipkit agent. Do NOT write to `~/.claude/mcp.json` — that would make MCPs
+   global across all Claude Code sessions.
 
 **MCP Selection Guidelines:**
 
@@ -332,7 +337,7 @@ Installed:
   ✅ Layer preferences saved to ~/.config/shipkit/config.yaml
   ✅ Hooks merged into ~/.claude/settings.json
   ✅ Shipkit agent created at ~/.claude/agents/shipkit.md
-  ✅ {N} MCP servers configured
+  ✅ {N} MCP servers configured (agent-scoped, not global)
 
 Next steps:
   1. cd to a git repository

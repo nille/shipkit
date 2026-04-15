@@ -96,7 +96,8 @@ class CompileContext:
 
     @property
     def user_mcp(self) -> Path:
-        return CLAUDE_HOME / "mcp.json"
+        """User MCP config in shipkit home (agent-scoped, not global Claude config)."""
+        return SHIPKIT_HOME / "mcp.json"
 
     # --- Team (project-specific, git-committed) ---
 

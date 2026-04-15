@@ -42,7 +42,7 @@ Each registered project can have its own guidelines and skills in `<home>/projec
 ## CLI Tool Targets
 
 Shipkit compiles to different tool-native formats:
-- **Claude Code** — CLAUDE.md + .mcp.json + .claude/commands/
+- **Claude Code** — CLAUDE.md + .claude/agents/shipkit.md (with agent-scoped MCP)
 - **Kiro** — .kiro/agents/ + .kiro/guidelines/ + .kiro/skills/
 - **Others** — via compiler adapters
 

@@ -167,12 +167,28 @@ Playwright MCP can connect to your real Chrome browser using the [Chrome MCP Bri
 
 ### Option 1: During `shipkit install`
 The installer will offer to set up popular MCPs interactively.
+MCPs are saved to `~/.config/shipkit/mcp.json` and compiled into the shipkit agent during `shipkit sync`.
 
 ### Option 2: Manual Configuration
-Add to `~/.claude/mcp.json` (user-wide) or `.mcp.json` (project-specific).
+Add to `~/.config/shipkit/mcp.json`, then run `shipkit sync` to compile into the agent.
 
 ### Option 3: Project-Specific
 Add to your project's `.mcp.json` and commit to git for team sharing.
+
+## How MCP Scoping Works
+
+Shipkit MCP servers are **agent-scoped** — they are compiled into `.claude/agents/shipkit.md`
+as inline `mcpServers` definitions. This means:
+
+- MCPs only activate when using the shipkit agent (`claude --agent shipkit`)
+- They do NOT pollute your global Claude Code sessions
+- Each MCP server starts when the agent starts and disconnects when it finishes
+- API keys are still configured in `~/.claude/settings.json` under `env`
+
+The MCP config flows through layers (lowest to highest precedence):
+1. Package core (`~/.config/shipkit/core/mcp.json`)
+2. Plugins (`~/.config/shipkit/plugins/*/mcp.json`)
+3. User preferences (`~/.config/shipkit/mcp.json`)
 
 ## Testing MCP Servers
 

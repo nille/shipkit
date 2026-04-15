@@ -63,9 +63,7 @@ Project 'my-project' registered.
 > Running: shipkit sync
 Written:
   + CLAUDE.md
-  + .mcp.json
-  + .claude/commands/commit.md
-  + .claude/commands/pr.md
+  + .claude/agents/shipkit.md
 
 Config synced. Your skills are now available as slash commands.
 ```

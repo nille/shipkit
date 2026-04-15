@@ -151,8 +151,8 @@ Shipkit is a layered content system for Claude Code. Skills and guidelines flow 
 ## Quick Start
 
 ```bash
-# 1. Install shipkit
-pip install shipkit
+# 1. Install shipkit (uv recommended, pip also works)
+uv tool install shipkit  # or: pip install shipkit
 
 # 2. Run the interactive installer
 shipkit install

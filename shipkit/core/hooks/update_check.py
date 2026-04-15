@@ -78,7 +78,7 @@ def _output_update_message(latest: str, current: str) -> None:
     """Print the update notification for agent context injection."""
     print(f"INSTRUCTION: shipkit {latest} is available (current: {current}). "
           f'Mention once at a natural pause: "💡 By the way: There\'s a new shipkit version ({latest}) available. '
-          f"Run /update-shipkit or pip install --upgrade shipkit to update.\" "
+          f"Run /update-shipkit to update.\" "
           f"Then don't mention it again this session.")
 
 

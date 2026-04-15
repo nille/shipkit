@@ -18,7 +18,9 @@ Find the shipkit installation and determine the update path.
 - Run `python -c "import shipkit; import pathlib; print(pathlib.Path(shipkit.__file__).parent.parent)"` to find the package root
 - Check if it's a git repo: look for `.git/` in the package root
 - If git clone: update via git (proceed to step 2)
-- If installed via uv/pip: tell user to run `uv pip install --upgrade shipkit` or `uv sync --upgrade-package shipkit`, then skip to step 5
+- If installed via uv tool: update with `uv tool upgrade shipkit`, then skip to step 5
+- If installed via uv/pip in a venv: update with `uv pip install --upgrade shipkit`, then skip to step 5
+- If installed via pip: update with `pip install --upgrade shipkit`, then skip to step 5
 - Check for uncommitted local changes to the shipkit repo and warn
 
 ### 2. Check for Updates

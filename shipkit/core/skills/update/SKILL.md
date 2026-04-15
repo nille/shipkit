@@ -46,7 +46,9 @@ Pull the latest code.
   - Ask user how to resolve each
   - Recommend taking upstream for package code
   - Offer `git rebase --abort` as escape hatch
-- After successful pull, run `uv sync` to update dependencies
+- After successful pull, run `pip install --force-reinstall .` to install the updated code
+  (`--force-reinstall` is required because pip doesn't detect changes in a local clone unless the version bumped)
+- Then run `uv sync` if the project uses uv to update dependencies
 
 ### 4. Verify
 

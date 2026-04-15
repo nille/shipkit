@@ -777,9 +777,15 @@ def run(prompt: tuple[str, ...], no_agent: bool):
     """
     import subprocess
     import shutil
+    from pathlib import Path
     from shipkit.sync import sync_project
     from shipkit.project import ProjectError
     from shipkit.datadir import DataDirError
+
+    # Detect if this is a first-time project (before sync creates the agent file)
+    repo_path = Path.cwd().resolve()
+    agent_file = repo_path / ".claude" / "agents" / "shipkit.md"
+    is_first_run = not agent_file.exists()
 
     # Sync first
     try:
@@ -803,8 +809,21 @@ def run(prompt: tuple[str, ...], no_agent: bool):
     cmd = ["claude"]
     if not no_agent:
         cmd.extend(["--agent", f"shipkit v{__version__}"])
-    if prompt:
-        cmd.append(" ".join(prompt))
+
+    # Build prompt — inject init hint for first-time projects
+    prompt_str = " ".join(prompt) if prompt else ""
+    if is_first_run and not no_agent:
+        init_hint = (
+            "This project hasn't been configured with shipkit yet. "
+            "Offer to run /init to set up project-specific MCP servers and preferences."
+        )
+        if prompt_str:
+            prompt_str = init_hint + " Then: " + prompt_str
+        else:
+            prompt_str = init_hint
+
+    if prompt_str:
+        cmd.append(prompt_str)
 
     click.echo("Launching shipkit on Claude Code...")
     subprocess.run(cmd, check=False)

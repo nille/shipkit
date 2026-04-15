@@ -59,6 +59,21 @@ class TestCompileContext:
         assert "plugins" in str(layers)
 
 
+    def test_mcp_layers_includes_project(self, compile_ctx):
+        """Test MCP layers include project-level path as highest precedence."""
+        ctx = compile_ctx
+        layers = ctx.mcp_layers
+        # Last layer should be the project-level MCP (highest precedence)
+        assert layers[-1] == ctx.team_mcp
+        assert str(ctx.repo_path / ".claude" / "mcp.json") == str(layers[-1])
+
+    def test_team_mcp_property(self, compile_ctx):
+        """Test team_mcp points to .claude/mcp.json in project."""
+        ctx = compile_ctx
+        expected = ctx.repo_path / ".claude" / "mcp.json"
+        assert ctx.team_mcp == expected
+
+
 class TestGetCompiler:
 
     def test_get_claude_compiler(self):

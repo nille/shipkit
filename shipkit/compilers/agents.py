@@ -120,8 +120,9 @@ def generate_claude_agent_with_hooks(
     ctx: CompileContext,
     hooks_by_name: dict[str, dict],
     hook_event_map: dict[str, str],
+    mcp_servers: dict[str, dict] | None = None,
 ) -> str:
-    """Generate Claude Code agent configuration with agent-scoped hooks."""
+    """Generate Claude Code agent configuration with agent-scoped hooks and MCP servers."""
     from shipkit import __version__
     from shipkit.config import SHIPKIT_HOME
 
@@ -147,11 +148,11 @@ def generate_claude_agent_with_hooks(
             "timeout": hook_def.get("timeout", 120),
         })
 
-    # Build YAML frontmatter with hooks
+    # Build YAML frontmatter with hooks and MCP servers
     import yaml
     frontmatter_data = {
-        "name": f"shipkit v{__version__}",
-        "description": "Production-grade Claude Code assistant with battle-tested skills and self-learning capabilities",
+        "name": "shipkit",
+        "description": f"Shipkit v{__version__} — Production-grade Claude Code assistant with battle-tested skills and self-learning capabilities",
         "model": "sonnet",
         "tools": "*",
         "permissionMode": "acceptEdits",
@@ -165,6 +166,22 @@ def generate_claude_agent_with_hooks(
     if hook_config:
         frontmatter_data["hooks"] = hook_config
 
+    # Add agent-scoped MCP servers (inline definitions)
+    # Format: list of {name: {type: stdio, command: ..., args: [...]}}
+    if mcp_servers:
+        mcp_list = []
+        for server_name, server_config in mcp_servers.items():
+            # Build inline MCP definition matching Claude Code's expected format
+            inline_def = {"type": "stdio"}
+            if "command" in server_config:
+                inline_def["command"] = server_config["command"]
+            if "args" in server_config:
+                inline_def["args"] = server_config["args"]
+            if "env" in server_config:
+                inline_def["env"] = server_config["env"]
+            mcp_list.append({server_name: inline_def})
+        frontmatter_data["mcpServers"] = mcp_list
+
     frontmatter = "---\n" + yaml.dump(frontmatter_data, default_flow_style=False, sort_keys=False) + "---"
 
     body = _generate_system_prompt()
@@ -177,10 +194,11 @@ def write_claude_agent_with_hooks(
     ctx: CompileContext,
     hooks_by_name: dict[str, dict],
     hook_event_map: dict[str, str],
-    dry_run: bool = False
+    mcp_servers: dict[str, dict] | None = None,
+    dry_run: bool = False,
 ) -> Path | None:
-    """Write Claude Code agent configuration with agent-scoped hooks."""
-    agent_config = generate_claude_agent_with_hooks(ctx, hooks_by_name, hook_event_map)
+    """Write Claude Code agent configuration with agent-scoped hooks and MCP servers."""
+    agent_config = generate_claude_agent_with_hooks(ctx, hooks_by_name, hook_event_map, mcp_servers)
     agent_file = ctx.repo_path / ".claude" / "agents" / "shipkit.md"
 
     if dry_run:
@@ -195,4 +213,4 @@ def write_claude_agent_with_hooks(
 def write_claude_agent(ctx: CompileContext, dry_run: bool = False) -> Path | None:
     """Write Claude Code agent configuration to .claude/agents/shipkit.md."""
     # Backwards compatibility wrapper
-    return write_claude_agent_with_hooks(ctx, {}, {}, dry_run)
+    return write_claude_agent_with_hooks(ctx, {}, {}, dry_run=dry_run)

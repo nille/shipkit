@@ -799,9 +799,10 @@ def run(prompt: tuple[str, ...], no_agent: bool):
         )
 
     # Build launch command with shipkit agent (unless --no-agent)
+    from shipkit import __version__
     cmd = ["claude"]
     if not no_agent:
-        cmd.extend(["--agent", "shipkit"])
+        cmd.extend(["--agent", f"shipkit v{__version__}"])
     if prompt:
         cmd.append(" ".join(prompt))
 

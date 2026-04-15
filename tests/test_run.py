@@ -43,7 +43,8 @@ class TestRunCommand:
             call_args = mock_run.call_args[0][0]
             assert "claude" in call_args
             assert "--agent" in call_args
-            assert "shipkit" in call_args
+            agent_arg = call_args[call_args.index("--agent") + 1]
+            assert agent_arg.startswith("shipkit")
 
     def test_run_without_agent(self, initialized_home, tmp_repo, monkeypatch):
         """Test run command with --no-agent flag."""

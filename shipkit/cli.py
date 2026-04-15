@@ -275,7 +275,7 @@ def uninstall(yes: bool):
     click.echo()
     click.echo("✅ Shipkit uninstalled successfully.")
     click.echo()
-    click.echo("To reinstall later: pip install shipkit && shipkit install")
+    click.echo("To reinstall later: uv tool install shipkit && shipkit install")
 
 
 @main.command()

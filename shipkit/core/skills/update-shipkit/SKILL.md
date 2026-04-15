@@ -1,6 +1,6 @@
 ---
 name: update-shipkit
-description: Update shipkit to the latest version from PyPI. Handles pip upgrade and core content refresh. Use when update notification appears or user wants latest features.
+description: Update shipkit to the latest version from PyPI. Handles uv/pip upgrade and core content refresh. Use when update notification appears or user wants latest features.
 ---
 
 # Update Shipkit Skill
@@ -9,7 +9,7 @@ Automated shipkit upgrade workflow.
 
 ## When To Use
 
-- When you see: "💡 There's a new shipkit version available"
+- When you see: "There's a new shipkit version available"
 - When user says: "update shipkit", "upgrade shipkit", "get latest shipkit"
 - Periodically to stay current with new features
 
@@ -21,15 +21,32 @@ Automated shipkit upgrade workflow.
 shipkit --version
 ```
 
-### Step 2: Check Available Version on PyPI
+### Step 2: Detect Installation Method
+
+Determine how shipkit was installed so we use the right upgrade command:
 
 ```bash
-pip index versions shipkit
+# Check if installed via uv tool
+uv tool list 2>/dev/null | grep shipkit
+
+# Check if installed in a uv-managed environment
+pip show shipkit 2>/dev/null | grep Location
 ```
 
-Compare current vs available.
+- If `uv tool list` shows shipkit: it's a **uv tool install**
+- If location is inside a `.venv`: it's a **uv/pip project install**
+- Otherwise: it's a **regular pip install**
 
-### Step 3: Confirm Upgrade
+### Step 3: Check Available Version on PyPI
+
+```bash
+# Prefer uv if available
+uv pip index versions shipkit 2>/dev/null || pip index versions shipkit
+```
+
+Compare current vs available. If already on latest, tell user and stop.
+
+### Step 4: Confirm Upgrade
 
 Show user:
 ```
@@ -42,23 +59,36 @@ New in 0.1.5:
 Would you like to upgrade?
 ```
 
-### Step 4: Upgrade
+### Step 5: Upgrade
 
+Use the method matching the installation:
+
+**uv tool install (recommended):**
+```bash
+uv tool upgrade shipkit
+```
+
+**uv pip (project venv):**
+```bash
+uv pip install --upgrade shipkit
+```
+
+**pip fallback:**
 ```bash
 pip install --upgrade shipkit
 ```
 
-### Step 5: Refresh Core Content
+### Step 6: Refresh Core Content
 
-After pip upgrade, refresh core content in ~/.config/shipkit/:
+After upgrading the package, refresh core content in ~/.config/shipkit/:
 
 ```bash
 shipkit upgrade
 ```
 
-This copies latest core/experimental/advanced from pip package to user space.
+This copies latest core/experimental/advanced from the updated package to user space and recreates symlinks.
 
-### Step 6: Verify
+### Step 7: Verify
 
 ```bash
 shipkit --version
@@ -66,11 +96,11 @@ shipkit --version
 
 Should show new version.
 
-### Step 7: Next Steps
+### Step 8: Next Steps
 
 Tell user:
 ```
-✅ Shipkit upgraded: 0.1.2 → 0.1.5
+Shipkit upgraded: 0.1.2 -> 0.1.5
 
 Changes take effect:
 - New skills: Available immediately (already symlinked)
@@ -83,17 +113,18 @@ Restart Claude Code to activate new hooks.
 ## Error Handling
 
 **"No newer version available"**
-→ "Already on latest version (0.1.5)"
+-> "Already on latest version (0.1.5)"
 
-**"pip upgrade failed"**
-→ Show error, suggest: pip install --upgrade --force-reinstall shipkit
+**"Upgrade failed"**
+-> Show error, suggest: `uv pip install --upgrade --force-reinstall shipkit` or `pip install --upgrade --force-reinstall shipkit`
 
 **"shipkit upgrade failed"**
-→ Show error, may need manual cleanup
+-> Show error, may need manual cleanup of ~/.config/shipkit/
 
 ## Key Principles
 
+- Detect installation method before upgrading (uv tool vs uv pip vs pip)
 - Always show what's changing (version numbers)
-- Run shipkit upgrade after pip (refreshes core)
+- Run `shipkit upgrade` after package upgrade (refreshes core content)
 - Remind to restart Claude (hooks)
 - Test that upgrade worked (verify version)

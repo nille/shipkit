@@ -26,54 +26,57 @@ shipkit --version
 Determine how shipkit was installed so we use the right upgrade command:
 
 ```bash
-# Check if installed via uv tool
-uv tool list 2>/dev/null | grep shipkit
-
-# Check if installed in a uv-managed environment
-pip show shipkit 2>/dev/null | grep Location
+# Find the package location
+python3 -c "import shipkit; from pathlib import Path; p = Path(shipkit.__file__).parent.parent; print(p); print('git' if (p / '.git').exists() else 'pip')"
 ```
-
-- If `uv tool list` shows shipkit: it's a **uv tool install**
-- If location is inside a `.venv`: it's a **uv/pip project install**
-- Otherwise: it's a **regular pip install**
-
-### Step 3: Check Available Version on PyPI
 
 ```bash
-# Prefer uv if available
-uv pip index versions shipkit 2>/dev/null || pip index versions shipkit
+# Also check if installed via uv tool
+uv tool list 2>/dev/null | grep shipkit
 ```
 
+- If the package root has `.git/`: it's a **local git clone** (most common for development)
+- If `uv tool list` shows shipkit: it's a **uv tool install**
+- Otherwise: it's a **pip install** (from PyPI or local)
+
+### Step 3: Check for Updates
+
+**Git clone install:**
+```bash
+cd <package-root>
+git fetch origin
+git log HEAD..origin/main --oneline
+```
+If no new commits, tell user and stop.
+Show what changed (new commits, CHANGELOG entries).
+
+**PyPI install:**
+```bash
+uv pip index versions shipkit 2>/dev/null || pip index versions shipkit
+```
 Compare current vs available. If already on latest, tell user and stop.
 
 ### Step 4: Confirm Upgrade
 
-Show user:
-```
-Current: shipkit 0.1.2
-Available: shipkit 0.1.5
-
-New in 0.1.5:
-- [Fetch from CHANGELOG if possible, or just show version bump]
-
-Would you like to upgrade?
-```
+Show user what's new and ask to proceed.
 
 ### Step 5: Upgrade
 
-Use the method matching the installation:
+**Git clone install:**
+```bash
+cd <package-root>
+git pull --rebase origin main
+pip install --force-reinstall .
+```
+`--force-reinstall` is required because pip doesn't detect changes in a local clone
+unless the version number bumped. Without it, pip sees "same version" and skips.
 
-**uv tool install (recommended):**
+**uv tool install:**
 ```bash
 uv tool upgrade shipkit
 ```
 
-**uv pip (project venv):**
-```bash
-uv pip install --upgrade shipkit
-```
-
-**pip fallback:**
+**pip from PyPI:**
 ```bash
 pip install --upgrade shipkit
 ```

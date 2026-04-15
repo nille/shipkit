@@ -63,11 +63,58 @@ class TestRunCommand:
             assert "claude" in call_args
             assert "--agent" not in call_args
 
+    def test_run_first_time_injects_init_hint(self, initialized_home, tmp_repo, monkeypatch):
+        """Test run command injects init hint for uninitialized projects."""
+        runner = CliRunner()
+
+        monkeypatch.chdir(tmp_repo)
+
+        # Ensure no agent file exists (first run)
+        agent_file = tmp_repo / ".claude" / "agents" / "shipkit.md"
+        assert not agent_file.exists()
+
+        with patch("subprocess.run") as mock_run, \
+             patch("shutil.which", return_value="/usr/bin/claude"):
+
+            result = runner.invoke(main, ["run"])
+
+            assert mock_run.called
+            call_args = mock_run.call_args[0][0]
+            # Should include init hint in the prompt
+            prompt_arg = call_args[-1]
+            assert "/init" in prompt_arg
+
+    def test_run_existing_project_no_hint(self, initialized_home, tmp_repo, monkeypatch):
+        """Test run command does NOT inject init hint for already-initialized projects."""
+        runner = CliRunner()
+
+        monkeypatch.chdir(tmp_repo)
+
+        # Create the agent file to simulate an initialized project
+        agent_dir = tmp_repo / ".claude" / "agents"
+        agent_dir.mkdir(parents=True, exist_ok=True)
+        (agent_dir / "shipkit.md").write_text("---\nname: shipkit\n---\n")
+
+        with patch("subprocess.run") as mock_run, \
+             patch("shutil.which", return_value="/usr/bin/claude"):
+
+            result = runner.invoke(main, ["run"])
+
+            assert mock_run.called
+            call_args = mock_run.call_args[0][0]
+            # Should NOT include any init hint (just claude + --agent)
+            assert len(call_args) == 3  # claude, --agent, "shipkit v..."
+
     def test_run_with_prompt(self, initialized_home, tmp_repo, monkeypatch):
         """Test run command with initial prompt."""
         runner = CliRunner()
 
         monkeypatch.chdir(tmp_repo)
+
+        # Create agent file so we test prompt passthrough without init hint
+        agent_dir = tmp_repo / ".claude" / "agents"
+        agent_dir.mkdir(parents=True, exist_ok=True)
+        (agent_dir / "shipkit.md").write_text("---\nname: shipkit\n---\n")
 
         with patch("subprocess.run") as mock_run, \
              patch("shutil.which", return_value="/usr/bin/claude"):

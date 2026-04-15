@@ -109,6 +109,11 @@ class CompileContext:
     def team_skills(self) -> Path:
         return self.repo_path / ".claude" / "skills"
 
+    @property
+    def team_mcp(self) -> Path:
+        """Project MCP config (git-committed, team-shared)."""
+        return self.repo_path / ".claude" / "mcp.json"
+
     # --- Subagents ---
 
     @property
@@ -206,6 +211,9 @@ class CompileContext:
             layers.append(pd / "mcp.json")
 
         layers.append(self.user_mcp)
+
+        # Project-level (highest precedence, team-shared)
+        layers.append(self.team_mcp)
         return layers
 
     @property

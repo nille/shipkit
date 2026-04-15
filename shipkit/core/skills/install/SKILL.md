@@ -119,114 +119,13 @@ Select which to enable (space to toggle, enter to confirm):
 
 Save preference to memory for config.yaml creation.
 
-#### 3.2 MCP Server Selection
+#### 3.2 MCP Servers
 
-Offer to install commonly-used MCP servers:
+MCP servers are configured per-project during `/init`, not during global install.
+Each project gets its own MCP servers based on its tech stack.
 
-```
-Would you like to install any MCP servers? (Enhance skills like /research, /pr)
-
-Essential (free, enhance core skills):
-  [ ] Brave Search - Powers /research skill with web search
-      Free API key: https://brave.com/search/api/
-      
-  [ ] Filesystem - Enhanced file operations
-      No API key needed
-      
-  [ ] GitHub - View/create PRs and issues (enhances /pr, /review)
-      Uses your existing GITHUB_TOKEN
-
-Development Tools:
-  [ ] Playwright - Browser automation for testing
-      Requires: Node.js
-      
-  [ ] SQLite - Local database queries
-      No API key needed
-
-Team/Productivity:
-  [ ] Slack - Read/send messages
-      Requires: SLACK_BOT_TOKEN
-      
-  [ ] Linear - Issue tracking
-      Requires: LINEAR_API_KEY
-
-Or: Skip MCP setup (you can add later)
-```
-
-For each selected MCP:
-
-1. **Check prerequisites:**
-   - Node.js installed? (`which node`)
-   - API key available? (check environment or prompt)
-
-2. **Guide API key setup:**
-   ```
-   To use GitHub MCP, you need GITHUB_TOKEN.
-   
-   You can:
-   1. Use existing token from environment (found: $GITHUB_TOKEN)
-   2. Create a new token: https://github.com/settings/tokens
-   3. Add to ~/.claude/settings.json:
-      {
-        "env": {
-          "GITHUB_TOKEN": "ghp_your_token"
-        }
-      }
-   
-   Enter token now, or skip (add later):
-   ```
-
-3. **Test MCP works:**
-   ```bash
-   # Test the MCP server responds
-   echo '{"jsonrpc":"2.0","method":"initialize","params":{},"id":1}' | npx -y @modelcontextprotocol/server-github
-   ```
-   
-   If successful: "✓ GitHub MCP configured and responding"
-   If fails: "⚠️ GitHub MCP installed but not responding. Check API key."
-
-4. **Save MCP preferences to shipkit config:**
-   Write selected MCPs to `~/.config/shipkit/mcp.json` (NOT `~/.claude/mcp.json`):
-   ```json
-   {
-     "mcpServers": {
-       "brave-search": {
-         "command": "npx",
-         "args": ["-y", "@modelcontextprotocol/server-brave-search"],
-         "env": {
-           "BRAVE_API_KEY": "${BRAVE_API_KEY}"
-         }
-       },
-       "github": {
-         "command": "npx",
-         "args": ["-y", "@modelcontextprotocol/server-github"],
-         "env": {
-           "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-         }
-       }
-     }
-   }
-   ```
-   
-   **IMPORTANT:** MCP servers are agent-scoped, not global. They are compiled into
-   `.claude/agents/shipkit.md` during `shipkit sync`, so they only activate when using
-   the shipkit agent. Do NOT write to `~/.claude/mcp.json` — that would make MCPs
-   global across all Claude Code sessions.
-
-**MCP Selection Guidelines:**
-
-**Always recommend:**
-- **Brave Search** if user selected /research skill
-- **GitHub** if in a git repo with remote on github.com
-
-**Recommend based on tech stack detection:**
-- **Playwright** if package.json has testing frameworks
-- **Postgres/SQLite** if project uses databases
-- **Linear** if `.linear` directory exists or mentioned in docs
-
-**Don't recommend:**
-- **Slack** unless user explicitly interested (privacy concerns)
-- **Context7** (paid service, requires setup)
+When a user first runs `sk` in a project, shipkit will automatically offer to run
+`/init` to set up project-specific MCP servers and preferences.
 
 ### Phase 4: Install
 
@@ -331,19 +230,20 @@ Show what files were generated (.claude/agents/shipkit.md, CLAUDE.md, etc.)
 Display success message with guidance:
 
 ```
-🎉 Shipkit installed successfully!
+Shipkit installed successfully!
 
 Installed:
-  ✅ Layer preferences saved to ~/.config/shipkit/config.yaml
-  ✅ Hooks merged into ~/.claude/settings.json
-  ✅ Shipkit agent created at ~/.claude/agents/shipkit.md
-  ✅ {N} MCP servers configured (agent-scoped, not global)
+  + Layer preferences saved to ~/.config/shipkit/config.yaml
+  + Hooks merged into ~/.claude/settings.json
+  + Shipkit agent created at ~/.claude/agents/shipkit.md
 
 Next steps:
   1. cd to a git repository
-  2. Run: shipkit sync          # Generate Claude Code config for this repo
-  3. Run: shipkit run           # Launch shipkit agent
-     Or: claude --agent shipkit # Launch manually
+  2. Run: sk                     # Launch shipkit (auto-syncs + offers /init)
+     Or: shipkit run             # Same thing, longer name
+
+  First launch in a project will offer to run /init to set up
+  project-specific MCP servers based on your tech stack.
 
 Quick access:
   Run: shipkit alias sk --install
@@ -353,11 +253,10 @@ Try your new skills:
   /commit                       # Smart git commits
   /pr                           # Generate pull requests
   /review <pr>                  # Code reviews
-  /research "query"             # Multi-source research (if Brave MCP installed)
+  /init                         # Set up MCP servers for a project
 
 Documentation:
   - Skills: Use /skills in any session to see all available
-  - MCP docs: ~/.local/lib/.../shipkit/docs/mcp-servers.md
   - Help: shipkit --help
 
 Your existing Claude Code setup has been preserved. All your personal skills,

@@ -810,20 +810,17 @@ def run(prompt: tuple[str, ...], no_agent: bool):
     if not no_agent:
         cmd.extend(["--agent", f"shipkit v{__version__}"])
 
-    # Build prompt — inject init hint for first-time projects
-    prompt_str = " ".join(prompt) if prompt else ""
+    # For first-time projects, inject init hint into system prompt
     if is_first_run and not no_agent:
-        init_hint = (
-            "This project hasn't been configured with shipkit yet. "
-            "Offer to run /init to set up project-specific MCP servers and preferences."
-        )
-        if prompt_str:
-            prompt_str = init_hint + " Then: " + prompt_str
-        else:
-            prompt_str = init_hint
+        cmd.extend(["--append-system-prompt", (
+            "IMPORTANT: This is a new project that hasn't been set up with shipkit yet. "
+            "Your FIRST action must be to run the /init skill to detect the tech stack "
+            "and configure project-specific MCP servers. Do this before anything else."
+        )])
 
-    if prompt_str:
-        cmd.append(prompt_str)
+    # Pass user prompt if provided
+    if prompt:
+        cmd.append(" ".join(prompt))
 
     click.echo("Launching shipkit on Claude Code...")
     subprocess.run(cmd, check=False)

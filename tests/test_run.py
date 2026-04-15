@@ -80,9 +80,10 @@ class TestRunCommand:
 
             assert mock_run.called
             call_args = mock_run.call_args[0][0]
-            # Should include init hint in the prompt
-            prompt_arg = call_args[-1]
-            assert "/init" in prompt_arg
+            # Should include --append-system-prompt with init hint
+            assert "--append-system-prompt" in call_args
+            hint_idx = call_args.index("--append-system-prompt") + 1
+            assert "/init" in call_args[hint_idx]
 
     def test_run_existing_project_no_hint(self, initialized_home, tmp_repo, monkeypatch):
         """Test run command does NOT inject init hint for already-initialized projects."""
@@ -102,8 +103,8 @@ class TestRunCommand:
 
             assert mock_run.called
             call_args = mock_run.call_args[0][0]
-            # Should NOT include any init hint (just claude + --agent)
-            assert len(call_args) == 3  # claude, --agent, "shipkit v..."
+            # Should NOT include init hint
+            assert "--append-system-prompt" not in call_args
 
     def test_run_with_prompt(self, initialized_home, tmp_repo, monkeypatch):
         """Test run command with initial prompt."""
